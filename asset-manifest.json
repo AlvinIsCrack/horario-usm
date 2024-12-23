@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/horario-usm/static/css/main.f40f893c.css",
-    "main.js": "/horario-usm/static/js/main.4e2aa4d1.js",
+    "main.css": "/horario-usm/static/css/main.5b8253f3.css",
+    "main.js": "/horario-usm/static/js/main.0868e551.js",
     "static/media/campus_vitacura.jpg": "/horario-usm/static/media/campus_vitacura.29650258e48e1d2848db.jpg",
     "static/media/campus_casa_central.jpg": "/horario-usm/static/media/campus_casa_central.b7a4e066299d9aece73e.jpg",
     "static/media/campus_viña_del_mar.jpg": "/horario-usm/static/media/campus_viña_del_mar.efa5c1a66c4ee84627b9.jpg",
@@ -35,11 +35,11 @@
     "static/media/inter-greek-ext-400-normal.woff2": "/horario-usm/static/media/inter-greek-ext-400-normal.f2fa0d9ef98f59d4a75b.woff2",
     "static/media/inter-vietnamese-400-normal.woff2": "/horario-usm/static/media/inter-vietnamese-400-normal.44c9df135eec470b0ab6.woff2",
     "index.html": "/horario-usm/index.html",
-    "main.f40f893c.css.map": "/horario-usm/static/css/main.f40f893c.css.map",
-    "main.4e2aa4d1.js.map": "/horario-usm/static/js/main.4e2aa4d1.js.map"
+    "main.5b8253f3.css.map": "/horario-usm/static/css/main.5b8253f3.css.map",
+    "main.0868e551.js.map": "/horario-usm/static/js/main.0868e551.js.map"
   },
   "entrypoints": [
-    "static/css/main.f40f893c.css",
-    "static/js/main.4e2aa4d1.js"
+    "static/css/main.5b8253f3.css",
+    "static/js/main.0868e551.js"
   ]
 }
