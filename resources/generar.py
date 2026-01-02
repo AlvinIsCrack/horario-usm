@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import urllib
 import os
+import sys
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(script_dir)
