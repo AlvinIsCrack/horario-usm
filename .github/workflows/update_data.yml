@@ -26,10 +26,9 @@ jobs:
 
       - name: Ejecutar script de generación
         env:
-          # Inyectamos los secretos como variables de entorno
-          LOGIN: ${{ secrets.SIGA_LOGIN }}
-          SERVER: ${{ secrets.SIGA_SERVER }}
-          PASSWD: ${{ secrets.SIGA_PASSWD }}
+          SIGA_LOGIN: ${{ secrets.SIGA_LOGIN }}
+          SIGA_SERVER: ${{ secrets.SIGA_SERVER }}
+          SIGA_PASSWD: ${{ secrets.SIGA_PASSWD }}
           # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
           PYTHONPATH: ${{ github.workspace }}/resources
         run: python resources/generar.py

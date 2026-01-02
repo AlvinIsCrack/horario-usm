@@ -6,31 +6,29 @@ import time
 import datetime
 import multiprocess as mp
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv
 import urllib
 import os
 import sys
-
-load_dotenv()
-
-script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(script_dir)
-
 from cookie import obtener_cookie
 
 UPDATE_RAMOS = True
 UPDATE_CARRERAS = False 
 UPDATE_PROGRAMAS = False
 
-LOGIN = os.getenv("SIGA_LOGIN") or os.getenv("LOGIN")
-SERVER = os.getenv("SIGA_SERVER") or os.getenv("SERVER")
-PASSWD = os.getenv("SIGA_PASSWD") or os.getenv("PASSWD")
+LOGIN = os.getenv("SIGA_LOGIN")
+SERVER = os.getenv("SIGA_SERVER")
+PASSWD = os.getenv("SIGA_PASSWD")
+
+if not all([LOGIN, SERVER, PASSWD]):
+    print(
+        "Error: Credenciales incompletas\n"
+        f"LOGIN={LOGIN}\n"
+        f"SERVER={SERVER}\n"
+        f"PASSWD={'SET' if PASSWD else None}"
+    )
+    sys.exit(1)
 
 PRODUCCION = False
-if not all([LOGIN, SERVER, PASSWD]):
-    print(f"Error: Credenciales incompletas. L:{LOGIN}, S:{SERVER}, P:{'***' if PASSWD else None}")
-    sys.exit(1)
-    
 COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
 
 DIAS = {
