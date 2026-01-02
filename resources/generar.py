@@ -22,11 +22,15 @@ UPDATE_RAMOS = True
 UPDATE_CARRERAS = False 
 UPDATE_PROGRAMAS = False
 
-LOGIN = os.getenv("LOGIN")
-SERVER = os.getenv("SERVER")
-PASSWD = os.getenv("PASSWD")
+LOGIN = os.getenv("SIGA_LOGIN") or os.getenv("LOGIN")
+SERVER = os.getenv("SIGA_SERVER") or os.getenv("SERVER")
+PASSWD = os.getenv("SIGA_PASSWD") or os.getenv("PASSWD")
 
 PRODUCCION = False
+if not all([LOGIN, SERVER, PASSWD]):
+    print(f"Error: Credenciales incompletas. L:{LOGIN}, S:{SERVER}, P:{'***' if PASSWD else None}")
+    sys.exit(1)
+    
 COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
 
 DIAS = {
