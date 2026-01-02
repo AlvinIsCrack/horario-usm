@@ -7,9 +7,13 @@ import datetime
 import multiprocess as mp
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
-from cookie import obtener_cookie
 import urllib
 import os
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(script_dir)
+
+from cookie import obtener_cookie
 
 load_dotenv()
 
