@@ -17,7 +17,6 @@ UPDATE_RAMOS = True
 UPDATE_CARRERAS = False 
 UPDATE_PROGRAMAS = False
 
-ROOT = os.getenv("ROOT")
 LOGIN = os.getenv("LOGIN")
 SERVER = os.getenv("SERVER")
 PASSWD = os.getenv("PASSWD")

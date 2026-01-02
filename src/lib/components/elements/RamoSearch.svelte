@@ -160,7 +160,10 @@
 								i
 									? 'bg-accent'
 									: ''} {inHorario ? 'text-orange-400 line-through opacity-50' : ''}"
-								onclick={() => onItemClicked(sigla)}
+								onmousedown={(e) => {
+									e.preventDefault(); // Opcional: evita que el input pierda foco visualmente antes de tiempo
+									onItemClicked(sigla);
+								}}
 							>
 								<Tooltip wrapperClass="absolute! top-0 right-0 m-1" content="Paralelos">
 									<Badge icon={Paralelos} class="scale-90 text-sm">
