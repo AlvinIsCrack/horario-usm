@@ -31,6 +31,13 @@ if not all([LOGIN, SERVER, PASSWD]):
 PRODUCCION = False
 COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
 
+# Definir la ruta base de datos relativa a este script
+# usm-assist/resources -> usm-assist/src/lib/data
+DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "lib", "data")
+
+# Asegurar que la carpeta exista
+os.makedirs(DATA_PATH, exist_ok=True)
+
 DIAS = {
     "Lunes": 0,
     "Martes": 1,
@@ -583,27 +590,17 @@ if __name__ == "__main__":
     if UPDATE_PROGRAMAS:
         programas = get_programas_academicos()
         if len(programas.keys()):
-            with open(
-                "./src/lib/data/programas_academicos.json", "w+", encoding="iso-8859-1"
-            ) as f:
+            with open(os.path.join(DATA_PATH, "programas_academicos.json"), "w+", encoding="iso-8859-1") as f:
                 f.write(json.dumps(programas))
-        else:
-            print("NO SE OBTUVIERON LOS PROGRAMAS")
+
     if UPDATE_CARRERAS:
         if len(carreras):
-            with open(
-                "./src/lib/data/planes_carreras.json", "w+", encoding="iso-8859-1"
-            ) as f:
+            with open(os.path.join(DATA_PATH, "planes_carreras.json"), "w+", encoding="iso-8859-1") as f:
                 f.write(json.dumps(carreras))
-        else:
-            print("NO SE OBTUVIERON CARRERAS")
+
     if UPDATE_RAMOS:
         if len(ramos.keys()):
-            with open(
-                "./src/lib/data/horario_asignaturas.json", "w+", encoding="iso-8859-1"
-            ) as f:
+            with open(os.path.join(DATA_PATH, "horario_asignaturas.json"), "w+", encoding="iso-8859-1") as f:
                 ramos["date"] = unix
                 f.write(json.dumps(ramos))
-        else:
-            print("NO SE OBTUVIERON RAMOS")
-print("OK")
+    print("OK")
