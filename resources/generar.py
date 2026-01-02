@@ -15,6 +15,15 @@ UPDATE_RAMOS = True
 UPDATE_CARRERAS = False 
 UPDATE_PROGRAMAS = False
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_PATH = os.path.join(BASE_DIR, "src", "lib", "data")
+
+# Verificamos que la ruta existe antes de seguir para no fallar silenciosamente
+if not os.path.exists(DATA_PATH):
+    print(f"Error: La ruta de datos no existe: {DATA_PATH}")
+    # En local esto te avisará si moviste algo, en GitHub evitará el error de git add
+    sys.exit(1)
+
 LOGIN = os.getenv("SIGA_LOGIN")
 SERVER = os.getenv("SIGA_SERVER")
 PASSWD = os.getenv("SIGA_PASSWD")
@@ -30,10 +39,6 @@ if not all([LOGIN, SERVER, PASSWD]):
 
 PRODUCCION = False
 COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
-
-# Definir la ruta base de datos relativa a este script
-# usm-assist/resources -> usm-assist/src/lib/data
-DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "lib", "data")
 
 # Asegurar que la carpeta exista
 os.makedirs(DATA_PATH, exist_ok=True)
@@ -587,20 +592,34 @@ if __name__ == "__main__":
                         ):
                             carreras.append(carrera)
 
+    # --- ESCRITURA DE ARCHIVOS ---
+
     if UPDATE_PROGRAMAS:
         programas = get_programas_academicos()
         if len(programas.keys()):
-            with open(os.path.join(DATA_PATH, "programas_academicos.json"), "w+", encoding="iso-8859-1") as f:
+            dest = os.path.join(DATA_PATH, "programas_academicos.json")
+            with open(dest, "w+", encoding="iso-8859-1") as f:
                 f.write(json.dumps(programas))
+            print(f"Programas actualizados en: {dest}")
+        else:
+            print("NO SE OBTUVIERON LOS PROGRAMAS")
 
     if UPDATE_CARRERAS:
         if len(carreras):
-            with open(os.path.join(DATA_PATH, "planes_carreras.json"), "w+", encoding="iso-8859-1") as f:
+            dest = os.path.join(DATA_PATH, "planes_carreras.json")
+            with open(dest, "w+", encoding="iso-8859-1") as f:
                 f.write(json.dumps(carreras))
+            print(f"Carreras actualizadas en: {dest}")
+        else:
+            print("NO SE OBTUVIERON CARRERAS")
 
     if UPDATE_RAMOS:
         if len(ramos.keys()):
-            with open(os.path.join(DATA_PATH, "horario_asignaturas.json"), "w+", encoding="iso-8859-1") as f:
+            dest = os.path.join(DATA_PATH, "horario_asignaturas.json")
+            with open(dest, "w+", encoding="iso-8859-1") as f:
                 ramos["date"] = unix
                 f.write(json.dumps(ramos))
-    print("OK")
+            print(f"Ramos actualizados en: {dest}")
+        else:
+            print("NO SE OBTUVIERON RAMOS")
+print("OK")

@@ -38,13 +38,13 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Intentar agregar los archivos. Si no existen, no fallar el script.
-          git add usm-assist/src/lib/data/*.json || echo "No se encontraron archivos JSON para agregar"
+          # Agregamos los archivos usando la ruta desde la raíz del repo
+          git add src/lib/data/*.json
           
-          # Solo hacer commit y push si hay cambios reales en el área de stage
+          # Solo hacemos commit si hay cambios para no romper el build
           if ! git diff --staged --quiet; then
             git commit -m "chore(data): actualización automática de horarios [skip ci]"
             git push
           else
-            echo "Sin cambios detectados en los datos."
+            echo "No hay cambios en los datos, nada que subir."
           fi
