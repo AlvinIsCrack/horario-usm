@@ -8,6 +8,8 @@ from requests import Session
 # passwd: Contraseña del SIGA asociada al correo.
 # decypt: Si se tienen que desencriptar las credenciales con el ssh-agent.
 def obtener_cookie(login, server, passwd, decrypt):
+    print(f"Iniciando sesión con {login}@{server}:{'*'*len(passwd)}")
+
     if (decrypt):
         from ssh_crypt import E
         from ssh_crypt.exceptions import SSHCrypAgentNotConnected

@@ -11,12 +11,12 @@ import urllib
 import os
 import sys
 
+load_dotenv()
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(script_dir)
 
 from cookie import obtener_cookie
-
-load_dotenv()
 
 UPDATE_RAMOS = True
 UPDATE_CARRERAS = False 
