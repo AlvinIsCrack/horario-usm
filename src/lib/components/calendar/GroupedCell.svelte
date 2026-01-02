@@ -5,8 +5,8 @@
 
 	let { día, bloque }: { día: Días; bloque: number } = $props();
 
-	const bloque1_array = $derived(Calendario.getBloque(día, bloque));
-	const bloque2_array = $derived(Calendario.getBloque(día, bloque + 1));
+	const bloque1_array = $derived(Calendario.getBloques(día, bloque));
+	const bloque2_array = $derived(Calendario.getBloques(día, bloque + 1));
 
 	/**
 	 * Crea una "firma" única y ordenada para una lista de bloques.

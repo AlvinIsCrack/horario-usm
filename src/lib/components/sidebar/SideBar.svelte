@@ -13,6 +13,7 @@
 	import { tick } from 'svelte';
 	import SavedHorariosWindow from './windows/SavedHorariosWindow.svelte';
 	import Horario from '$lib/icons/horario.svelte';
+	import Time from '$lib/helpers/time';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -137,10 +138,15 @@
 		{#if activeWindow}
 			{@const Window = activeWindow}
 			<div
-				transition:fly={{ x: '-100%', opacity: 1, easing: circOut, duration: 400 }}
-				class="bg-sidebar-accent text-sidebar-accent-foreground absolute top-0 left-0 flex h-full w-full flex-col items-end gap-2 p-4 {activeWindow
+				class="bg-sidebar-accent text-sidebar-accent-foreground absolute top-0 left-0 flex h-full w-full min-w-full flex-col items-end gap-2 p-4 {activeWindow
 					? 'pointer-events-auto'
 					: 'pointer-events-none'}"
+				transition:fly={{
+					x: '-100%',
+					opacity: 1,
+					easing: circOut,
+					duration: 300
+				}}
 			>
 				<Button
 					class="aspect-square h-min w-auto"

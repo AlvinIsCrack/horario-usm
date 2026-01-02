@@ -9,6 +9,7 @@
 	import Lock from '$lib/icons/lock.svelte';
 	import Warning from '$lib/icons/warning.svelte';
 	import { fade } from 'svelte/transition';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
@@ -75,9 +76,9 @@
 	const invalid = $derived(!Calendario.sede);
 </script>
 
-<div>
+<div class="relative h-fit w-full">
 	<Card class="{_class} flex flex-col gap-2 overflow-hidden" {...props}>
-		<div class="pointer-events-none relative mb-2 h-40 w-full will-change-contents">
+		<div class="pointer-events-none relative mb-2 h-20 w-full will-change-contents">
 			{#if invalid}
 				<div
 					class="sede-selector-warning-bg absolute top-0 left-0 h-full w-full origin-bottom scale-150 object-cover"
@@ -92,17 +93,9 @@
 				{#key sedeImageSrc}
 					<img
 						transition:fade
-						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 object-cover"
+						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 mask-r-from-40% mask-r-to-90% object-cover"
 						alt=""
 						src={sedeImageSrc}
-					/>
-				{/key}
-				{#key isVespertina}
-					<img
-						transition:fade
-						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 mask-r-from-25% mask-r-to-75% object-cover"
-						alt=""
-						src="{isVespertina ? 'vespertino' : 'diurno'}.jpg"
 					/>
 				{/key}
 			{/if}
@@ -128,12 +121,20 @@
 						bind:value={selectedSede}
 					/>
 				</div>
-				<div class="flex w-full flex-row justify-between gap-1">
+				<div class="flex w-full flex-row justify-between gap-2">
 					{#if selectedSede && Data.jornadas[selectedSede]}
+						{@const disabled = Data.jornadas[selectedSede].length <= 1}
 						<div class="h-full flex-1">
-							<p class="text-sm">Jornada</p>
+							<div class="flex flex-row items-center gap-1 text-sm">
+								<p>Jornada</p>
+								{#if disabled}
+									<Tooltip content="Solo hay una jornada disponible">
+										<Lock class="inline" />
+									</Tooltip>
+								{/if}
+							</div>
 							<Select
-								disabled={Data.jornadas[selectedSede].length <= 1}
+								{disabled}
 								class="w-full text-sm"
 								items={Data.jornadas[selectedSede].map((jornada) => ({
 									value: jornada
@@ -157,6 +158,17 @@
 			</div>
 		{/if}
 	</Card>
+	{#if !invalid}
+		{#key isVespertina}
+			{@const Icon = isVespertina ? Moon : Sun}
+			<div
+				transition:fade
+				class="absolute top-0 right-0 m-2 mix-blend-difference drop-shadow-sm drop-shadow-black"
+			>
+				<Icon class="inline h-20 w-auto" />
+			</div>
+		{/key}
+	{/if}
 </div>
 
 <style>

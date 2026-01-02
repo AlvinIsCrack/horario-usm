@@ -4,6 +4,7 @@
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { Ramo } from '$lib/types/horario';
+	// import HorarioMiniRender from './HorarioMiniRender.svelte';
 
 	let {
 		selected = false,
@@ -20,7 +21,8 @@
 	);
 </script>
 
-<!-- {#snippet paraleloRender()}
+<!-- 
+{#snippet paraleloRender()}
 	<HorarioMiniRender bloques={paralelo.horario} />
 {/snippet} -->
 

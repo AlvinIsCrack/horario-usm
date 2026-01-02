@@ -6,12 +6,24 @@ import time
 import datetime
 import multiprocess as mp
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from cookie import obtener_cookie
 import urllib
+import os
 
-UPDATE_CARRERAS = False 
+load_dotenv()
+
 UPDATE_RAMOS = True
+UPDATE_CARRERAS = False 
 UPDATE_PROGRAMAS = False
-COOKIES = "JSESSIONID=OU-qp2wZ+5q7X8baybOLHw__.nodo1"
+
+ROOT = os.getenv("ROOT")
+LOGIN = os.getenv("LOGIN")
+SERVER = os.getenv("SERVER")
+PASSWD = os.getenv("PASSWD")
+
+PRODUCCION = False
+COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
 
 DIAS = {
     "Lunes": 0,

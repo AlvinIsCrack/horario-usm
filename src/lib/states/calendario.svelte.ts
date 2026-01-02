@@ -30,11 +30,11 @@ let _carrera: string = $state("");
 
 let _ramoPreview: Ramo | undefined = $state(undefined);
 let _ramos: Ramo[] = $state([]);
-let _calendarioVisible = $derived(_ramos.length || _ramoPreview);
+const _calendarioVisible = $derived(_ramos.length || _ramoPreview);
 
 let _initialized = $state(false);
 let _savedHorarios: { [key: string]: SavedHorarios } = $state({});
-let _lockedLocation: boolean = $derived(_initialized && Boolean(_ramos.length));
+const _lockedLocation: boolean = $derived(_initialized && Boolean(_ramos.length));
 
 // El estado derivado se calcula reactivamente cuando _ramos o _ramoPreview cambian.
 const derivedState = $derived.by(() => {
@@ -218,19 +218,29 @@ export const Calendario = {
     },
 
     checkCollision(ramo: Ramo) {
+        if (!ramo.horario.length) return false;
+        return ramo.horario.some(b => this.checkCollisionAt(b));
+    },
+
+    checkCollisionAt(bloque: { dia: Días, bloque: number }): boolean {
         const bloques = _ramos.flatMap(r => r.horario);
         if (!bloques.length) return false;
-        for (const bloque of ramo.horario)
-            if (bloques.some(b => b.dia === bloque.dia && b.bloque === bloque.bloque))
-                return true;
-        return false;
+        return bloques.some(b => b.dia === bloque.dia && b.bloque === bloque.bloque);
+    },
+
+    getBloques(día: Días, bloque: number): Bloque[] | null {
+        return derivedState.bloquesDía[día as number]?.[bloque] ?? null;
+    },
+
+    getAllBloquesDía(día: Días): { [bloque: number]: Bloque[] } | null {
+        return derivedState.bloquesDía[día as number] ?? null;
     },
 
     hasRamo(query: { sigla?: string, paralelo?: string }) {
         if (!_ramos.length) return false;
         if (Object.values(query).filter(s => s).length === 0) return false;
 
-        let { sigla, paralelo } = query;
+        const { sigla, paralelo } = query;
         return _ramos.some(r => (!sigla || r.sigla === sigla) && (!paralelo || r.paralelo === paralelo));
     },
 
@@ -335,13 +345,5 @@ export const Calendario = {
         _ramos = loadedRamos;
         _ramoPreview = undefined;
         return true;
-    },
-
-    getBloque(día: Días, bloque: number): Bloque[] | null {
-        return derivedState.bloquesDía[día as number]?.[bloque] ?? null;
-    },
-
-    getBloquesDía(día: Días): { [bloque: number]: Bloque[] } | null {
-        return derivedState.bloquesDía[día as number] ?? null;
     }
 };

@@ -1,0 +1,42 @@
+name: Actualizar Horarios y Datos
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecutar cada hora
+  workflow_dispatch:
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          pip install requests beautifulsoup4 multiprocess python-dotenv
+
+      - name: Ejecutar script de generación
+        env:
+          # Inyectamos los secretos como variables de entorno
+          LOGIN: ${{ secrets.SIGA_LOGIN }}
+          SERVER: ${{ secrets.SIGA_SERVER }}
+          PASSWD: ${{ secrets.SIGA_PASSWD }}
+          # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
+          PYTHONPATH: usm-assist/resources
+        run: python usm-assist/resources/generar.py
+
+      - name: Confirmar y subir cambios
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add usm-assist/src/lib/data/*.json
+          git diff --staged --quiet || (git commit -m "chore(data): actualización automática de horarios [skip ci]" && git push)

@@ -2,12 +2,11 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import { SideBar } from '../SideBar.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import RamoSummary from '../../elements/RamoSummary.svelte';
 	import ParaleloOption from '../../elements/ParaleloOption.svelte';
-	import RamoSearch from '../../elements/RamoSearch.svelte';
 
 	let {
 		edit
@@ -42,6 +41,14 @@
 	);
 
 	const inHorario = $derived(Calendario.hasRamo({ sigla: selectedRamo }));
+
+	let ramoSearch: HTMLInputElement | undefined = undefined;
+	$effect(() => {
+		if (ramoSearch) {
+			ramoSearch.focus();
+			ramoSearch.select();
+		}
+	});
 </script>
 
 <div class="flex h-full w-full flex-col gap-2 overflow-hidden overflow-y-auto">
@@ -53,7 +60,9 @@
 				nombre del ramo.
 			</p>
 		</div>
-		<RamoSearch bind:value={selectedRamo} />
+		{#await import('../../elements/RamoSearch.svelte') then { default: RamoSearch }}
+			<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
+		{/await}
 	{/if}
 
 	{#if selectedRamo}
@@ -96,9 +105,10 @@
 		class="relative bottom-0 mt-auto"
 		disabled={!selectedRamo || !selectedParalelo}
 		variant={inHorario ? 'destructive' : 'primary'}
-		onclick={() => {
+		onclick={async () => {
 			if (!Calendario.ramoPreview) return;
 			Calendario.addRamo({ ...Calendario.ramoPreview });
+			await tick();
 			SideBar.closeActiveWindow();
 		}}>{inHorario ? 'Reemplazar' : 'Añadir'} ramo</Button
 	>

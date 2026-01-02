@@ -11,7 +11,7 @@
 	{#if !bloques || bloques.length === 0}{:else if bloques.length === 1}
 		<RamoCard bloqueObject={bloques[0]} />
 	{:else if bloques.length === 2}
-		<div class="bg-warning flex h-full w-full flex-row gap-1 p-1">
+		<div class="flex h-full w-full flex-row gap-1 p-1">
 			<RamoCard bloqueObject={bloques[0]} />
 			<RamoCard bloqueObject={bloques[1]} />
 		</div>

@@ -2,8 +2,8 @@
 	import type { Snippet } from 'svelte';
 	import type { ClassValue, HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
-	import { BROWSER } from 'esm-env';
 	import { fade } from 'svelte/transition';
+	import { browser } from '$app/environment';
 
 	let {
 		children,
@@ -77,7 +77,7 @@
 
 	// Efecto para portalizar el tooltip
 	$effect(() => {
-		if (BROWSER && tooltipEl && !disablePortal) {
+		if (browser && tooltipEl && !disablePortal) {
 			const target = document.querySelector('#tooltip-portal');
 			if (target) {
 				target.appendChild(tooltipEl);
