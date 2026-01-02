@@ -32,7 +32,7 @@ jobs:
           PASSWD: ${{ secrets.SIGA_PASSWD }}
           # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
           PYTHONPATH: ${{ github.workspace }}/resources
-        run: python usm-assist/generar.py
+        run: python resources/generar.py
 
       - name: Confirmar y subir cambios
         run: |
