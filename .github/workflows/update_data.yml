@@ -2,7 +2,17 @@ name: Actualizar Horarios y Datos
 
 on:
   schedule:
-    - cron: '0 * * * *' # Ejecutar cada hora
+    # --- HORARIO DE OFICINA (Alta Probabilidad de Cambios) ---
+    # De 09:00 AM a 06:00 PM (Chile) -> 12:00 a 21:00 (UTC)
+    # Frecuencia: Cada 30 minutos
+    - cron: '*/30 12-21 * * *'
+
+    # --- HORARIO VESPERTINO (Baja Probabilidad de Cambios) ---
+    # De 07:00 PM a 12:00 AM (Chile) -> 22:00 a 03:00 (UTC)
+    # Frecuencia: Cada 1 hora
+    - cron: '0 22-3 * * *'
+    
+    # El resto del tiempo (madrugada) el script descansa.
   workflow_dispatch:
 
 jobs:
