@@ -1,44 +1,70 @@
-name: Actualizar y Desplegar
+name: Actualizar Horarios y Datos
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 * * * *' # Ejecutar cada hora
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
 jobs:
-  update-and-deploy:
+  run-scraper:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    outputs:
+      status: ${{ steps.commit.outputs.status }}
 
-      - name: Setup Python
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Run Scraper
-        env:
-          LOGIN: ${{ secrets.SIGA_LOGIN }}
-          SERVER: ${{ secrets.SIGA_SERVER }}
-          PASSWD: ${{ secrets.SIGA_PASSWD }}
-          PYTHONPATH: resources
+      - name: Instalar dependencias
         run: |
           pip install requests beautifulsoup4 multiprocess python-dotenv
-          python resources/generar.py
 
-      - name: Commit changes
+      - name: Ejecutar script de generación
+        env:
+          SIGA_LOGIN: ${{ secrets.SIGA_LOGIN }}
+          SIGA_SERVER: ${{ secrets.SIGA_SERVER }}
+          SIGA_PASSWD: ${{ secrets.SIGA_PASSWD }}
+          # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
+          PYTHONPATH: ${{ github.workspace }}/resources
+        run: python resources/generar.py
+
+      - name: Confirmar y subir cambios
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Agregamos los archivos usando la ruta desde la raíz del repo
           git add src/lib/data/*.json
-          git diff --staged --quiet || (git commit -m "chore: update data [skip ci]" && git push)
+          
+          # Solo hacemos commit si hay cambios para no romper el build
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(data): actualización automática de horarios [skip ci]"
+            git push
+          else
+            echo "No hay cambios en los datos, nada que subir."
+          fi
+  deploy:
+    needs: run-scraper
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Traer cambios hechos por el scraper
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -46,15 +72,17 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install & Build
-        run: |
-          npm install
-          npm run build
+      - name: Install dependencies
+        run: npm install
 
-      - name: Upload Artifact
+      - name: Build
+        run: npm run build
+
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'build/'
+          path: 'build/' # Carpeta de salida del adapter-static
 
-      - name: Deploy
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
