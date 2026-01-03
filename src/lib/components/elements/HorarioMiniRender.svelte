@@ -1,91 +1,75 @@
 <script lang="ts">
-	import Circle from '$lib/icons/circle.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { Días, type Bloque } from '$lib/types/horario';
-	import _ from 'lodash';
-	import { untrack } from 'svelte';
+	import { cn } from '$lib/utils'; // Asumo que tienes una utilidad tipo shadcn, si no, usa string template normal
 
-	let { bloques }: { bloques: Bloque[] } = $props();
+	let { bloques, class: className }: { bloques: Bloque[]; class?: string } = $props();
 
-	const [bloqueBegin, bloqueEnd] = $derived.by(() => {
-		let def = Calendario.bloqueRange;
-		if (bloques.length > 0) {
-			const min = Math.min(1, _.minBy(bloques, 'bloque')?.bloque ?? def[0]);
-			const max = Math.max(8, _.maxBy(bloques, 'bloque')?.bloque ?? def[1]);
-			def = [min, max];
-		}
-		return def;
-	});
-	const [díaBegin, díaEnd] = $derived.by(() => {
-		let def = Calendario.range;
-		if (bloques.length > 0) {
-			const min = Math.min(Días.Lunes, _.minBy(bloques, 'dia')?.dia ?? def[0]);
-			const max = Math.max(Días.Viernes, _.maxBy(bloques, 'dia')?.dia ?? def[1]);
-			def = [min, max];
-		}
-		return def;
+	// Calculamos rangos dinámicos, pero con un mínimo sensato (Lunes-Viernes, bloque 1-8)
+	// para que no se vea deforme si el ramo tiene pocos bloques.
+	const [minBloque, maxBloque] = $derived.by(() => {
+		if (bloques.length === 0) return [1, 8];
+		const b = bloques.map((b) => b.bloque);
+		return [Math.min(1, ...b), Math.max(9, ...b)]; // Extendemos un poco el max
 	});
 
-	const gridState = $derived.by(() => {
-		const __ = Calendario.ramos;
+	const [minDia, maxDia] = $derived.by(() => {
+		if (bloques.length === 0) return [Días.Lunes, Días.Viernes];
+		const d = bloques.map((b) => b.dia);
+		return [Días.Lunes, Math.max(Días.Viernes, ...d)];
+	});
 
-		return untrack(() => {
-			const state = new Map<string, { scale: string; color: string }>();
-			const newBloquesMap = _.keyBy(bloques, (b) => `${b.dia}-${b.bloque}`);
+	const numDias = $derived(maxDia - minDia + 1);
 
-			for (const bloque of _.range(bloqueBegin, bloqueEnd + 1)) {
-				for (const dia of _.range(díaBegin, díaEnd + 1)) {
-					const key = `${dia}-${bloque}`;
-					const newBloque = newBloquesMap[key];
-					const n = newBloque !== undefined;
-
-					const c =
-						(Calendario.getBloques(bloque, dia)?.filter(
-							(b) => b.ramo.sigla !== newBloque?.ramo.sigla
-						).length ?? 0) > 0;
-
-					state.set(key, {
-						scale: !c && !n ? '80%' : '100%',
-						color: c && n ? 'var(--warning)' : c ? '#fff8' : n ? 'var(--primary)' : '#fff2'
-					});
-				}
-			}
-			return state;
-		});
+	// Pre-calculamos un Set para búsqueda O(1) rápida de los bloques "nuevos"
+	const activeBlocksSet = $derived.by(() => {
+		const set = new Set<string>();
+		bloques.forEach((b) => set.add(`${b.dia}-${b.bloque}`));
+		return set;
 	});
 </script>
 
-<div>
-	<table>
-		<tbody>
-			<tr>
-				<td></td>
-				{#each _.range(díaBegin, díaEnd + 1) as día (día)}
-					<td class="text-muted-foreground">
-						{Días[día].charAt(0)}
-					</td>
-				{/each}
-			</tr>
-			{#each _.range(bloqueBegin, bloqueEnd + 1) as bloque (bloque)}
-				<tr>
-					<td>
-						<div class="text-muted-foreground">
-							{bloque}
-						</div>
-					</td>
-					{#each _.range(díaBegin, díaEnd + 1) as día (día)}
-						{@const cellState = gridState.get(`${día}-${bloque}`)}
-						<td class="m-0 h-min w-min border-0 px-3 text-center text-sm">
-							{#if cellState}
-								<Circle
-									style="scale: {cellState.scale}; color: {cellState.color};"
-									class="inline"
-								/>
-							{/if}
-						</td>
-					{/each}
-				</tr>
+<div class={cn('flex flex-col gap-1 select-none', className)}>
+	<div class="grid gap-1 text-center" style="grid-template-columns: 1rem repeat({numDias}, 1fr);">
+		<div class=""></div>
+		{#each Array.from({ length: numDias }, (_, i) => minDia + i) as dia}
+			<div class="text-muted-foreground text-[10px] font-bold opacity-70">
+				{Días[dia].charAt(0)}
+			</div>
+		{/each}
+	</div>
+
+	<div class="grid gap-x-1 gap-y-0.5" style="grid-template-columns: 1rem repeat({numDias}, 1fr);">
+		{#each Array.from({ length: maxBloque - minBloque + 1 }, (_, i) => minBloque + i) as bloque}
+			<div class="text-muted-foreground flex items-center justify-center font-mono text-[9px]">
+				{bloque}
+			</div>
+
+			{#each Array.from({ length: numDias }, (_, i) => minDia + i) as dia}
+				{@const key = `${dia}-${bloque}`}
+				{@const isNew = activeBlocksSet.has(key)}
+				{@const existing = Calendario.getBloques(dia, bloque)}
+				{@const isOccupied = existing && existing.length > 0}
+
+				{@const isConflict =
+					isNew &&
+					isOccupied &&
+					existing?.some((b) => !bloques.some((newB) => newB.ramo.sigla === b.ramo.sigla))}
+
+				<div class="flex aspect-square items-center justify-center">
+					<div
+						class="rounded-full transition-all duration-300"
+						class:w-2={isNew || isOccupied}
+						class:h-2={isNew || isOccupied}
+						class:w-0.5={!isNew && !isOccupied}
+						class:h-0.5={!isNew && !isOccupied}
+						class:bg-destructive={isConflict}
+						class:bg-primary={isNew && !isConflict}
+						class:bg-muted-foreground={!isNew && isOccupied}
+						class:bg-muted={!isNew && !isOccupied}
+					></div>
+				</div>
 			{/each}
-		</tbody>
-	</table>
+		{/each}
+	</div>
 </div>

@@ -43,7 +43,7 @@
 			{#each bloquePairs as bloquePar, i (bloquePar)}
 				<div class="flex w-3 items-center justify-center text-xs font-bold select-none">
 					<div class="rotate-180 text-center text-lg font-bold [writing-mode:vertical-rl]">
-						<span class="whitespace-nowrap">{bloquePar} — {bloquePar + 1}</span>
+						<span class="whitespace-nowrap">{bloquePar + 1} — {bloquePar}</span>
 					</div>
 				</div>
 
@@ -103,10 +103,14 @@
 
 	.calendar-grid {
 		display: grid;
-		/* [!] Modificado: Se añade "auto" para la nueva columna de bloques */
+		/* [!] Modificado: Se mantiene min-content para la hora, pero las filas ahora son flexibles */
 		grid-template-columns: min-content auto repeat(var(--num-dias), 1fr);
-		grid-template-rows: 0fr;
-		grid-auto-rows: auto;
+		grid-template-rows: 0fr; /* Header row */
+
+		/* ANTES: grid-auto-rows: auto; */
+		/* AHORA: Define un alto mínimo (ej. 6rem) pero permite crecer (1fr) para llenar pantallas grandes */
+		grid-auto-rows: minmax(6rem, 1fr);
+
 		@apply h-full w-full gap-1 overflow-visible;
 	}
 </style>

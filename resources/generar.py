@@ -1,625 +1,157 @@
-import requests
-import re
-import math
+import os
+import sys
 import json
 import time
 import datetime
-import multiprocess as mp
-from bs4 import BeautifulSoup
-import urllib
-import os
-import sys
-from cookie import obtener_cookie
+import argparse
+from multiprocessing import Pool
 
-UPDATE_RAMOS = True
-UPDATE_CARRERAS = False 
-UPDATE_PROGRAMAS = False
+# Importación de Módulos Locales
+from modules import auth, utils, scrapers, workers
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH = os.path.join(BASE_DIR, "src", "lib", "data")
-
-# Verificamos que la ruta existe antes de seguir para no fallar silenciosamente
-if not os.path.exists(DATA_PATH):
-    print(f"Error: La ruta de datos no existe: {DATA_PATH}")
-    # En local esto te avisará si moviste algo, en GitHub evitará el error de git add
-    sys.exit(1)
-
-LOGIN = os.getenv("SIGA_LOGIN")
-SERVER = os.getenv("SIGA_SERVER")
-PASSWD = os.getenv("SIGA_PASSWD")
-
-if not all([LOGIN, SERVER, PASSWD]):
-    print(
-        "Error: Credenciales incompletas\n"
-        f"LOGIN={LOGIN}\n"
-        f"SERVER={SERVER}\n"
-        f"PASSWD={'SET' if PASSWD else None}"
-    )
-    sys.exit(1)
-
-PRODUCCION = False
-COOKIES = obtener_cookie(LOGIN, SERVER, PASSWD, PRODUCCION)
-
-# Asegurar que la carpeta exista
-os.makedirs(DATA_PATH, exist_ok=True)
-
-DIAS = {
-    "Lunes": 0,
-    "Martes": 1,
-    "Miércoles": 2,
-    "Jueves": 3,
-    "Viernes": 4,
-    "Sábado": 5,
-    "Domingo": 6,
-}
-
-
-def hhmm_to_minutes(hhmm: str) -> int:
-    [h, m] = hhmm.split(":")
-    h = int(h)
-    m = int(m)
-    return h * 60 + m
-
-
-def minutes_to_hhm(minutes: int) -> str:
-    return "{:02d}:{:02d}".format(*divmod(minutes, 60))
-
-
-def get_programas_academicos():
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/prog_oai/oai_academia.jsp",
-        ).text,
-        "html.parser",
-    )
-    data = {}
-
-    sedes = {}
-    for option in html.find_all("select")[0].find_all("option"):
-        value = option["value"].strip()
-        if value == "-1":
-            continue
-        sedes[" ".join(option.stripped_strings).strip()] = value
-
-    for sede in sedes.keys():
-        data[sede] = {}
-
-    for [sede, sede_cod] in sedes.items():
-        departamentos = {}
-        html = BeautifulSoup(
-            requests.get(
-                url=f"https://siga.usm.cl/prog_oai/oai_academia.jsp?sede={sede_cod}",
-            ).text,
-            "html.parser",
-        )
-
-        for option in html.find_all("select")[1].find_all("option"):
-            value = option["value"].strip()
-            if value == "-1":
-                continue
-            departamentos[" ".join(option.stripped_strings).strip()] = value
-
-        for departamento in departamentos.keys():
-            data[sede][departamento] = {}
-
-        for [departamento, departamento_cod] in departamentos.items():
-            html = BeautifulSoup(
-                requests.get(
-                    url=f"https://siga.usm.cl/prog_oai/oai_academia.jsp?sede={sede_cod}&cod_departamento={departamento_cod}",
-                ).text,
-                "html.parser",
-            )
-
-            tables = ["IMPAR", "PAR", "AMBOS", "ELECTIVO"]
-            for type in tables:
-                data[sede][departamento][type] = {}
-
-            i = 0
-            for tbody in [element.parent for element in html.select(".LetraAzulTabla")]:
-                if i >= len(tables):
-                    break
-                for row in tbody.find_all("tr")[1:]:
-                    td = row.find_all("td")
-                    if len(td) != 5:
-                        continue
-
-                    [sigla, nombre, creditos, programa, _] = [
-                        " ".join(d.stripped_strings).strip() for d in td
-                    ]
-
-                    programa = ""
-                    for tag in row.find_all():
-                        on_click = tag.get("onclick")
-                        if on_click:
-                            programa = re.findall(r"\'(.*?)\'", on_click)[0]
-                            programa = urllib.parse.quote(programa, safe="")
-
-                    data[sede][departamento][tables[i]][sigla] = {
-                        "nombre": nombre,
-                        "creditos": creditos,
-                        "programa": (
-                            f"https://siga.usm.cl/prog_oai/programa_download?pdf={programa}"
-                            if programa
-                            else ""
-                        ),
-                    }
-                i += 1
-
-    return data
-
-
-def get_malla_carrera(
-    sede: int,
-    carrera: int,
-    mencion: int,
-    plan: int,
-    duracion: int,
-    creditos: int,
-):
-    global COOKIES
-    params = {
-        "sede": sede,
-        "carrera": carrera,
-        "mencion": mencion,
-        "plan": plan,
-        "duracion": duracion,
-        "creditos": creditos,
-    }
-
-    params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/pag/sistinsc/listados/insc_ListPlanAsignatura.jsp?{params}",
-            headers={"Cookie": COOKIES},
-        ).text,
-        "html.parser",
-    )
-
-    tablas = html.find_all("table")[2::2]
-    dicc_equivalencias = {}
-
-    for row in html.find_all("table").pop().find_all("tr")[1:]:
-        td = row.find_all("td")
-        if len(td) != 2:
-            continue
-
-        [n, eq] = [" ".join(d.stripped_strings).strip() for d in td]
-        dicc_equivalencias[n] = eq
-
-    semestre = []
-    for tabla_semestre in tablas:
-        ramos = {}
-        for row in tabla_semestre.find_all("tr")[2:]:
-            td = row.find_all("td")
-            if len(td) != 11:
-                continue
-
-            [
-                sigla,
-                asignatura,
-                lic,
-                horas_teoricas,
-                horas_practicas,
-                horas_laboratorios,
-                horas_ayudantias,
-                creditos_sct,
-                departamento,
-                requisitos,
-                equivalencias,
-            ] = [" ".join(d.stripped_strings).strip() for d in td]
-
-            requisitos = [
-                [opcion.strip() for opcion in req.strip().split("ó")]
-                for req in requisitos.split("+")
-            ]
-
-            if equivalencias == "Cualquier asignatura que se dicte":
-                equivalencias = "*"
-
-            equivalencias = (
-                dicc_equivalencias[equivalencias].replace("-", "ó")
-                if equivalencias in dicc_equivalencias
-                else equivalencias
-            )
-
-            if equivalencias and equivalencias[-1] == "-":
-                equivalencias = equivalencias[:-1]
-
-            equivalencias = [
-                [opcion.strip() for opcion in eq.strip().split("ó")]
-                for eq in equivalencias.split("+")
-            ]
-
-            ramos[sigla] = {
-                "nombre": asignatura.upper(),
-                "requisito_licenciatura": bool(lic),
-                "horas": {
-                    "teoricas": int(horas_teoricas or 0),
-                    "practicas": int(horas_practicas or 0),
-                    "laboratorios": int(horas_laboratorios or 0),
-                    "ayudantias": int(horas_ayudantias or 0),
-                },
-                "creditos": int(creditos_sct or 0),
-                "departamento": departamento,
-                "requisitos": requisitos,
-                "equivalencias": equivalencias,
-            }
-        semestre.append(ramos)
-
-    return semestre
-
-
-def get_planes_carrera(mencion: int, sede: int, carrera: int):
-    global COOKIES
-    params = {"mencion": mencion, "sede": sede, "carrera": carrera}
-
-    try:
-        params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-        html = BeautifulSoup(
-            requests.get(
-                url=f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame4.jsp?{params}",
-                headers={"Cookie": COOKIES},
-            ).text,
-            "html.parser",
-        )
-    except Exception as e:
-        if not e is requests.exceptions.ConnectTimeout:
-            print(e)
-        return {}
-
-    return dict(
-        [
-            [option["value"], " ".join(option.stripped_strings).strip()]
-            for option in html.find_all("option")
-            if option["value"] != "-1"
-        ]
-    )
-
-
-def get_mencion_especializacion(carrera: str, sede: int, jornada: int):
-    global COOKIES
-    params = {"carrera": carrera, "sede": sede, "jornada": jornada}
-    params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame3.jsp?{params}",
-            headers={"Cookie": COOKIES},
-        ).text,
-        "html.parser",
-    )
-
-    return dict(
-        [
-            [option["value"], " ".join(option.stripped_strings).strip()]
-            for option in html.find_all("option")
-            if option["value"] != "-1"
-        ]
-    )
-
-
-def get_carreras(sede: int, jornada: int):
-    global COOKIES
-    params = {"sede": sede, "jornada": jornada}
-    params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame2.jsp?{params}",
-            headers={"Cookie": COOKIES},
-        ).text,
-        "html.parser",
-    )
-
-    return dict(
-        [
-            [option["value"], " ".join(option.stripped_strings).strip()]
-            for option in html.find_all("option")
-            if option["value"] != "-1"
-        ]
-    )
-
-
-def get_sedes_and_jornadas():
-    global COOKIES
-
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame1.jsp",
-            headers={"Cookie": COOKIES},
-        ).text,
-        "html.parser",
-    )
-    if html.find(attrs={"href": "CerrarJsp.jsp"}):
-        return {"sedes": {}, "jornadas": {}}
-
-    return {
-        "sedes": dict(
-            [
-                [option["value"], " ".join(option.stripped_strings).strip()]
-                for option in html.find(attrs={"name": "sede"}).find_all("option")
-                if option["value"] != "-1"
-            ]
-        ),
-        "jornadas": dict(
-            [
-                [option["value"], " ".join(option.stripped_strings).strip()]
-                for option in html.find(attrs={"name": "jornada"}).find_all("option")
-                if option["value"] != "-1"
-            ]
-        ),
-    }
-
-
-def get_info_carrera(plan: int, sede: int, carrera: int, mencion: int):
-    global COOKIES
-    params = {"plan": plan, "sede": sede, "carrera": carrera, "mencion": mencion}
-    params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-
-    html = BeautifulSoup(
-        requests.get(
-            url=f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame5.jsp?{params}",
-            headers={"Cookie": COOKIES},
-        ).text,
-        "html.parser",
-    )
-
-    return dict(
-        [
-            [input["name"], input["value"].strip() or "1"]
-            for input in html.find_all("input")
-        ]
-    )
-
-
-def get_programacion_asignaturas(
-    sede: int,
-    jornada: int,
-    nombre_sede: str,
-    nombre_jornada: str,
-):
-    global COOKIES
-
-    today = datetime.date.today()
-
-    i = 0
-    año = today.year
-    semestre = max(round(today.month / 6), 1)
-
-    ITERATIONS = 2
-
-    semestre += ITERATIONS
-    if semestre > 3:
-        semestre -= 3
-        año += 1
-
-    periodos = []
-    while i < ITERATIONS + 1:
-        params = {
-            "sede": sede,
-            "jornada": jornada,
-            "ano": año,
-            "semestre": semestre,
-            "car": 0,
-            "orden": 2,
-        }
-        params = "&".join([f"{k[0]}={k[1]}" for k in params.items()])
-
-        html = BeautifulSoup(
-            requests.get(
-                url=f"https://siga.usm.cl/pag/sistinsc/listados/insc_ListProgTodasAsign.jsp?{params}",
-                headers={"Cookie": COOKIES},
-            ).text,
-            "html.parser",
-        )
-
-        data = []
-        for table in html.find_all("table"):
-            for row in table.findChildren("tr", recursive=False)[1:]:
-                cells = row.findChildren("td", recursive=False)
-                if len(cells) != 7:
-                    continue
-
-                for br in cells[4].find_all("br"):
-                    br.replace_with("###")
-
-                [sigla, nombre, departamento, paralelo, profesor, cupo] = [
-                    re.sub(
-                        " +",
-                        " ",
-                        " ".join(cell.stripped_strings).strip().replace("\n", ""),
-                    )
-                    for cell in cells[:6]
-                ]
-
-                if sigla[-1] == "-":
-                    continue
-                r = {}
-
-                try:
-                    r["sigla"] = sigla.upper()
-                    r["nombre"] = nombre.upper()
-                    r["departamento"] = departamento.upper()
-                    r["paralelo"] = paralelo
-                    r["profesor"] = [p.strip() for p in profesor.split("###")]
-                    r["cupo"] = int(cupo)
-                except:
-                    continue
-
-                table_horario = cells[6].find("table", recursive=False)
-                horario = []
-                if table_horario:
-                    for row_horario in table_horario.findChildren(
-                        "tr", recursive=False
-                    )[1:]:
-                        cells_horario = row_horario.findChildren("td", recursive=False)
-                        if len(cells_horario) != 7:
-                            continue
-
-                        [dia, bloque, _, tipo, sala, campus, profesor] = [
-                            "\n".join(cell.findAll(string=True)).strip()
-                            for cell in cells_horario
-                        ]
-
-                        [start, end] = bloque.split("\n")
-                        start = int(start)
-                        end = int(end)
-
-                        for i, _bloque in enumerate(range(start, end + 1)):
-                            b = {}
-                            b["dia"] = DIAS[dia]
-                            b["bloque"] = int(_bloque)
-                            b["tipo"] = tipo
-                            b["sala"] = sala.split()[0]
-                            b["campus"] = campus
-                            b["profesor"] = profesor
-                            horario.append(b)
-
-                r["horario"] = horario
-                data.append(r)
-
-        periodos.append([f"{año}-{semestre}", data])
-
-        i += 1
-        semestre -= 1
-        if semestre < 1:
-            año -= 1
-            semestre += 3
-
-    return [nombre_sede, nombre_jornada, periodos]
-
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 if __name__ == "__main__":
-    carreras = []
-    ramos = {}
+    # 0. Parsing de Argumentos
+    parser = argparse.ArgumentParser(description="Generador de datos SIGA (Ramos, Carreras, Programas)")
+    
+    # Argumento posicional opcional para la cookie (mantiene compatibilidad con scripts antiguos)
+    parser.add_argument("cookie", nargs="?", help="String de la cookie JSESSIONID")
+    
+    # Flags opcionales
+    parser.add_argument("--ramos", action="store_true", help="Actualizar horario de asignaturas")
+    parser.add_argument("--carrera", "--carreras", dest="carreras", action="store_true", help="Actualizar planes y mallas de carrera")
+    parser.add_argument("--programas", action="store_true", help="Actualizar programas académicos")
+    
+    args = parser.parse_args()
 
+    # Lógica de Default: Si no se pasa ningún flag, se asume el comportamiento por defecto (Solo Ramos)
+    if not (args.ramos or args.carreras or args.programas):
+        UPDATE_RAMOS = True
+        UPDATE_CARRERAS = False
+        UPDATE_PROGRAMAS = False
+    else:
+        UPDATE_RAMOS = args.ramos
+        UPDATE_CARRERAS = args.carreras
+        UPDATE_PROGRAMAS = args.programas
+
+    # 1. Configuración de Entorno y Rutas
+    DATA_PATH = utils.ensure_directories(BASE_DIR)
+    
+    # 2. Obtención de Cookies (Auth)
+    cookies = args.cookie
+
+    # Opción B: Pipe (Stdin) - Si no vino por argumento
+    if not cookies and not sys.stdin.isatty():
+        cookies = sys.stdin.read().strip()
+    
+    # Opción C: Autenticación nativa (Módulo Auth)
+    if not cookies:
+        print("Obteniendo cookie mediante autenticación interna...")
+        try:
+            cookies = auth.get_session_cookie()
+            print(f"Login exitoso. {cookies}")
+        except Exception as e:
+            print(f"Error crítico de autenticación: {e}")
+            sys.exit(1)
+
+    cookies = cookies.strip()
+    if not cookies.startswith("JSESSIONID"):
+        print("COOKIE inválida o no aceptada")
+        sys.exit(1)
+
+    # 3. Preparación de Timestamps
     d = datetime.datetime.now()
     unix = time.mktime(d.timetuple())
+
+    # 4. Orquestación del Scraping
+    
+    # A. Obtener Sedes y Jornadas (Solo si es necesario para Ramos o Carreras)
+    sedes, jornadas = {}, {}
     if UPDATE_RAMOS or UPDATE_CARRERAS:
-        [sedes, jornadas] = get_sedes_and_jornadas().values()
-        if not sedes or not jornadas:
-            print("Sesión expirada.")
-            exit()
-        for jornada in jornadas:
-            if UPDATE_RAMOS:
-                with mp.Pool(len(sedes)) as pool:
-                    for result in pool.map(
-                        lambda args: get_programacion_asignaturas(*args),
-                        [
-                            [sede, jornada, sedes[sede], jornadas[jornada]]
-                            for sede in sedes
-                        ],
-                    ):
-                        [sede, _jornada, periodos] = result
-                        for [periodo, r] in periodos:
-                            if not sede in ramos:
-                                ramos[sede] = {}
-                            if not _jornada in ramos[sede]:
-                                ramos[sede][_jornada] = {}
-                            if not periodo in ramos[sede][_jornada]:
-                                ramos[sede][_jornada][periodo] = {}
-                            for _r in r:
-                                if not _r["sigla"] in ramos[sede][_jornada][periodo]:
-                                    ramos[sede][_jornada][periodo][_r["sigla"]] = {}
-                                if not (
-                                    _r["paralelo"]
-                                    in ramos[sede][_jornada][periodo][_r["sigla"]]
-                                ):
-                                    ramos[sede][_jornada][periodo][_r["sigla"]][
-                                        _r["paralelo"]
-                                    ] = _r
+        data_sj = scrapers.get_sedes_and_jornadas(cookies)
+        sedes, jornadas = data_sj["sedes"], data_sj["jornadas"]
+        if not sedes:
+            print("Sesión expirada al intentar obtener sedes.")
+            sys.exit(0)
 
-            if UPDATE_CARRERAS:
-                for sede in sedes:
-
-                    def process_carrera(args):
-                        [
-                            carrera,
-                            nombre_carrera,
-                            sede_cod,
-                            jornada_cod,
-                            sede,
-                            jornada,
-                        ] = args
-
-                        menciones = get_mencion_especializacion(
-                            carrera, sede_cod, jornada_cod
-                        )
-                        for mencion in [*menciones.keys()]:
-                            c = carrera.split("-")[0]
-                            planes = get_planes_carrera(mencion, sede_cod, c)
-                            if not planes:
-                                del menciones[mencion]
-                                continue
-
-                            for plan in [*planes.keys()]:
-                                info = get_info_carrera(plan, sede_cod, c, mencion)
-                                if "No Vigente" in planes[plan]:
-                                    del planes[plan]
-                                    continue
-
-                                planes[plan] = {
-                                    "plan": planes[plan],
-                                    "malla": get_malla_carrera(
-                                        sede_cod,
-                                        c,
-                                        mencion,
-                                        plan,
-                                        info["duracion"],
-                                        info["creditos"],
-                                    ),
-                                }
-
-                            menciones[mencion] = {
-                                "nombre": menciones[mencion],
-                                "planes": planes,
-                            }
-
-                        return {
-                            "nombre": nombre_carrera,
-                            "código": carrera,
-                            "sede": sede,
-                            "jornada": jornada,
-                            "menciones/especialidades": menciones,
-                        }
-
-                    with mp.Pool(20) as pool:
-                        for carrera in pool.map(
-                            process_carrera,
-                            [
-                                [*items, sede, jornada, sedes[sede], jornadas[jornada]]
-                                for items in get_carreras(sede, jornada).items()
-                            ],
-                        ):
-                            carreras.append(carrera)
-
-    # --- ESCRITURA DE ARCHIVOS ---
-
-    if UPDATE_PROGRAMAS:
-        programas = get_programas_academicos()
-        if len(programas.keys()):
-            dest = os.path.join(DATA_PATH, "programas_academicos.json")
-            with open(dest, "w+", encoding="iso-8859-1") as f:
-                f.write(json.dumps(programas))
-            print(f"Programas actualizados en: {dest}")
-        else:
-            print("NO SE OBTUVIERON LOS PROGRAMAS")
-
-    if UPDATE_CARRERAS:
-        if len(carreras):
-            dest = os.path.join(DATA_PATH, "planes_carreras.json")
-            with open(dest, "w+", encoding="iso-8859-1") as f:
-                f.write(json.dumps(carreras))
-            print(f"Carreras actualizadas en: {dest}")
-        else:
-            print("NO SE OBTUVIERON CARRERAS")
-
+    # B. Procesar RAMOS
+    ramos_result = {}
     if UPDATE_RAMOS:
-        if len(ramos.keys()):
-            dest = os.path.join(DATA_PATH, "horario_asignaturas.json")
-            with open(dest, "w+", encoding="iso-8859-1") as f:
-                ramos["date"] = unix
-                f.write(json.dumps(ramos))
-            print(f"Ramos actualizados en: {dest}")
-        else:
-            print("NO SE OBTUVIERON RAMOS")
-print("OK")
+        print("Iniciando actualización de RAMOS...")
+        tasks = [[cookies, s, j, sedes[s], jornadas[j]] for j in jornadas for s in sedes]
+        
+        with Pool(len(sedes)) as pool:
+            results = pool.map(workers.worker_process_ramos, tasks)
+            
+            for res in results:
+                sede_nom, jornada_nom, periodos = res
+                target_sede = ramos_result.setdefault(sede_nom, {})
+                target_jornada = target_sede.setdefault(jornada_nom, {})
+                
+                for periodo, lista_ramos in periodos:
+                    target_periodo = target_jornada.setdefault(periodo, {})
+                    for r in lista_ramos:
+                        target_sigla = target_periodo.setdefault(r["sigla"], {})
+                        target_sigla[r["paralelo"]] = r
+
+    # C. Procesar CARRERAS
+    carreras_result = []
+    if UPDATE_CARRERAS:
+        print("Iniciando actualización de CARRERAS...")
+        tasks = []
+        for s in sedes:
+            for j in jornadas:
+                local_carreras = scrapers.get_carreras(cookies, s, j)
+                for cid, cnom in local_carreras.items():
+                    tasks.append([cookies, cid, cnom, s, j, sedes[s], jornadas[j]])
+        
+        with Pool(20) as pool:
+            carreras_result = pool.map(workers.worker_process_carrera, tasks)
+
+    # D. Procesar PROGRAMAS (Serial)
+    if UPDATE_PROGRAMAS:
+        print("Iniciando actualización de PROGRAMAS...")
+        progs = scrapers.get_programas_academicos()
+        if progs:
+            dest = os.path.join(DATA_PATH, "programas_academicos.json")
+            utils.atomic_write(dest, progs)
+            print(f"Programas actualizados en: {dest}")
+
+    # 5. Escritura y Diff
+    if UPDATE_CARRERAS and carreras_result:
+        utils.atomic_write(os.path.join(DATA_PATH, "planes_carreras.json"), carreras_result)
+
+    if UPDATE_RAMOS and ramos_result:
+        ramos_path = os.path.join(DATA_PATH, "horario_asignaturas.json")
+        ramos_antiguos = {}
+        if os.path.exists(ramos_path):
+            try:
+                with open(ramos_path, "r", encoding="iso-8859-1") as f:
+                    ramos_antiguos = json.load(f)
+            except: pass
+
+        if ramos_antiguos:
+            diff = utils.calcular_diff_ramos(ramos_antiguos, ramos_result)
+            if diff:
+                log_path = os.path.join(DATA_PATH, "historial_cambios.jsonl")
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(diff, ensure_ascii=False) + "\n")
+                print(f"Cambios guardados en: {log_path}")
+
+            ramos_final = ramos_antiguos.copy()
+            if "date" in ramos_final: del ramos_final["date"]
+            
+            for s, js in ramos_result.items():
+                if s not in ramos_final: ramos_final[s] = {}
+                for j, ps in js.items():
+                    if j not in ramos_final[s]: ramos_final[s][j] = {}
+                    for p, data in ps.items():
+                        ramos_final[s][j][p] = data
+            ramos_result = ramos_final
+
+        ramos_result["date"] = unix
+        utils.atomic_write(ramos_path, ramos_result)
+        print(f"Ramos actualizados en: {ramos_path}")
+
+    print("OK")

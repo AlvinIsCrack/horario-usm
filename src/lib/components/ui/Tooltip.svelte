@@ -28,7 +28,7 @@
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const tooltip = tv({
-		base: 'fixed w-max font-light max-w-xs text-center rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md',
+		base: 'fixed w-max font-light max-w-xs text-center rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-sm/50',
 		variants: {
 			position: {
 				top: 'bottom-full left-1/2',

@@ -32,7 +32,11 @@
 				transition:fly
 				class="ring-border border-input absolute flex h-full w-full flex-col justify-between ring {esCátedra
 					? 'rounded-lg'
-					: 'border'} {Calendario.bloqueRangeDifference > 14 ? 'p-3' : 'p-4'} {ramo.highlighted
+					: 'border'} 
+    
+    {Calendario.bloqueRangeDifference > 14 ? 'p-1 lg:p-2' : 'p-2 lg:p-3'} 
+    
+    {ramo.highlighted
 					? 'bloque-highlighted ring-2 ring-white'
 					: ''} bloque-con-brillo z-10 overflow-hidden text-left leading-4 bg-blend-multiply shadow-md/50 inset-shadow-xs inset-shadow-white/50"
 				class:text-white={esOscuro}
@@ -45,22 +49,24 @@
 				{...props}
 			>
 				<div>
-					<p class="line-clamp-2 text-sm leading-4 font-medium" title={ramo.nombre}>
+					<p class="line-clamp-2 text-xs leading-tight font-medium lg:text-sm" title={ramo.nombre}>
 						{ramo.nombre}
 					</p>
-					<p class:opacity-60={esOscuro} class:opacity-40={!esOscuro}>
+
+					<p
+						class:opacity-60={esOscuro}
+						class:opacity-40={!esOscuro}
+						class="mt-0.5 text-[10px] lg:text-xs"
+					>
 						<b>{ramo.sigla}</b>
-						<span class="text-xs">PAR. {ramo.paralelo}</span>
+						<span class="ml-1 opacity-80">PAR. {ramo.paralelo}</span>
 					</p>
-					<!-- <p class="-mt-1 origin-top-left scale-200 font-mono text-sm font-black opacity-40">
-						{ramo.paralelo}
-					</p> -->
 				</div>
 
 				<div class="flex w-full flex-row flex-wrap items-center justify-between gap-2">
 					{#if !esCátedra}
 						<p
-							class="text-sm font-bold uppercase"
+							class="text-[10px] font-bold tracking-wider uppercase lg:text-xs"
 							class:opacity-60={esOscuro}
 							class:opacity-40={!esOscuro}
 						>
@@ -71,7 +77,9 @@
 			</div>
 			{#if salaVálida}
 				<Badge
-					class="absolute right-0 bottom-0 z-10 rounded-tl-lg rounded-r-none rounded-bl-none p-2! whitespace-nowrap drop-shadow-md/50"
+					class="absolute right-0 bottom-0 z-10 rounded-tl-lg rounded-r-none {esCátedra
+						? 'rounded-br-lg'
+						: ''} rounded-bl-none p-2! whitespace-nowrap drop-shadow-md/50"
 					icon={Location}
 				>
 					{bloqueObject.sala}

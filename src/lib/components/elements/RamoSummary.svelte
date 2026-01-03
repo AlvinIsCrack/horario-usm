@@ -4,10 +4,9 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { Data } from '$lib/data/data.svelte';
-	import Asterisk from '$lib/icons/asterisk.svelte';
+	import { generateColorForRamo } from '$lib/helpers/colors.svelte';
 	import Circles from '$lib/icons/circles.svelte';
 	import Clip from '$lib/icons/clip.svelte';
-	import Info from '$lib/icons/info.svelte';
 	import Ticket from '$lib/icons/ticket.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 
@@ -23,7 +22,15 @@
 </script>
 
 {#if ramo}
-	<Card class="bg-background text-foreground gap-2">
+	{@const color = generateColorForRamo(ramo.sigla, ramo.nombre)}
+	<Card
+		style="background: linear-gradient({color?.lighten(0.25).hex()}55, {color
+			?.rotate(20)
+			.saturate(0.6)
+			.darken(0.4)
+			.hex()}55);"
+		class="text-foreground gap-2 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
+	>
 		<div class="mb-2 flex flex-row flex-wrap gap-1">
 			<Tooltip content="Cantidad de alumnos máximos por paralelo">
 				<Badge icon={Ticket}>{ramo.cupo} CUPOS</Badge>
@@ -54,7 +61,7 @@
 				</Tooltip> DEL
 			</p>
 		{/if}
-		<p class="opacity-50">DEPTO. DE {ramo.departamento}</p>
+		<p class="leading-4 opacity-50">DEPTO. DE {ramo.departamento}</p>
 
 		<!-- {#if carrera}
 			<div class="flex flex-col py-2">

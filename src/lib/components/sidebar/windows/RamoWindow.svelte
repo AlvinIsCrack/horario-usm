@@ -51,7 +51,7 @@
 	});
 </script>
 
-<div class="flex h-full w-full flex-col gap-2 overflow-hidden overflow-y-auto">
+<div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
 	{#if !edit}
 		<div>
 			Busca y escoge el ramo
@@ -78,7 +78,7 @@
 				previsualización.
 			</p>
 		</div>
-		<div class="flex h-full w-full flex-col gap-2">
+		<div class="flex w-full shrink flex-col gap-2 overflow-y-auto">
 			{#each paraleloOptions as paraleloOption (paraleloOption.value)}
 				{@const ramo = { ...Data.cachedRamos[selectedRamo][paraleloOption.value!] }}
 				{@const selected = paraleloOption.value === selectedParalelo}

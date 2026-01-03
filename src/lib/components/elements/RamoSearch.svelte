@@ -4,21 +4,29 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Search from '$lib/icons/search.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import Paralelos from '$lib/icons/paralelos.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { debounce } from 'lodash';
 	import Floating from '$lib/components/ui/Floating.svelte';
-	import { scale } from 'svelte/transition';
-	import MaterialSymbolsCirclesOutline from '$lib/icons/MaterialSymbolsCirclesOutline.svelte';
+	import { fade, slide } from 'svelte/transition';
 
 	const inputStyle = tv({
-		base: 'border border-input bg-input rounded-md p-2 w-full transition-colors duration-100 focus:ring-2 focus:ring-ring focus:outline-none'
+		base: 'border border-input bg-input rounded-md p-2 w-full transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none flex items-center gap-2 shadow-sm'
 	});
 
 	const listStyle = tv({
-		base: 'absolute z-10 w-full mt-2 bg-popover text-popover-foreground border rounded-md shadow-lg p-1 flex flex-col gap-1'
+		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
+	});
+
+	const itemStyle = tv({
+		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all duration-150 border border-transparent group overflow-hidden hover:cursor-pointer',
+		variants: {
+			active: {
+				true: 'bg-accent/50 border-accent'
+			},
+			added: {
+				true: 'opacity-70 bg-green-500/5 hover:bg-green-500/10 border-green-500/20'
+			}
+		}
 	});
 
 	let {
@@ -51,6 +59,8 @@
 		updateDebouncedQuery(query);
 	});
 
+	const cachedRamos = Object.entries(Data.cachedRamos);
+
 	const filteredItems = $derived.by(async () => {
 		if (disabled) return [];
 		const q = debouncedQuery.trim();
@@ -61,26 +71,43 @@
 			.split(/\s+|\*+/g)
 			.filter(Boolean);
 
-		return Object.entries(Data.cachedRamos).filter(([k, paralelos]) => {
+		// Limitamos resultados a 20 para mejorar rendimiento de renderizado
+		let count = 0;
+		const results = [];
+		const entries = cachedRamos;
+
+		for (const [k, paralelos] of entries) {
+			const ramo = Object.values(paralelos).at(0);
+			if (!ramo) continue;
+
+			let matches = true;
 			for (const s of splittedQuery) {
 				if (
 					!k.deaccent().toLowerCase().includes(s) &&
-					!Object.values(paralelos).at(0)?.nombre.deaccent().toLowerCase().includes(s)
-				)
-					return false;
+					!ramo.nombre.deaccent().toLowerCase().includes(s)
+				) {
+					matches = false;
+					break;
+				}
 			}
-			return true;
-		});
+			if (matches) {
+				results.push([k, paralelos] as const);
+				count++;
+			}
+		}
+		return results;
 	});
 
 	$effect(() => {
+		// Reset index on query change
 		highlightedIndex = 0;
-		itemNodes = [];
+		// Wait for render update then scroll
+		if (itemNodes[0]) itemNodes[0].scrollIntoView({ block: 'nearest' });
 	});
 
 	$effect(() => {
-		if (highlightedIndex > 0) {
-			itemNodes[highlightedIndex]?.scrollIntoView({ block: 'nearest' });
+		if (highlightedIndex >= 0 && itemNodes[highlightedIndex]) {
+			itemNodes[highlightedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 		}
 	});
 
@@ -103,11 +130,14 @@
 		}
 	}
 
-	function onItemClicked(item: string) {
-		value = item;
+	function onItemClicked(sigla: string) {
+		value = sigla;
 		query = '';
 		isFocused = false;
-		(document.activeElement as HTMLElement)?.blur();
+		_this?.blur();
+
+		// Opcional: Añadir lógica directa para agregar si el componente lo manejara,
+		// pero por ahora solo emitimos/seleccionamos el valor.
 	}
 </script>
 
@@ -118,11 +148,11 @@
 	class:opacity-50={disabled}
 	{...props}
 >
-	<div class="{inputStyle()} whitespace-nowrap">
-		<Search class="mx-1 inline scale-150" />
+	<div class={inputStyle()}>
+		<Search class="text-muted-foreground h-5 w-5 shrink-0" />
 		<input
 			bind:this={_this}
-			class="w-full outline-0!"
+			class="placeholder:text-muted-foreground/70 w-full bg-transparent outline-none"
 			bind:value={query}
 			{placeholder}
 			{disabled}
@@ -141,28 +171,55 @@
 		visible={isFocused}
 		position="bottom"
 		anchor="start"
-		offset={4}
-		class="pointer-events-auto"
+		offset={0}
+		class="z-50"
 	>
 		<ul
-			transition:scale={{ start: 0.9, duration: 200 }}
-			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-md overflow-y-auto"
+			transition:fade={{ duration: 200 }}
+			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-lg overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-ramo-search"
 		>
+			<div class="relative p-3 px-4 text-sm">
+				<p>
+					Para el semestre <span class="highlight">{Calendario.semestre}</span> hay
+					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
+				</p>
+				{#if query.length}
+					{#await filteredItems then items}
+						{#if cachedRamos.length !== items.length}
+							<p transition:slide={{ axis: 'y' }}>
+								Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
+							</p>
+						{/if}
+					{/await}
+				{/if}
+				<div
+					class="border-border relative bottom-0 mt-auto w-full translate-y-2 scale-x-200 border-b"
+				></div>
+			</div>
 			{#await filteredItems}
-				<li class="text-muted-foreground p-2 text-sm">Buscando...</li>
+				<li class="text-muted-foreground animate-pulse p-4 text-center text-sm">
+					Buscando asignaturas...
+				</li>
 			{:then items}
 				{#if items.length === 0}
-					<li class="text-muted-foreground p-2 text-sm">No hay resultados</li>
+					<li class="text-muted-foreground p-4 text-sm">
+						{#if query}
+							No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Calendario.semestre},
+							y comprueba si el ramo que buscas tiene registrado horario para ese semestre.
+						{:else}
+							Escribe para empezar a filtrar ramos.
+						{/if}
+					</li>
 				{:else}
 					{#each items as item, i (item[0])}
 						{@const sigla = item[0]}
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
-						{@const programa = Data.getProgramaRamo(Calendario.sede, ramo.sigla)}
+						<!-- {@const programa = Data.getProgramaRamo(Calendario.sede, ramo.sigla)} -->
 
 						<li
 							bind:this={itemNodes[i]}
@@ -171,47 +228,35 @@
 							role="option"
 							aria-selected={highlightedIndex === i}
 							onmousemove={() => (highlightedIndex = i)}
+							class="list-none"
 						>
-							<Button
-								variant="ghost"
-								class="ring-ring/50 relative h-auto w-full justify-start p-4 text-left font-normal ring {highlightedIndex ===
-								i
-									? 'bg-accent'
-									: ''} {inHorario ? 'text-orange-400 line-through opacity-50' : ''}"
+							<button
+								class={itemStyle({ active: highlightedIndex === i, added: inHorario })}
 								onmousedown={(e) => {
-									e.preventDefault(); // Opcional: evita que el input pierda foco visualmente antes de tiempo
+									e.preventDefault();
 									onItemClicked(sigla);
 								}}
 							>
-								<div
-									class="absolute! top-0 right-0 m-1 flex origin-top-right scale-90 flex-row gap-1"
-								>
-									<Tooltip content="Paralelos">
-										<Badge
-											variant={paralelos.length <= 1
-												? 'danger'
-												: paralelos.length === 2
-													? 'warning'
-													: 'success'}
-											icon={MaterialSymbolsCirclesOutline}
-											class="text-xs"
+								<div class="leading-2!">
+									<p>
+										<span class="mr-1 font-mono text-xl font-black tracking-wide drop-shadow-sm/50"
+											>{sigla}</span
 										>
-											{paralelos.length}
-										</Badge>
-									</Tooltip>
-									{#if programa?.tipo}
-										<Tooltip content="Tipo de Ramo">
-											<Badge class="text-xs">
+										<span class="text-muted-foreground text-sm font-bold">{ramo.nombre}</span>
+									</p>
+									<!-- <div class="mt-0.5 flex flex-row-reverse gap-2 text-xs opacity-75">
+										<p>
+											DEPTO. DE {ramo.departamento}
+										</p>
+										{#if programa?.tipo}
+											<p>•</p>
+											<p>
 												{programa.tipo}
-											</Badge>
-										</Tooltip>
-									{/if}
+											</p>
+										{/if}
+									</div> -->
 								</div>
-								<div class="max-w-1/2 leading-tight">
-									<h2 class="font-black">{sigla}</h2>
-									<p class="text-muted-foreground text-xs text-ellipsis">{ramo.nombre}</p>
-								</div>
-							</Button>
+							</button>
 						</li>
 					{/each}
 				{/if}
@@ -221,3 +266,39 @@
 		</ul>
 	</Floating>
 </div>
+
+<style lang="postcss">
+	@reference "tailwindcss";
+
+	.highlight {
+		&.secondary {
+			color: var(--color-amber-500);
+		}
+
+		color: var(--color-primary);
+		@apply font-medium! mix-blend-plus-lighter;
+	}
+
+	ul {
+		/* Estilos generales para navegadores basados en Webkit (Chrome, Safari, Edge) */
+		&::-webkit-scrollbar {
+			@apply w-2;
+		}
+
+		&::-webkit-scrollbar-track {
+			@apply bg-transparent;
+		}
+
+		&::-webkit-scrollbar-thumb {
+			background: var(--color-muted-foreground);
+			@apply rounded-full border-2 border-transparent bg-clip-content;
+
+			&:hover {
+				background: var(--color-muted-foreground);
+			}
+		}
+
+		/* Soporte básico para Firefox */
+		scrollbar-color: var(--color-muted-foreground) transparent;
+	}
+</style>

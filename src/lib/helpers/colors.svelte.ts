@@ -84,13 +84,20 @@ function getColorForString(string: string): ColorInstance | undefined {
     return undefined; // No se encontró coincidencia
 }
 
+const colorCache = new Map<string, ColorInstance>();
+
 export function generateColorForRamo(sigla: string, nombre: string) {
+    // 1. Verificar caché
+    if (colorCache.has(sigla)) {
+        return colorCache.get(sigla)!;
+    }
+
     let outColor: ReturnType<typeof getColorForString>;
     outColor = getColorForString(sigla);
     outColor ||= getColorForString(nombre);
 
     const fn = differenceEuclidean('rgb');
-    const MAX_TRIES = 10; // Límite de intentos para generar un color único
+    const MAX_TRIES = 10;
 
     if (!outColor) {
         let tries = 0;
@@ -98,34 +105,37 @@ export function generateColorForRamo(sigla: string, nombre: string) {
         let newColor: ColorInstance | undefined;
 
         while (tries < MAX_TRIES && !uniqueColorFound) {
-            const hue = Math.random() * 360; // Tono: cualquier valor entre 0 y 360
-            const saturation = 0.7 + Math.random() * 0.3; // Saturación: entre 70% y 100%
-            const lightness = 0.4 + Math.random() * 0.2; // Luminosidad: entre 40% y 60%
+            const hue = Math.random() * 360;
+            const saturation = 0.7 + Math.random() * 0.3;
+            const lightness = 0.4 + Math.random() * 0.2;
 
             newColor = Color.hsl(hue, saturation * 100, lightness * 100);
-            uniqueColorFound = true; // Asumimos que es único hasta que se demuestre lo contrario
+            uniqueColorFound = true;
 
             for (const testColor of Calendario.ramos.map(r => r.color)) {
-                if (testColor && fn(newColor.hex(), testColor.hex()) < 0.1) { // Umbral de diferencia menor para considerar "repetido"
+                if (testColor && fn(newColor.hex(), testColor.hex()) < 0.1) {
                     uniqueColorFound = false;
                     break;
                 }
             }
             tries++;
         }
-        return newColor!; // Se garantiza que newColor tendrá un valor después del bucle
+
+        // Guardar en caché antes de retornar
+        const finalColor = newColor!;
+        colorCache.set(sigla, finalColor);
+        return finalColor;
     }
 
-    // Si outColor ya tiene un valor, verificamos su unicidad y lo ajustamos si es necesario
+    // Si outColor ya tiene un valor, verificamos su unicidad
     for (const testColor of Calendario.ramos.map(r => r.color)) {
-        if (testColor && fn(outColor.hex(), testColor.hex()) < 0.25) { // Si el color ya existe o es muy similar
+        if (testColor && fn(outColor.hex(), testColor.hex()) < 0.25) {
             let tries = 0;
             let uniqueColorFound = false;
             let adjustedColor: ColorInstance | undefined;
 
             while (tries < MAX_TRIES && !uniqueColorFound) {
-                // Ajustar ligeramente el color existente para intentar hacerlo único
-                const newHue = (outColor.hue() + (Math.random() * 60 - 50)) % 360; // Ajuste de hue +/- 30
+                const newHue = (outColor.hue() + (Math.random() * 60 - 50)) % 360;
                 const newSaturation = Math.min(1, Math.max(0, outColor.saturationl() / 100 + (Math.random() * 0.2 - 0.1)));
                 const newLightness = Math.min(1, Math.max(0, outColor.lightness() / 100 + (Math.random() * 0.2 - 0.1)));
 
@@ -140,9 +150,13 @@ export function generateColorForRamo(sigla: string, nombre: string) {
                 }
                 tries++;
             }
-            return adjustedColor || outColor;
+            const finalAdjusted = adjustedColor || outColor;
+            colorCache.set(sigla, finalAdjusted);
+            return finalAdjusted;
         }
     }
 
+    // Guardar en caché el color base si no hubo colisiones
+    colorCache.set(sigla, outColor);
     return outColor;
 }

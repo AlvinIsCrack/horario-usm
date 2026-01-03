@@ -21,37 +21,44 @@
 	);
 </script>
 
-<!-- 
-{#snippet paraleloRender()}
-	<HorarioMiniRender bloques={paralelo.horario} />
-{/snippet} -->
-
-<div class="{disabled ? 'pointer-events-none opacity-50 grayscale-50' : ''} flex w-full">
-	<Tooltip wrapperClass="inline w-full h-full" position="right">
-		<Button
-			class="bg-background! relative block w-full overflow-hidden border {!selected
-				? 'hover:bg-accent! active:bg-accent/50!'
-				: 'bg-primary! hover:bg-primary/50! text-primary-foreground!'} whitespace-nowrap"
-			{onclick}
-			type="button"
+<div class="{disabled ? 'pointer-events-none opacity-40 grayscale' : ''} flex w-full">
+	<!-- {#snippet paraleloRender()}
+		<HorarioMiniRender bloques={paralelo.horario} />
+	{/snippet} -->
+	<!-- <Tooltip content={paraleloRender} wrapperClass="inline w-full h-full" position="right"> -->
+	<Button
+		class="relative flex w-full items-center gap-3 border p-3
+                {!selected
+			? 'bg-background! hover:bg-accent! hover:border-accent-foreground/20 active:bg-accent/80'
+			: 'bg-primary! text-primary-foreground ring-primary/20 hover:bg-primary/90! shadow-md ring-1'} 
+                {colision && !selected
+			? 'border-destructive/40 bg-destructive/5 hover:bg-destructive/10'
+			: ''}"
+		{onclick}
+		type="button"
+	>
+		<div
+			class="flex h-full min-w-[3rem] flex-col items-center justify-center border-r pr-3 leading-tight"
 		>
-			<div class="flex h-full w-fit flex-col text-sm text-nowrap opacity-50">
-				<p class="font-bold {colision ? 'text-orange-400' : ''}">
-					{código}
-				</p>
-				{#if extra}
-					<p class="text-xs uppercase italic">{extra}</p>
-				{/if}
-			</div>
-			<Separator class="pl-1" vertical />
+			<p
+				class="text-xs font-black tracking-tighter md:scale-150 xl:scale-200 {colision
+					? 'text-destructive'
+					: 'opacity-60'}"
+			>
+				{código}
+			</p>
+			{#if extra}
+				<p class="text-[10px] font-medium uppercase opacity-40">{extra}</p>
+			{/if}
+		</div>
 
-			<div class="flex flex-1 flex-col">
-				{#each paralelo.profesor as profesor (profesor)}
-					<div class="w-full truncate text-center text-sm" title={profesor}>
-						{profesor}
-					</div>
-				{/each}
-			</div>
-		</Button>
-	</Tooltip>
+		<div class="flex flex-1 flex-col overflow-hidden text-left leading-snug">
+			{#each paralelo.profesor as profesor (profesor)}
+				<div class="truncate text-sm font-medium" title={profesor}>
+					{profesor}
+				</div>
+			{/each}
+		</div>
+	</Button>
+	<!-- </Tooltip> -->
 </div>

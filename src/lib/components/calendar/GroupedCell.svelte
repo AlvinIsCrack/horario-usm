@@ -35,7 +35,7 @@
 	});
 </script>
 
-<div class="relative flex h-28 min-h-full w-full flex-col">
+<div class="relative flex h-full min-h-0 w-full flex-col">
 	{#if isMerged}
 		<BlockContent bloques={bloque1_array} />
 	{:else}

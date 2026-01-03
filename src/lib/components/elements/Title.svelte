@@ -13,16 +13,25 @@
 
 {#if visible}
 	<div
-		transition:fade={{ duration: 500, delay: 200 }}
-		class="flex h-full w-full items-center justify-center"
+		transition:fade={{ duration: 400 }}
+		class="relative flex h-full w-full flex-col items-center justify-center p-8 select-none"
 	>
-		<div>
-			<div class="text-foreground text-justify text-4xl leading-8 font-black">
-				INFORMACIÓN DE RAMOS ACTUALIZADA HACE
-				<div
-					class="update-date-calendario font-gothic-expanded -mt-3 w-full text-center text-9xl uppercase"
+		<div class="z-10 flex flex-col items-center justify-center">
+			<div class="text-foreground flex flex-col items-center">
+				<span
+					class="mb-1 text-center text-xl font-black
+							 tracking-tight opacity-70 lg:text-3xl xl:text-4xl"
 				>
-					{Data.updateDate?.fromNow().replace('hace', '').deaccent()}
+					INFORMACIÓN DE RAMOS ACTUALIZADA HACE
+				</span>
+				<div
+					class="font-gothic-expanded text-foreground w-full
+						   text-center text-7xl
+						   leading-[0.85] font-black
+						   tracking-tighter
+						   uppercase lg:-mt-3 lg:text-8xl lg:leading-[0.8] xl:text-9xl"
+				>
+					{Data.updateDate?.fromNow().replace('hace', '').deaccent() ?? '...'}
 				</div>
 			</div>
 			<div class="w-full text-center italic opacity-50">
