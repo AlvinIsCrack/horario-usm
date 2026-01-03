@@ -35,7 +35,7 @@
 					.reduce((prev, curr) => (prev ?? 0) + (curr ?? 0), 0) ?? 0} SCT
 			</Badge>
 		</div>
-		<div class="flex h-full w-full flex-col overflow-y-auto p-1">
+		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto p-1">
 			{#each Calendario.ramos as ramo, i (i)}
 				{@const highlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&

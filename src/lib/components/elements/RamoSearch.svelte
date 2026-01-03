@@ -9,7 +9,9 @@
 	import Paralelos from '$lib/icons/paralelos.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { debounce } from 'lodash';
-	import { onMount } from 'svelte';
+	import Floating from '$lib/components/ui/Floating.svelte';
+	import { scale } from 'svelte/transition';
+	import MaterialSymbolsCirclesOutline from '$lib/icons/MaterialSymbolsCirclesOutline.svelte';
 
 	const inputStyle = tv({
 		base: 'border border-input bg-input rounded-md p-2 w-full transition-colors duration-100 focus:ring-2 focus:ring-ring focus:outline-none'
@@ -39,6 +41,7 @@
 	let isFocused = $state(false);
 	let highlightedIndex = $state(0);
 	let itemNodes: Array<HTMLLIElement> = $state([]);
+	let containerEl: HTMLDivElement | undefined = $state();
 
 	const updateDebouncedQuery = debounce((query: string) => {
 		debouncedQuery = query;
@@ -109,6 +112,7 @@
 </script>
 
 <div
+	bind:this={containerEl}
 	class="relative w-full {_class}"
 	class:pointer-events-none={disabled}
 	class:opacity-50={disabled}
@@ -132,8 +136,21 @@
 		/>
 	</div>
 
-	{#if isFocused}
-		<ul class="{listStyle()} max-h-[400px] overflow-y-auto" role="listbox" id="listbox-ramo-search">
+	<Floating
+		trigger={containerEl}
+		visible={isFocused}
+		position="bottom"
+		anchor="start"
+		offset={4}
+		class="pointer-events-auto"
+	>
+		<ul
+			transition:scale={{ start: 0.9, duration: 200 }}
+			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-md overflow-y-auto"
+			style="width: {containerEl?.offsetWidth}px"
+			role="listbox"
+			id="listbox-ramo-search"
+		>
 			{#await filteredItems}
 				<li class="text-muted-foreground p-2 text-sm">Buscando...</li>
 			{:then items}
@@ -145,6 +162,7 @@
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
+						{@const programa = Data.getProgramaRamo(Calendario.sede, ramo.sigla)}
 
 						<li
 							bind:this={itemNodes[i]}
@@ -156,7 +174,7 @@
 						>
 							<Button
 								variant="ghost"
-								class="relative h-auto w-full justify-start px-2 py-1.5 text-left font-normal {highlightedIndex ===
+								class="ring-ring/50 relative h-auto w-full justify-start p-4 text-left font-normal ring {highlightedIndex ===
 								i
 									? 'bg-accent'
 									: ''} {inHorario ? 'text-orange-400 line-through opacity-50' : ''}"
@@ -165,14 +183,33 @@
 									onItemClicked(sigla);
 								}}
 							>
-								<Tooltip wrapperClass="absolute! top-0 right-0 m-1" content="Paralelos">
-									<Badge icon={Paralelos} class="scale-90 text-sm">
-										{paralelos.length}
-									</Badge>
-								</Tooltip>
-								<div class="max-w-3/4">
-									<b>{sigla}</b>
-									<p class="text-xs">{ramo.nombre}</p>
+								<div
+									class="absolute! top-0 right-0 m-1 flex origin-top-right scale-90 flex-row gap-1"
+								>
+									<Tooltip content="Paralelos">
+										<Badge
+											variant={paralelos.length <= 1
+												? 'danger'
+												: paralelos.length === 2
+													? 'warning'
+													: 'success'}
+											icon={MaterialSymbolsCirclesOutline}
+											class="text-xs"
+										>
+											{paralelos.length}
+										</Badge>
+									</Tooltip>
+									{#if programa?.tipo}
+										<Tooltip content="Tipo de Ramo">
+											<Badge class="text-xs">
+												{programa.tipo}
+											</Badge>
+										</Tooltip>
+									{/if}
+								</div>
+								<div class="max-w-1/2 leading-tight">
+									<h2 class="font-black">{sigla}</h2>
+									<p class="text-muted-foreground text-xs text-ellipsis">{ramo.nombre}</p>
 								</div>
 							</Button>
 						</li>
@@ -182,5 +219,5 @@
 				<li class="text-destructive p-2 text-sm">Error: {error.message}</li>
 			{/await}
 		</ul>
-	{/if}
+	</Floating>
 </div>

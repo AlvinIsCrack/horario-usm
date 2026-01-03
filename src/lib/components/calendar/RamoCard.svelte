@@ -57,19 +57,26 @@
 					</p> -->
 				</div>
 
-				<div class="flex w-full flex-row-reverse flex-wrap items-center justify-between gap-2">
-					{#if salaVálida}
-						<Badge class="whitespace-nowrap" icon={Location}>
-							{bloqueObject.sala}
-						</Badge>
-					{/if}
+				<div class="flex w-full flex-row flex-wrap items-center justify-between gap-2">
 					{#if !esCátedra}
-						<p class="text-sm uppercase" class:opacity-60={esOscuro} class:opacity-40={!esOscuro}>
+						<p
+							class="text-sm font-bold uppercase"
+							class:opacity-60={esOscuro}
+							class:opacity-40={!esOscuro}
+						>
 							{Object.keys(TipoBloque)[Object.values(TipoBloque).indexOf(bloqueObject.tipo)]}
 						</p>
 					{/if}
 				</div>
 			</div>
+			{#if salaVálida}
+				<Badge
+					class="absolute right-0 bottom-0 z-10 rounded-tl-lg rounded-r-none rounded-bl-none p-2! whitespace-nowrap drop-shadow-md/50"
+					icon={Location}
+				>
+					{bloqueObject.sala}
+				</Badge>
+			{/if}
 		{/if}
 	</div>
 </div>

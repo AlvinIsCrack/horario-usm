@@ -13,3 +13,19 @@ export function clickOutside(node: HTMLElement, handler: () => void) {
         }
     };
 }
+
+export function portal(node: HTMLElement) {
+    const target = document.querySelector('#tooltip-portal');
+
+    if (target) {
+        target.appendChild(node);
+    }
+
+    return {
+        destroy() {
+            if (node && target && target.contains(node)) {
+                target.removeChild(node);
+            }
+        }
+    };
+}
