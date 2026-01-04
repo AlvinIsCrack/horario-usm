@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import type { Snippet } from 'svelte';
+	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
 
 	let {
@@ -144,23 +145,45 @@
 		}
 	});
 
-	$effect(() => {
-		if (browser && visible && floatingEl) {
-			const target = document.querySelector('#tooltip-portal') || document.body;
-			target.appendChild(floatingEl);
-			return () => {
-				if (floatingEl && target.contains(floatingEl)) target.removeChild(floatingEl);
-			};
-		}
-	});
+	function adaptiveScale(node: HTMLElement) {
+		const origins = {
+			top: 'bottom',
+			bottom: 'top',
+			left: 'right',
+			right: 'left'
+		};
+
+		return {
+			duration: 150,
+			easing: cubicOut,
+			css: (t: number) => `
+                opacity: ${t};
+                transform: scale(${0.95 + 0.05 * t});
+                transform-origin: ${origins[position] || 'center'};
+            `
+		};
+	}
+
+	function portal(node: HTMLElement) {
+		const target = document.querySelector('#tooltip-portal') || document.body;
+		target.appendChild(node);
+
+		return {
+			destroy() {
+				// Svelte llamará a esto DESPUÉS de que la transición de salida termine
+				if (node.parentNode) node.parentNode.removeChild(node);
+			}
+		};
+	}
 </script>
 
 {#if visible}
 	<div
+		use:portal
 		bind:this={floatingEl}
 		style="left: {coords.x}px; top: {coords.y}px; --max-h: {maxHeight}px;"
 		class="pointer-events-auto fixed z-[100] {_class}"
-		transition:fade={{ duration: 100 }}
+		transition:adaptiveScale
 	>
 		{@render children()}
 	</div>

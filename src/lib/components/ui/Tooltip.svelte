@@ -2,8 +2,6 @@
 	import type { Snippet } from 'svelte';
 	import type { ClassValue, HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
-	import { fade } from 'svelte/transition';
-	import { browser } from '$app/environment';
 	import Floating from './Floating.svelte';
 
 	let {
@@ -28,7 +26,7 @@
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const tooltip = tv({
-		base: 'fixed w-max font-light max-w-xs text-center rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-sm/50',
+		base: 'fixed w-max border-2 max-w-xs text-center font-normal rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md/50',
 		variants: {
 			position: {
 				top: 'bottom-full left-1/2',

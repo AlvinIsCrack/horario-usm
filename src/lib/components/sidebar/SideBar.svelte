@@ -60,7 +60,10 @@
 				<div class="h-min w-full">
 					{#if Calendario.sede}
 						<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
-							<Button class="flex-1 text-nowrap" onclick={() => (activeWindow = RamoWindow)}>
+							<Button
+								class="flex-1 text-nowrap"
+								onclick={() => SideBar.setActiveWindow(RamoWindow, {})}
+							>
 								<Add class="inline scale-125" /> Añadir ramo
 							</Button>
 							<Tooltip content="Guardar horario">
