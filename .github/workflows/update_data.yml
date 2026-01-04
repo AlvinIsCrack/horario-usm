@@ -19,6 +19,11 @@ on:
     # ya está cargada desde Enero, está bien mantenerlo bajo.
     - cron: '0 8,16 * 3,4,9,10 *'
   workflow_dispatch:
+    inputs:
+      script_args:
+        description: 'Argumentos opcionales para generar.py (ej: --carreras --programas)'
+        required: false
+        default: ''
 
 jobs:
   run-scraper:
@@ -48,7 +53,7 @@ jobs:
           SIGA_PASSWD: ${{ secrets.SIGA_PASSWD }}
           # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
           PYTHONPATH: ${{ github.workspace }}/resources
-        run: python resources/generar.py
+        run: python resources/generar.py ${{ github.event.inputs.script_args }}
 
       - name: Confirmar y subir cambios
         run: |
