@@ -7,13 +7,17 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Trash from '$lib/icons/trash.svelte';
 	import Save from '$lib/icons/save.svelte';
-	import Load from '$lib/icons/load.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import { tick } from 'svelte';
 	import SavedHorariosWindow from './windows/SavedHorariosWindow.svelte';
 	import Horario from '$lib/icons/horario.svelte';
-	import Time from '$lib/helpers/time';
+	import { Menu, MenuHeader, MenuItem, MenuSeparator } from '../ui/menu';
+	import MaterialSymbolsMenu from '$lib/icons/MaterialSymbolsMenu.svelte';
+	import Image from '$lib/icons/image.svelte';
+	import { exportScheduleAsImage } from '$lib/helpers/screenshot';
+	import Copy from '$lib/icons/copy.svelte';
+	import { Dialog } from '../ui/Dialog.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -66,40 +70,69 @@
 							>
 								<Add class="inline scale-125" /> Añadir ramo
 							</Button>
-							<Tooltip content="Guardar horario">
-								<Button
-									variant="ghost"
-									size="icon"
+							<Menu align="end">
+								{#snippet trigger()}
+									<Tooltip content="Opciones">
+										<Button variant="outlined" size="icon">
+											<MaterialSymbolsMenu />
+										</Button>
+									</Tooltip>
+								{/snippet}
+
+								<MenuItem
 									disabled={!Calendario.ramos.length}
 									onclick={() => {
-										const key = prompt(
-											'¿Cómo se va a llamar el horario? (debe ser único)',
-											new Date().toLocaleDateString('es-ES', {
+										const listado = Calendario.ramos
+											.map((r) => `${r.sigla} ${r.paralelo}`)
+											.join('\n');
+										navigator.clipboard
+											.writeText(listado)
+											.then(() => alert(`Lista copiada al portapapeles:\n"${listado}"`));
+									}}
+								>
+									<Copy class="mr-2 h-4 w-4" />
+									Copiar selección
+								</MenuItem>
+
+								<MenuItem onclick={exportScheduleAsImage} disabled={!Calendario.ramos.length}>
+									<Image class="mr-2 h-4 w-4" />
+									Exportar imagen
+								</MenuItem>
+
+								<MenuSeparator />
+
+								<MenuHeader>Gestión</MenuHeader>
+								<MenuItem
+									disabled={!Calendario.ramos.length}
+									onclick={async () => {
+										const key = await Dialog.input({
+											title: '¿Cómo se va a llamar el horario? (debe ser único)',
+											value: new Date().toLocaleDateString('es-ES', {
 												year: 'numeric',
 												month: '2-digit',
 												day: '2-digit',
 												hour: '2-digit',
 												minute: '2-digit'
 											})
-										);
+										});
 										if (key) Calendario.save(key);
 									}}
 								>
-									<Save />
-								</Button>
-							</Tooltip>
-							<Tooltip content="Limpiar todo">
-								<Button
-									size="icon"
+									<Save class="mr-2 h-4 w-4" />
+									Guardar horario
+								</MenuItem>
+
+								<MenuItem
+									onclick={async () =>
+										(await Dialog.confirm({
+											title: '¿Estás seguro? Esta acción va a borrar TODOS los ramos inscritos.'
+										})) && Calendario.clear()}
 									disabled={!Calendario.ramos.length}
-									variant="ghost"
-									onclick={() =>
-										confirm('¿Estás seguro? Esta acción va a borrar TODOS los ramos inscritos.') &&
-										Calendario.clear()}
 								>
-									<Trash />
-								</Button>
-							</Tooltip>
+									<Trash class="mr-2 h-4 w-4" />
+									Limpiar todo
+								</MenuItem>
+							</Menu>
 
 							<Separator />
 							{#if !Calendario.visible}

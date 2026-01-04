@@ -2,6 +2,7 @@
 	import { MAIN_RENDERER } from '$lib/constants/ids';
 	import Loader from '$lib/icons/loader.svelte';
 	import { fade } from 'svelte/transition';
+	import Dialog from '$lib/components/ui/Dialog.svelte';
 </script>
 
 <div role="application" class="bg-primary/80 relative h-full w-full overflow-hidden">
@@ -25,6 +26,7 @@
 		</div>
 	</div>
 </div>
+<Dialog />
 <div
 	id="tooltip-portal"
 	class="pointer-events-none fixed top-0 left-0 z-[1000] h-full w-full"

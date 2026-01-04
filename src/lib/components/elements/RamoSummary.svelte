@@ -55,7 +55,7 @@
 						ELECTIVO: 'Este ramo corresponde a un electivo de la malla curricular.'
 					}[programa.tipo as string]}
 				>
-					<span class="text-primary opacity-100">
+					<span class="text-primary opacity-100 mix-blend-overlay text-shadow-xs/50!">
 						{programa.tipo.replace('AMBOS', 'PAR E IMPAR')}
 					</span>
 				</Tooltip> DEL

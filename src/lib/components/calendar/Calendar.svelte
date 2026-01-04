@@ -28,6 +28,7 @@
 		{/await}
 	{:else}
 		<div
+			id="calendar-main"
 			transition:fade={{ duration: 200 }}
 			class="calendar-grid absolute h-full w-full"
 			style="--num-dias: {numDias};"
@@ -35,8 +36,12 @@
 			<div class="opacity-0"></div>
 			<div class="opacity-0"></div>
 			{#each _.range(díaBegin, díaEnd + 1) as día (día)}
-				<div class="text-foreground -mb-1 flex text-sm font-bold uppercase select-none">
-					{Días[día]}
+				{@const dayName = Días[día]}
+
+				<div
+					class="text-foreground -mb-1 flex gap-1.5 text-sm font-bold uppercase transition-colors duration-300 select-none"
+				>
+					{dayName}
 				</div>
 			{/each}
 

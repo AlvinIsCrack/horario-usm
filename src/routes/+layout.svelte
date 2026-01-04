@@ -9,4 +9,7 @@
 	let { children } = $props();
 </script>
 
+<svelte:head>
+	<title>Horario USM</title>
+</svelte:head>
 {@render children()}

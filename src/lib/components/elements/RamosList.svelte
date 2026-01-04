@@ -20,17 +20,25 @@
 
 <div class="mt-2 flex h-full flex-col gap-1 overflow-x-visible overflow-y-auto">
 	{#if !Calendario.ramos.length}
-		<p class="opacity-50">No hay ninguno aún.</p>
+		<p class="opacity-50">No hay ramos registrados.</p>
 	{:else}
 		<div class="flex w-full flex-row items-center justify-between gap-2 text-sm">
-			<h1 class="text-base font-normal">Ramos registrados</h1>
-			<Badge icon={Circles}>
-				{Calendario.ramos
-					.map(
-						(r) => Data.getInfoRamoCarrera(r.sigla, Calendario.sede, Calendario.jornada)?.creditos
-					)
-					.reduce((prev, curr) => (prev ?? 0) + (curr ?? 0), 0) ?? 0} SCT
-			</Badge>
+			<div class="-mt-1">
+				<h1 class="text-sm font-normal">Ramos registrados</h1>
+				<p class="text-xs opacity-50">
+					{Calendario.ramos.filter((_, i) => ramosCarrera[i]?.creditos).length} ramos
+				</p>
+			</div>
+
+			<Tooltip content="Créditos totales (SCT)">
+				<Badge icon={Circles}>
+					{Calendario.ramos
+						.map(
+							(r) => Data.getInfoRamoCarrera(r.sigla, Calendario.sede, Calendario.jornada)?.creditos
+						)
+						.reduce((prev, curr) => (prev ?? 0) + (curr ?? 0), 0) ?? 0} SCT
+				</Badge>
+			</Tooltip>
 		</div>
 		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto p-1">
 			{#each Calendario.ramos as ramo, i (i)}
@@ -107,11 +115,13 @@
 						<div
 							class="pointer-events-none absolute top-0 right-0 flex h-full flex-row items-end justify-end gap-1 p-1 px-2 text-right opacity-100 transition-all duration-200 group-hover:opacity-0"
 						>
-							<div class="text-xs font-medium opacity-50">
-								<p>
-									{creditos} SCT
-								</p>
-							</div>
+							{#if creditos}
+								<div class="text-xs font-medium opacity-50">
+									<p>
+										{creditos} SCT
+									</p>
+								</div>
+							{/if}
 						</div>
 					</div>
 				</Tooltip>

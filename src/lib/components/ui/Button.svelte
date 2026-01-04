@@ -10,7 +10,8 @@
 				primary: 'bg-primary hover:bg-primary/50 text-primary-foreground',
 				secondary: 'bg-secondary hover:bg-secondary/50 text-secondary-foreground',
 				ghost: 'text-foreground hover:bg-input/50 border-none shadow-none',
-				destructive: 'bg-destructive hover:bg-destructive/50 text-primary-foreground'
+				destructive: 'bg-destructive hover:bg-destructive/50 text-primary-foreground',
+				outlined: 'bg-transparent hover:bg-accent hover:text-accent-foreground border-input'
 			},
 			size: {
 				icon: 'p-2 w-min h-auto aspect-square',
@@ -19,6 +20,7 @@
 			}
 		}
 	});
+
 	let {
 		children,
 		variant = 'primary',

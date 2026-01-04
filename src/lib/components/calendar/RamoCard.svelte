@@ -5,6 +5,7 @@
 	import { TipoBloque, type Bloque } from '$lib/types/horario';
 	import Location from '$lib/icons/location.svelte';
 	import { SideBar } from '../sidebar/SideBar.svelte';
+	import CornerBadge from '../ui/CornerBadge.svelte';
 
 	let { bloqueObject, ...props }: { bloqueObject: Bloque } = $props();
 	let visible = $state(false);
@@ -49,7 +50,10 @@
 				{...props}
 			>
 				<div>
-					<p class="line-clamp-2 text-xs leading-tight font-medium lg:text-sm" title={ramo.nombre}>
+					<p
+						class="line-clamp-2 text-xs leading-tight font-medium md:text-sm 2xl:text-base"
+						title={ramo.nombre}
+					>
 						{ramo.nombre}
 					</p>
 
@@ -76,14 +80,13 @@
 				</div>
 			</div>
 			{#if salaVálida}
-				<Badge
-					class="absolute right-0 bottom-0 z-10 rounded-tl-lg rounded-r-none {esCátedra
-						? 'rounded-br-lg'
-						: ''} rounded-bl-none p-2! whitespace-nowrap drop-shadow-md/50"
+				<CornerBadge
+					position="bottom-right"
+					class="{esCátedra ? 'rounded-br-lg' : ''} text-xs! xl:text-sm!"
 					icon={Location}
 				>
 					{bloqueObject.sala}
-				</Badge>
+				</CornerBadge>
 			{/if}
 		{/if}
 	</div>

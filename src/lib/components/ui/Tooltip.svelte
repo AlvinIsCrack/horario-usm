@@ -46,6 +46,7 @@
 	class="relative inline-flex {wrapperClass}"
 	onpointerenter={() => (visible = true)}
 	onpointerleave={() => (visible = false)}
+	onclick={() => (visible = false)}
 	bind:this={wrapperEl}
 >
 	{@render children?.()}
