@@ -2,13 +2,13 @@ name: Actualizar Horarios y Datos
 
 on:
   schedule:
-    - cron: '*/30 12-21 * 1,6,7,12 *'
+    - cron: '*/30 8-21 * 1,6,7,12 *'
     
     - cron: '0 22-23,0-3 * 1,6,7,12 *'
     
-    - cron: '0 12-22/4 * 2,5,8,11 *'
+    - cron: '0 8-22/4 * 2,5,8,11 *'
 
-    - cron: '0 12 * 3,4,9,10 *'
+    - cron: '0 8,16 * 3,4,9,10 *'
   workflow_dispatch:
 
 jobs:
