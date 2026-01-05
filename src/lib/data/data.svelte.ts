@@ -2,6 +2,7 @@ import { Calendario } from "$lib/states/calendario.svelte";
 import type { Ramo, RamoPrograma, Carrera, RamoCarrera } from "$lib/types/horario";
 import _ASIGNATURAS from "./horario_asignaturas.json";
 import _CARRERAS from "./planes_carreras.json";
+import _METADATA from "./metadata.json";
 import _PROGRAMAS from "./programas_academicos.json";
 import dayjs from "dayjs";
 
@@ -83,10 +84,12 @@ const _cachedCarreras = $derived(CARRERAS.filter(carrera => {
     const jornada = Calendario.jornada;
     return carrera.sede === sede && (!jornada || carrera.jornada === jornada);
 }));
-let _updatedDate: dayjs.Dayjs | undefined = dayjs(+ASIGNATURAS.date * 1000);
+// Se reemplaza la lectura de la fecha desde ASIGNATURAS por la de METADATA
+let _updatedDate: dayjs.Dayjs | undefined = dayjs(!_METADATA?.generatedAt?.unix ? undefined : _METADATA.generatedAt.unix * 1000);
 
 export const Data = {
     ASIGNATURAS,
+    METADATA: _METADATA,
 
     /**
      * Busca la primera ocurrencia de un ramo por su sigla a través de todas las carreras y mallas.
@@ -164,5 +167,6 @@ export const Data = {
 
     get updateDate() {
         return _updatedDate;
-    }
+    },
+
 };

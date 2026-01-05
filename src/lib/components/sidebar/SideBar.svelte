@@ -18,6 +18,9 @@
 	import { exportScheduleAsImage } from '$lib/helpers/screenshot';
 	import Copy from '$lib/icons/copy.svelte';
 	import { Dialog } from '../ui/Dialog.svelte';
+	import SedeSelector from '../elements/SedeSelector.svelte';
+	import Statistics from '../elements/Statistics.svelte';
+	import RamosList from '../elements/RamosList.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -150,17 +153,11 @@
 				</div>
 				<div class="flex h-full w-full flex-col-reverse gap-1">
 					{#if Calendario.visible}
-						{#await import('../elements/RamosList.svelte') then { default: RamosList }}
-							<RamosList />
-						{/await}
+						<RamosList />
 						<Separator />
-						{#await import('../elements/Statistics.svelte') then { default: Statistics }}
-							<Statistics />
-						{/await}
+						<Statistics />
 					{:else if Calendario.inicializado}
-						{#await import('../elements/SedeSelector.svelte') then { default: SedeSelector }}
-							<SedeSelector />
-						{/await}
+						<SedeSelector />
 					{/if}
 				</div>
 				<div class="w-full text-center text-sm">

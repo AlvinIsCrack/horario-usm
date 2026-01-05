@@ -2,6 +2,30 @@
 
 import type { ColorInstance } from "color";
 
+export interface Metadata {
+    version: number;
+    status: string;
+    generatedAt: {
+        unix: number;
+        iso: string;
+    };
+    system: {
+        scraperVersion: string;
+        environment: string;
+        executionTimeSeconds: number;
+    };
+    stats: {
+        totalAsignaturas: number;
+        totalParalelos: number;
+    };
+    files: Record<string, {
+        hash: string;
+        updatedAt: number;
+        cambiosUltimaEjecucion?: number;
+        size?: number;
+    }>;
+}
+
 export interface Menciones {
     [mencion: string]: {
         nombre: string;

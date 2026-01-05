@@ -1,289 +1,185 @@
 // src/lib/ai/classifier.ts
 import { NeuralNetwork } from './mini-brain';
+import { AI_CONFIG, DISTRIBUTION_LABELS, RHYTHM_LABELS, STRUCTURE_LABELS, ICONS, DESCRIPTIONS, STATUS_MAP, type StatStatus } from './types';
+import { trainModels } from './train';
 import { browser } from '$app/environment';
+import type { Ramo } from '$lib/types/horario'; // Asegúrate de que esta ruta sea correcta
 
-// --- Imports de Iconos ---
-import TrendingUp from '$lib/icons/trending-up.svelte';
-import TrendingDown from '$lib/icons/trending-down.svelte';
-import Activity from '$lib/icons/activity.svelte';
-import Paralelos from '$lib/icons/paralelos.svelte';
-import Sun from '$lib/icons/sun.svelte';
-import Moon from '$lib/icons/moon.svelte';
-import MaterialSymbolsLocalFireDepartmentRounded from '$lib/icons/MaterialSymbolsLocalFireDepartmentRounded.svelte';
-import MaterialSymbolsNestEcoLeaf from '$lib/icons/MaterialSymbolsNestEcoLeaf.svelte';
-import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
-import MaterialSymbolsTimeline from '$lib/icons/MaterialSymbolsTimeline.svelte';
-import MaterialSymbolsDirectionsRun from '$lib/icons/MaterialSymbolsDirectionsRun.svelte';
-
-// --- NUEVAS CATEGORÍAS BASADAS EN TENDENCIAS (SHAPES) ---
-
-export const DISTRIBUTION_LABELS = [
-    'Uniforme',        // Plana
-    'Decreciente',      // Decreciente
-    'Creciente',       // Creciente
-    'Campana',         // Convexa (Pico al medio)
-    'Valle',           // Cóncava (Descanso al medio)
-    'Fragmentada'      // Irregular
-] as const;
-
-// Ritmo se mantiene igual, ya que describe hábitos horarios, no carga.
-export const RHYTHM_LABELS = [
-    'Reloj Suizo',
-    'Matutino',
-    'Búho',
-    'Bifásico',
-    'Caótico',
-    'Escalador',
-    'Despertar'
-] as const;
-
-// --- Mapeo de Iconos ---
-const ICONS = {
-    distribution: {
-        'Uniforme': Paralelos,
-        'Decreciente': TrendingDown, // Carga baja hacia el final
-        'Creciente': TrendingUp,    // Carga sube hacia el final
-        'Campana': MaterialSymbolsLocalFireDepartmentRounded, // Lo duro está al medio
-        'Valle': MaterialSymbolsNestEcoLeaf, // El medio es relax (eco/green)
-        'Fragmentada': Activity // Sismógrafo
-    },
-    rhythm: {
-        'Reloj Suizo': MaterialSymbolsNestClockFarsightAnalogOutline,
-        'Matutino': Sun,
-        'Búho': Moon,
-        'Bifásico': MaterialSymbolsTimeline, // Líneas separadas
-        'Caótico': MaterialSymbolsDirectionsRun, // Corriendo de un lado a otro
-        'Escalador': null, // No hay icono específico perfecto, mejor null (o default externo)
-        'Despertar': null
-    }
-};
-
-export const DESCRIPTIONS = {
-    distribution: {
-        'Uniforme': 'La carga académica presenta una distribución homogénea a lo largo de la semana, manteniendo una exigencia constante sin variaciones significativas entre días.',
-        'Decreciente': 'La exigencia académica se concentra mayoritariamente al inicio de la semana, disminuyendo progresivamente hacia los días finales.',
-        'Creciente': 'La intensidad de la carga es leve al comienzo del periodo semanal y aumenta gradualmente, concentrando la mayor exigencia en los últimos días.',
-        'Campana': 'Los días de mayor actividad académica se sitúan en la mitad de la semana, dejando el inicio y el término de esta con una carga comparativamente menor.',
-        'Valle': 'La carga se distribuye intensamente en los extremos de la semana, presentando una disminución notable de la actividad lectiva en los días centrales.',
-        'Fragmentada': 'La distribución de la carga no sigue un patrón continuo, alternando días de alta exigencia con jornadas de baja actividad de manera irregular.'
-    },
-    rhythm: {
-        'Reloj Suizo': 'El horario de inicio de clases se mantiene constante a lo largo de todos los días de la semana, favoreciendo la regularidad.',
-        'Matutino': 'La actividad académica se concentra predominantemente en los bloques horarios de la mañana.',
-        'Búho': 'La actividad académica se concentra predominantemente en los bloques horarios de la tarde o vespertinos.',
-        'Bifásico': 'Los horarios de entrada presentan una polarización marcada, alternando entre inicios muy tempranos y tardíos sin tendencias intermedias.',
-        'Caótico': 'No existe un patrón predecible en los horarios de inicio, variando significativamente y sin orden aparente de un día a otro.',
-        'Escalador': 'Se observa una tendencia progresiva en el horario de entrada, comenzando temprano al inicio de la semana e iniciando más tarde cada día sucesivo.',
-        'Despertar': 'Se observa una tendencia regresiva en el horario de entrada, comenzando tarde al inicio de la semana y requiriendo ingresos más tempranos hacia el final.'
-    }
-};
-
-const PRETRAINED_DISTRIBUTION = { "weights": [[[3.4125769870343152, -0.9104252545491509, 0.08155826624787914, -3.6268550871964584, 2.5308183016345467, 1.9084925035418807, -0.4606623015425466], [-0.7215346506563434, -1.8746097171878866, -6.799662502046884, 0.33072279333914034, 4.866194910854393, -0.1004777717109333, 0.7494454064217828], [-2.434261298572561, -1.2966771232860987, 1.166154623983074, 1.8114189224015524, 3.1700818354948592, -1.1970387209274505, 0.4898143740336053], [-4.199226057029041, -1.4943670824516657, 4.039832322990776, 2.2993050113953943, 1.618956667571652, -0.6733697195684463, 0.468561856346157], [-0.05944290936112619, 1.4265092161808348, 3.0903425709139807, 0.07592888212549437, -3.383835881995949, 0.058499553743895184, 0.04170385107068479], [-0.14082008233127896, -2.110334777091481, -4.874276824076454, 1.6914510590520155, 4.337307868695111, -1.1273635152623493, 0.6604995452237141], [6.321183288625511, 2.5533081613644804, -4.140209251614261, -1.9999436847844883, -1.693251153415675, 0.1364763831379395, -0.65154750728183], [-4.864340310322918, -1.8682830434498159, 3.603889898725432, 3.454829670334141, 2.076269837359161, 0.5296772149900829, -0.49143855056372093], [2.664819896047104, 1.0838332052530943, 2.3614327763939094, -1.017243516110993, -3.3765114374480665, -1.5901231001181746, 0.8522786587809601], [0.14701274405186449, 2.822537162820934, 2.566046988849666, 0.7353756854071358, -6.120163772358874, 0.9870329043713875, 0.27573009716718583]], [[0.24995015672714643, -1.4582824903891394, -0.022395520423644722, 1.2053000646178464, 0.7657737630767574, -0.9616314085437043, -2.492570448249062, 1.772106296894665, -0.8275388111195559, -0.13900055767176175], [0.30138256802873037, -1.3709580759101638, 0.1614355958921066, 1.301501003982906, 0.2206270967944708, 0.5497991110890398, -0.2537675077781232, 1.9631930891791831, -0.558547597971618, 0.6572941412815054], [1.3095091419523315, 2.271237533368771, -0.7382384457541301, -0.9820107116379075, -0.6195978337283106, 1.2193400495523556, 1.3931883845099864, -0.6394471778355635, -0.09509458668544071, -1.26842460937889], [-1.1745309700291435, 0.699222993728271, 0.5104006795123703, 1.3528560673445822, -0.13473809833675893, -0.15651701263531292, -1.9796970995632863, 1.3429575654558787, -0.04209216430954444, -1.3681852281376767], [1.4416637932185579, 1.2017392670445712, 0.2825320671338351, -0.24864570769656327, 0.8437460726238742, -0.14300090648860375, -1.1274301879808368, -0.5957552049772754, -0.41352664758267904, 0.8173721301719222], [0.568070907870384, -1.8234563138259139, -0.7784881155486614, -0.2994836458397133, 1.3102965957519326, -1.4966839013230908, 1.3560970417961529, -1.1414964626383257, 1.465876866793584, 1.694408740160027], [-0.0013452368340761823, -2.539851054158314, -0.6073622213398748, -0.5519979187064208, 0.19454920994909938, -2.007655151112636, -0.9841461128749635, -1.6823668649139, 1.9549702079257454, 1.563722997120494], [-0.9623600825300126, -0.386928107102085, 1.0704494614768516, 1.2529136432043337, -0.25022346343294105, 1.5497031147516769, 0.6263379315726069, 1.247720279600238, 0.7110891030030257, -0.8960207027057813]], [[0.03510311057755835, 0.13167962638505906, -0.32313122146829526, -0.6991577079232165, -0.15661373467510584, 0.7384696811790604, -1.033885667739594, -1.0467475120786625], [-0.11360106228345505, -0.9736775961262099, -0.17563608959289806, -1.242195068223446, -0.11560638836090992, 1.5362165241011463, 1.8361799844973967, -1.2496179947909116], [0.7774604233601972, 0.689863251407622, 0.44790712983185527, 1.336503981198842, -0.017227283121716074, -2.3077148645267793, -0.8767373008220034, -0.9619666629744147], [1.7268991455218325, -0.8353599826237492, -2.387821345990922, 0.3335512679598757, -0.2749228180744108, 0.09595470651228583, 0.4824218047421638, 0.16869558063488518], [-1.8003796655054196, -1.2938887492413942, 1.2771029739618687, -0.38795065287268776, -0.09024644666326936, -0.48759573964150027, -1.4604741588244514, -0.28168116168760293], [0.12790574533259605, -0.9903176168228282, -0.9343466471003662, -0.1673307830756988, -1.299749403106187, 0.2966939954382033, -0.8174089255154969, 0.652516534045012]]], "biases": [[1.3054427458063127, 1.128008032743203, -0.33091930956272164, -0.4632436758573216, 0.04442636632621525, 0.9479220499539514, 1.0322825374121705, -0.018800216923488898, -0.36517231147455215, 0.9783504561991837], [1.08158971653242, 0.17773022237048194, 0.3416945844568044, 0.2753927528406852, 0.2603240031877576, 0.9356618724281462, 0.4832467090394674, -0.0660157555263298], [-0.1595256716973852, -0.800150479814937, -0.6748885853684906, -0.6208274136143495, 0.44685183509453635, 0.29966826032568594]] };
-const PRETRAINED_RHYTHM = { "weights": [[[6.456700058534943, 1.616504449024686, 3.4095861017920663, -1.5117369993742673, 0.5287790579787418, -0.5515046783716572, -1.709940777443615], [0.7159157761455831, 1.0693794146726152, 0.17392663821348128, 1.8340355381311808, 0.9812702359867957, 1.540679964782302, 0.40537135061520796], [-4.019567237344806, 0.4499848839203015, -3.222555586989052, 1.1221983699953948, -0.9911887935260518, 0.9919395652787303, 1.5239779817647512], [0.7721342237233059, -0.7169944213082803, -0.16776847299772757, 0.0765750439822495, 0.701094764785138, 0.5395726515455295, 0.4208413281215658], [1.934548604036543, 0.5509002001031984, -0.20490741588300582, 1.0382382668926287, 0.23867436967845732, 0.530467284392958, 0.6449728906331902], [0.17970261515015482, 2.286010340251581, -2.4788277865921096, -1.078149265573106, -3.994925661492938, 1.1561157876647885, 1.409803066806943], [-4.180026435060869, -4.9903600930465855, -1.8354598206530717, -1.928504664787267, 0.8352980003842989, 0.9874354732771065, 1.6927920730536943], [4.862601388429252, -0.720132590556652, 3.4622679715685836, -3.4638143180582643, -2.3765491213685834, 0.6637672789635815, 0.7362374070989993], [-3.1305825640333227, -3.5497102526011384, 0.006624992240343522, -0.7671582866432566, 4.513745530692164, 0.4138262209279886, 1.304677137817168], [0.16710152677621398, 2.578785818389725, -3.640400419248035, -0.738800508087123, -6.663389385627049, 0.45655705338568425, 0.9007358825358559]], [[0.6326647273403805, 1.0367587780529661, -0.01725907765915425, 1.5508363296556875, 1.2231731646950754, 0.7789416653643899, 0.7304542528376124, 0.20377682979934286, -0.6559740470050133, 0.5378043979544015], [-1.3818016788286904, 0.6064167622854112, 1.2770242017808944, 0.6086747827042672, 0.4929825009975108, 0.45104649491792986, 0.6192184104820143, -0.9685389835202299, 0.41966551041964, 0.48601389311834287], [0.49776711833941745, 0.8735277047226973, 0.18864120151030708, 0.7526452415865138, 0.5168543697599334, -0.5809574380257838, -1.1865896319621683, -0.6080754695315389, 0.29110064461670443, -0.46253149813290456], [2.2703913650029066, -0.06313681679651746, -0.9799798426031745, 0.8280031809045578, 0.09969468326353548, -0.8582831926363343, 0.07280339916822044, 1.9139457227416503, -0.9113187555849946, -1.5029976927775188], [1.0577485538547065, 0.029663826380193395, 0.5787615276195037, -1.1380909958571197, -0.019939427911165142, 0.7615397863506294, -2.1699086800508334, -0.7204069187994953, -2.409351304229678, 2.288803939069068], [0.5618455861229399, -0.41730077756674777, -0.44201718645923066, 0.2693633915635461, 0.7671588865500207, -1.1469232370451288, 1.3479160674463337, 0.030341435737362997, 2.1455338348492456, -2.214760625334825], [0.9691937206255903, 0.7764972159267219, -0.1346298996973515, 0.7109110761595808, -0.19508860059532548, -1.5028018745086127, -0.5179401085721801, -1.9758596263273, 1.2361104315953906, -2.980752453712766], [2.394072600205951, 1.1045960250471414, -1.0087742013714305, -0.7102527227425055, 1.2390784378832955, 0.4117515394534082, -2.1956895781681287, 1.4443703602660265, -1.444222049119811, -0.801996858549616]], [[-0.38383255120428705, -1.014280178694026, 0.22341178661822766, 0.5516851492175788, -0.4450536802154023, 0.7616226383568181, -0.5575474830480006, -0.47305936118634195], [-0.21039011170389763, 0.5594637440568374, -0.8814502470592974, -0.6320953673978981, -0.931679322538051, -0.05770264555125702, -1.111638092974568, -1.6290686596264798], [-0.7696447469329565, -1.7389874660014362, -0.6826682488762703, 0.7264783929179616, -0.5352430033585546, 1.059660989242566, 0.5328737966511876, 1.1898330352880848], [-0.6034053471919332, 0.11841486841002104, 0.3574023515340037, -1.4721078249506294, 1.6345097623602598, -1.3626164928708167, -0.4518144414636077, -0.6968046658193663], [-1.3566838956741882, -1.3155373389471288, 0.7994072833249457, -0.7028201903784163, 0.44489449006444826, 0.16534345912829784, 0.520573574689454, 0.49774526946415343], [-1.0956812613652878, -0.1962109988479781, 0.10227909258917131, -0.1299512960175143, -1.4117083528211738, -0.2121414511696011, 1.6964744608255462, -1.5691148380056807], [-0.45282095116836896, -1.209751131929963, 0.15220755147635642, 1.2238152864196412, 1.4142617955450434, -1.3230857656905197, -1.3396151486356014, 0.8777436115458247]]], "biases": [[-2.6011604253182923, 0.6785904254807392, 1.2978151531572621, 3.5050921501240375, 2.2559411526010322, 0.9359397595086194, 2.895024765577918, 0.07916478080134476, 1.6771479463162877, 2.2903966955472668], [-0.12387501497153022, 0.29444607858619, -0.3674338337225534, -0.16752828111105322, 0.14431834654499226, 1.1121068257913973, 0.6258288456928056, -0.5720040344542917], [-0.9345461988103572, 0.5601307148891376, -0.9424315698933621, -0.17489144995165648, -0.3353027002051041, 0.14546788993473192, -1.0463934281088818]] };
+const CONFIDENCE_THRESHOLD = 0.65;
 
 let distNN: NeuralNetwork;
 let rhythmNN: NeuralNetwork;
+let structureNN: NeuralNetwork;
 
-function generateTrainingData() {
-    const trainingSetDist: { in: number[], out: number[] }[] = [];
-    const trainingSetRhythm: { in: number[], out: number[] }[] = [];
-
-    // Función de ruido controlada
-    const noise = (val: number) => {
-        const n = (Math.random() - 0.5) * 0.15;
-        return Math.max(0, Math.min(1, val + n));
-    };
-
-    const createTarget = (index: number, total: number) => {
-        const t = new Array(total).fill(0);
-        t[index] = 1;
-        return t;
-    };
-
-    const SAMPLES = 1500;
-
-    for (let i = 0; i < SAMPLES; i++) {
-        // ============================================================
-        // --- DISTRIBUCIÓN (Topología de la Carga) ---
-        // Inputs: 7 días (L-D). Analizamos la CURVA.
-        // ============================================================
-        const targetDist = (idx: number) => createTarget(idx, DISTRIBUTION_LABELS.length);
-
-        // 0. Uniforme: ~~~~~~~
-        // Entrenamos con y sin fin de semana para que detecte la "planicie"
-        trainingSetDist.push({
-            in: [0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0].map(noise), // L-V
-            out: targetDist(0)
-        });
-        trainingSetDist.push({
-            in: [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.0].map(noise), // L-S
-            out: targetDist(0)
-        });
-
-        // 1. Front-Load (Decreciente): \_____
-        // Mucha carga al inicio, poca o nada al final
-        trainingSetDist.push({
-            in: [1.0, 0.8, 0.5, 0.2, 0.0, 0.0, 0.0].map(noise),
-            out: targetDist(1)
-        });
-        trainingSetDist.push({
-            in: [0.9, 0.9, 0.6, 0.3, 0.1, 0.0, 0.0].map(noise),
-            out: targetDist(1)
-        });
-
-        // 2. Back-Load (Creciente): _____/
-        // Poca carga al inicio, explota al final
-        trainingSetDist.push({
-            in: [0.0, 0.2, 0.5, 0.8, 1.0, 0.0, 0.0].map(noise),
-            out: targetDist(2)
-        });
-        trainingSetDist.push({
-            in: [0.2, 0.2, 0.4, 0.7, 0.9, 0.3, 0.0].map(noise), // Incluye sábado cargado
-            out: targetDist(2)
-        });
-
-        // 3. Campana (Convexa): __/ \__
-        // Pico en el centro (Miércoles/Jueves)
-        trainingSetDist.push({
-            in: [0.2, 0.5, 1.0, 0.5, 0.2, 0.0, 0.0].map(noise),
-            out: targetDist(3)
-        });
-        trainingSetDist.push({
-            in: [0.1, 0.4, 0.9, 0.9, 0.4, 0.0, 0.0].map(noise),
-            out: targetDist(3)
-        });
-
-        // 4. Valle (Cóncava): \__/
-        // Altos extremos, bajo centro
-        trainingSetDist.push({
-            in: [1.0, 0.3, 0.1, 0.3, 1.0, 0.0, 0.0].map(noise),
-            out: targetDist(4)
-        });
-        trainingSetDist.push({
-            in: [0.8, 0.2, 0.2, 0.2, 0.8, 0.0, 0.0].map(noise),
-            out: targetDist(4)
-        });
-
-        // 5. Fragmentada (Irregular): /\/\/\
-        // Altos y bajos intercalados
-        trainingSetDist.push({
-            in: [1.0, 0.1, 1.0, 0.1, 1.0, 0.0, 0.0].map(noise),
-            out: targetDist(5)
-        });
-        trainingSetDist.push({
-            in: [0.2, 0.9, 0.2, 0.9, 0.2, 0.0, 0.0].map(noise),
-            out: targetDist(5)
-        });
-
-
-        // ============================================================
-        // --- RITMO (Patrones de Hora de Inicio) ---
-        // Se mantiene la lógica anterior, funciona bien.
-        // ============================================================
-        const targetRhythm = (idx: number) => createTarget(idx, RHYTHM_LABELS.length);
-
-        // Reloj Suizo
-        const base = Math.random();
-        trainingSetRhythm.push({
-            in: [base, base, base, base, base, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(0)
-        });
-        // Matutino (< 0.3)
-        trainingSetRhythm.push({
-            in: [0.1, 0.2, 0.1, 0.15, 0.1, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(1)
-        });
-        // Búho (> 0.6)
-        trainingSetRhythm.push({
-            in: [0.8, 0.7, 0.9, 0.8, 0.7, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(2)
-        });
-        // Bifásico (Temprano/Tarde)
-        trainingSetRhythm.push({
-            in: [0.1, 0.9, 0.1, 0.9, 0.1, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(3)
-        });
-        // Caótico (Random)
-        trainingSetRhythm.push({
-            in: [Math.random(), Math.random(), Math.random(), Math.random(), Math.random(), 0.5, 0.5],
-            out: targetRhythm(4)
-        });
-        // Escalador (Sube)
-        trainingSetRhythm.push({
-            in: [0.1, 0.3, 0.5, 0.7, 0.9, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(5)
-        });
-        // Despertar (Baja)
-        trainingSetRhythm.push({
-            in: [0.9, 0.7, 0.5, 0.3, 0.1, 0.5, 0.5].map(v => v === 0.5 ? 0.5 : noise(v)),
-            out: targetRhythm(6)
-        });
-    }
-
-    return { trainingSetDist, trainingSetRhythm };
-}
+// En Producción, aquí pegarías el JSON generado por el console.log de train.ts
+let PRETRAINED_WEIGHTS: any = { "dist": { "weights": [[[-7.690241321558653, -1.3867512464136282, 4.34776395487434, 4.581001316602001, 1.2138473405052126], [2.226745390854198, 1.0665712475805742, 1.9779300264638582, 0.6992311730180528, 0.03527754636533429], [5.075054073627057, -1.590271872430702, -3.7230302012463996, -1.098164416818434, 4.087205737394958], [-7.287254048992263, -4.6976905404141664, -1.50573060959257, 4.041477426358882, 4.71800832563494], [1.25884084586264, 0.40047536699249314, -0.37388831987298254, 0.34593646602295314, 2.353052813509249], [-0.30507480016776406, -3.8749592733954357, -3.563485575167951, 1.5772634137209307, 7.416680408243341], [-0.828663011874224, 2.218119469040016, 0.959740377445118, 1.182392580379886, -1.1861905878143564], [1.4063654611473435, 6.147121092097569, 4.19557674476161, -1.1720568334069938, -9.775751464996722], [9.900026535123166, 1.100071201149367, -4.8888261748159945, -7.384554743340004, -1.172447100997552], [1.673538006389215, 1.5980868626046227, 2.3327246274870537, 1.2312697662077712, 0.28279594948355175]], [[1.8390431514706804, 0.6615911983469608, -2.1872098740593557, 2.015819289960615, 0.4408217913220976, 0.22883111781302407, 0.2733818322554082, -0.308889675438644, -4.403604680650729, 0.4550961672928263], [-0.05099847615744757, -0.2408446706070629, -0.7698374134259334, -0.6259184139756211, -1.959136019365015, 0.2872771487701301, -0.28222182260878864, 0.017838322136368844, 0.07575779576830981, -1.6040259682954352], [1.5819756925288362, -0.6901515160271356, 2.2816016245856336, 1.4663759035135253, 0.32894158321781936, 3.1277694163972654, -0.47129352619535714, -2.4793906715112652, -1.7528303195731432, -0.4653480865165352], [1.3273568813078884, 0.1148724539188311, 0.4935554580335916, -0.45621664617207064, 1.2870256120899892, 0.5205994971220662, -0.20804520959294576, 0.6481213448313452, -0.3544739586346681, 1.225091152653915], [-1.1209371504661343, -1.4941917513209972, 0.4172082948199044, -0.19144700098959005, -0.6426070036363654, -0.5949165810857128, 0.33678768170057777, -0.33157523137539224, 0.5983333197577096, -0.0878387616180951], [-0.8511216083842899, 0.3032305864086685, 1.1435988325457194, 1.6119953046701008, 0.5695095793545993, 1.7722391950544247, 0.4690668509024235, -4.135676308579967, 2.911026882872948, -0.3486159479723736], [-0.04131156642351467, 0.8631685451082466, 0.515269343596252, -2.5572060990474337, -0.6601580090349096, -0.712130111842064, 0.7241899395426299, 0.984875914277434, 0.9025088758831421, 0.7390126744611459], [2.044184791335005, 0.2505686624115138, -2.6819470680110546, 0.3782442932577974, 0.10715181225149834, -1.9914300288310522, 1.271594702148213, 3.18849558520161, -2.405117974008365, 1.2417424668312171]], [[0.4330324753138357, 0.2281419764758732, 1.2520364020570802, -0.1599588258911376, -0.6386924874670744, -2.053471924267605, -0.8992231572804696, 0.6525783534174964], [-2.8706205968652254, -0.0496256751445566, -2.462504373824892, -0.26480368392792664, 0.9737841334958608, -0.5269742874766163, 0.08796155041080879, 1.3664438551359799], [2.57601496739819, 0.029521639865030123, 1.3319370731349383, -1.7906294987135298, 0.6625418625538204, 2.1396772257730974, -2.5009576771185564, -0.07889474509188257], [1.6184824408318632, 0.8700600610273054, -1.151554773074928, -0.2515828195276233, 0.5175655758839814, -2.437732227266691, 0.005304561659824123, 0.08132858643499692], [-1.7360096662670883, 0.28902834720281656, 1.0545588638322316, -0.7857911710797113, 0.8334745888838923, 1.3993455207048526, -0.08081972780186315, -3.2219605848821984], [0.4446056996852479, 0.6559823345679423, 0.7470733613189682, -0.7545313991308902, 0.8077114235572094, -0.7889240344797185, 0.1630654151913896, -0.032093926638151554]]], "biases": [[2.545515756980069, 2.4256134798755054, 1.8801812056376712, -2.539636748261265, 1.244207430552926, 1.7644796418090032, 0.034863498188163505, 2.9196750107422154, -3.0107981162945516, 1.4784995217798191], [-0.5566877413496158, -0.5537068441409781, 0.04223020702647224, 1.3683835116250844, -1.9033262221088754, -0.5116173533212888, 0.5934042266685504, 1.930549548181662], [-1.1795409500571215, 0.38533679404055626, -1.744849579882405, -0.9859212778806355, 0.468581169673708, -1.274460932835147]] }, "rhythm": { "weights": [[[1.133203626130542, 2.8540304089830197, 1.1009535306247384, 1.2745219449208482, 2.326749021527475], [1.4624956948151016, 0.9228615262716123, -0.033061169353215444, 0.6076274646524734, 1.52571838977902], [3.3700545803198856, 4.037636739718868, 4.154219941638718, 3.8968885383297773, 2.447815010550788], [4.007943137393057, 3.451826605497078, 3.2992151830194216, 4.0053038002384636, 3.2051251651284116], [-2.7712168607413976, -2.2803035176205415, -2.1020236547170876, -2.6272956795465445, -3.727204692007726], [2.1590786476544235, 2.338073202711736, 3.6358101161126, 3.8758408902677393, 3.4649830879188674], [-3.0497165906865247, -3.5670011099469416, -2.625761882883968, -3.2107793366230544, -3.8126751746645966], [-2.5280390029800612, -1.6766353185956717, -1.6565566213430367, -2.0988250310935803, -3.213712511423618], [4.583920375322601, 4.191253194162897, 4.296878271636588, 4.603298443533131, 4.031248320127682], [-1.5757680215273457, -0.5371356394843712, -0.4339761675716521, -1.3393104307264372, -1.9538982184425866]], [[-1.0466333934116334, 0.1251832886937888, -0.02678021847532301, -0.2682026461819117, 0.027204009407395837, -0.9699058033046863, -0.6056364005667755, -0.43425874347896554, -0.860780662917518, 0.08835500109460777], [0.7998577798882894, -0.24387374759657265, 3.1668137297370436, 0.8951958057980508, -2.302689346835703, 0.15424164687530872, -2.382348245187037, -0.8238830405975656, 0.9199887361154966, -0.45820888693756384], [-0.8193397497595472, 0.9675161993578005, -2.392615435649246, 0.30755508151926864, 0.821415464373706, -0.20641431842672414, 0.49608660278305305, -0.5603749006423855, 0.9004795704987497, -0.91175993834359], [1.4102675612282973, -0.62043835624827, 3.0880925642493544, -0.6113708686695881, -4.066594585560169, -0.28971320015767715, -3.714615975622507, -1.023601537204073, 0.8399883436814768, 0.4236951313967889], [0.7397256510547278, 0.3500734389115861, 1.697831457453741, 1.132650705234124, -0.758987329837291, 0.703388003686355, -2.044855563879899, -1.1648586344691485, -0.05790729444725622, -1.008019260335214], [-1.3605420884892407, -0.37019505844413997, -1.8800783268102468, -1.773608899699353, 2.5518332558685906, -1.1126321693106025, 1.2281223903409668, 0.5812598190812424, -2.8827951012642083, -0.24361506024233995], [-1.2137054551244546, -0.504401243495907, -1.285673278586728, -2.5373028824459514, 1.4089638172550927, -1.900621370352646, 2.271582077033021, 1.6537394265286487, -3.2219278327203167, 0.6199693134345549], [0.7468251397219964, 0.34827350057683737, -0.22146950134041332, 0.5647262140939568, -0.2883943839624109, 2.0817897439393023, 0.6284382042517589, -0.5919612237508523, 0.9586419308442633, -0.46892982636555497]], [[0.7214791438671956, -1.6295857366368256, -1.2863678525982725, -1.1519884642548601, -0.7495477375228371, 2.0070923215083556, 2.7252125564954555, -1.0733222865325913], [0.8024291273709007, 1.1700841668967175, -0.6505805528086391, -0.7548762080186088, 0.9862769934188798, -1.6807640933757384, -1.1274946511099655, -1.1875028002359622], [-0.47975682424968474, -1.2547394550331317, 0.4741813345163604, -1.4880540503065793, -1.0020482824206338, -0.9298734924055672, -1.9430668585498416, -0.6600010696301324], [0.7594695228379276, -1.9983944883812068, 0.0898585989640577, -1.5661333839579545, -0.000476215402551784, -1.7643958165774103, -0.7094569698723936, 0.4901815014258858], [0.21045304689445396, 0.4183866139015135, -1.6752334909954882, 3.3322245385679548, -0.05808812318923782, -1.5498530033592606, -0.15493677469840644, -0.5876085625049469]]], "biases": [[-5.243253896076517, -0.32175237479331764, -11.078962885191684, -6.998289552169259, 9.308521881782898, -5.496734271040271, 10.003038498077643, 4.448257515806453, -8.215994356061893, -1.4605890143079931], [-1.9214271634417825, -0.27088379308642485, 0.4300666334921103, -1.8967925543015958, -0.6831262709722236, 0.40732887508914556, 0.2717794308147679, 0.23898146591565206], [-0.3824502561266391, -0.2644547230570542, 0.3503265092142242, -0.13083796544836193, -0.9612842399362869]] }, "structure": { "weights": [[[4.617235985398797, -1.7675003255890112, -10.466648885796205], [-9.746266294955916, 4.796832202876034, 4.135734683651913], [9.017467779143852, -6.277956757687395, -1.4679123494007933], [13.371413598518243, -6.785358859283982, -4.892322566491873], [-9.932350480133792, 7.753721457382106, 1.2693746043220762], [-5.939943204150221, 4.413802612420005, 8.536945610686624], [-5.3873951946093355, 1.8480062502529644, 10.22550138990463], [0.00027115325358209943, 2.8668423152057967, -8.883759183872188]], [[-3.0997280701864, 0.14699773117131223, 0.2721173553406162, -0.44608072710424723, 1.0695183494013043, 2.252849781275921, 2.5643414119960046, -2.0067148243443915], [-0.2743039543120977, 1.2028028747896728, 0.3091614485091154, -0.18478136733143263, 0.8487996829307904, 1.0149239707957312, 1.212018340014782, 0.19754537847159204], [1.3536832135393244, -1.7023872945881322, 1.9383556029744688, 2.663189279017561, -4.289779370974552, -0.9520469692692977, -1.3328794018151917, -0.7988819326026597], [-0.7537313235407889, 2.132681513484177, -2.444486684015944, -1.9578638719229629, 3.6631145704800487, 1.2912620540518704, 0.25695392246462473, 0.7947682604159372], [0.8501199203190357, 1.7710603568699974, -1.862091601589816, -3.2266302799038735, 2.101889562363608, -0.03630056162351505, -0.4236713314959289, 0.9872106656119779], [1.3044398882298662, -3.5558850979593264, 2.6800376978565392, 5.386291498606829, -2.7063036743669477, 0.73599048253165, -0.7030878797972575, 1.57186871730431]], [[-0.24844054986385225, -0.44919362770136073, -1.7745329918990584, 0.8549405740210305, 1.7721518419107685, -3.63243858411661], [-2.3474705090142685, -1.1780719249632203, 2.060713664930638, -2.723711331107762, -0.14011555284398136, 0.5825997769688133], [2.423526257736486, -0.2586185215099254, -0.20075433866162873, -1.8615981051907224, -2.308136699892982, 0.7477799742100568], [0.04172687099763114, -0.6223074207946889, -3.3381030974202774, 1.2381036268070136, -1.2070710163292173, 2.7229919729790417]]], "biases": [[2.353894847884926, -4.454702556503906, 3.324245705228022, 6.55825584976217, -2.62544393592643, -2.418197079756282, -1.9065012267255228, 1.558474470253199], [0.12398438075162364, 0.4612416721589618, 0.14982096535809206, -0.14458210610958053, 0.49886990995768316, 0.878679290134014], [0.6128772483955361, -0.11647275607927624, -1.5568443119378774, -1.454885548678874]] }, "timestamp": 1767631168565 };
 
 export function initAI() {
     if (!browser) return;
 
-    // Arquitectura: 7 Inputs -> 10 Hidden -> 8 Hidden -> N Outputs
-    distNN = new NeuralNetwork([7, 10, 8, DISTRIBUTION_LABELS.length]);
-    rhythmNN = new NeuralNetwork([7, 10, 8, RHYTHM_LABELS.length]);
+    distNN = new NeuralNetwork(AI_CONFIG.dist.layers);
+    rhythmNN = new NeuralNetwork(AI_CONFIG.rhythm.layers);
+    structureNN = new NeuralNetwork(AI_CONFIG.structure.layers);
 
-    if (import.meta.env.DEV && !PRETRAINED_DISTRIBUTION) {
-        console.log('🧠 [AI] Entrenando Clasificador Topológico...');
-        const data = generateTrainingData();
+    if (!PRETRAINED_WEIGHTS) {
+        // Modo DEV: Entrenar al vuelo si no hay pesos cargados
+        console.warn('⚠️ [AI] Sin pesos pre-entrenados. Entrenando en el cliente (lento)...');
 
-        for (let i = 0; i < 2000; i++) {
-            const sampleDist = data.trainingSetDist[Math.floor(Math.random() * data.trainingSetDist.length)];
-            distNN.train(sampleDist.in, sampleDist.out);
+        // Obtenemos los pesos frescos del entrenador
+        const weights = trainModels();
 
-            const sampleRhythm = data.trainingSetRhythm[Math.floor(Math.random() * data.trainingSetRhythm.length)];
-            rhythmNN.train(sampleRhythm.in, sampleRhythm.out);
-        }
-
-        console.log('🧠 [AI] Distribución Weights:', JSON.stringify(distNN.toJSON()));
-        console.log('🧠 [AI] Ritmo Weights:', JSON.stringify(rhythmNN.toJSON()));
-
-    } else if (PRETRAINED_DISTRIBUTION) {
-        distNN.fromJSON(PRETRAINED_DISTRIBUTION);
-        rhythmNN.fromJSON(PRETRAINED_RHYTHM);
+        // Ajuste: Usamos las claves correctas que devuelve train.ts ({ dist, rhythm, structure })
+        distNN.fromJSON(weights.dist);
+        rhythmNN.fromJSON(weights.rhythm);
+        structureNN.fromJSON(weights.structure);
+    } else {
+        // Modo PROD: Cargar pesos estáticos
+        distNN.fromJSON(PRETRAINED_WEIGHTS.dist);
+        rhythmNN.fromJSON(PRETRAINED_WEIGHTS.rhythm);
+        structureNN.fromJSON(PRETRAINED_WEIGHTS.structure);
     }
 }
 
-export function classifySchedule(loads: number[], starts: number[]) {
-    if (!distNN) initAI();
+/**
+ * FEATURE EXTRACTOR
+ * Convierte los Ramos crudos en vectores matemáticos para la IA
+ */
+function extractFeatures(ramos: Ramo[], creditosMap: Record<string, number>) {
+    // Inicializar acumuladores Lunes(0) a Viernes(4)
+    const stats = Array(5).fill(null).map(() => ({
+        load: 0,
+        blocks: [] as number[],
+        min: 99,
+        max: -1
+    }));
 
-    // Rellenar hasta 7 días
-    const safeLoads = [...loads];
-    while (safeLoads.length < 7) safeLoads.push(0);
+    // 1. Llenado
+    ramos.forEach(r => {
+        const weight = creditosMap[r.sigla] || 3;
+        r.horario.forEach(b => {
+            if (b.dia > 4) return; // Ignoramos fin de semana para IA base
+            const day = stats[b.dia];
+            day.load += weight;
+            day.blocks.push(b.bloque);
+            if (b.bloque < day.min) day.min = b.bloque;
+            if (b.bloque > day.max) day.max = b.bloque;
+        });
+    });
 
-    const safeStarts = [...starts];
-    while (safeStarts.length < 7) safeStarts.push(0.5);
+    // 2. Vectores de Input
+    const loadVector: number[] = [];
+    const centroidVector: number[] = [];
 
-    // Normalizar
-    const maxLoad = Math.max(...safeLoads) || 1;
-    const normLoads = safeLoads.map(l => l / maxLoad);
+    let totalDuration = 0;
+    let totalOccupied = 0;
+    let maxStreakGlobal = 0;
 
-    const distOut = distNN.predict(normLoads);
-    const rhythmOut = rhythmNN.predict(safeStarts);
+    stats.forEach(day => {
+        // A. Carga
+        loadVector.push(day.load);
 
-    const distIndex = distOut.indexOf(Math.max(...distOut));
-    const rhythmIndex = rhythmOut.indexOf(Math.max(...rhythmOut));
+        // B. Centro de Gravedad (0.0 - 1.0)
+        if (day.blocks.length === 0) {
+            centroidVector.push(0.5); // Neutro
+        } else {
+            const avg = day.blocks.reduce((a, b) => a + b, 0) / day.blocks.length;
+            // Normalizar bloque 1-14 a 0-1
+            centroidVector.push(Math.max(0, Math.min(1, (avg - 1) / 13)));
+        }
 
-    const distLabel = DISTRIBUTION_LABELS[distIndex];
-    const rhythmLabel = RHYTHM_LABELS[rhythmIndex];
+        // C. Métricas Estructurales
+        if (day.blocks.length > 0) {
+            const duration = day.max - day.min + 1;
+            const occupied = day.blocks.length;
+            totalDuration += duration;
+            totalOccupied += occupied;
+
+            // Streak del día
+            day.blocks.sort((a, b) => a - b);
+            let currentStreak = 1;
+            let dayMaxStreak = 1;
+            for (let i = 0; i < day.blocks.length - 1; i++) {
+                if (day.blocks[i + 1] === day.blocks[i] + 1) currentStreak++;
+                else currentStreak = 1;
+                dayMaxStreak = Math.max(dayMaxStreak, currentStreak);
+            }
+            maxStreakGlobal = Math.max(maxStreakGlobal, dayMaxStreak);
+        }
+    });
+
+    // Normalizar Carga
+    const maxLoad = Math.max(...loadVector) || 1;
+    const normLoad = loadVector.map(l => l / maxLoad);
+
+    // Calcular Estructura Global
+    const gapRatio = totalDuration > 0 ? (totalDuration - totalOccupied) / totalDuration : 0;
+    const efficiency = totalDuration > 0 ? totalOccupied / totalDuration : 1;
+    const streakNorm = Math.min(1, maxStreakGlobal / 8); // Normalizado a 8 bloques
 
     return {
-        distribution: distLabel,
-        distributionDescription: DESCRIPTIONS.distribution[distLabel],
-        distributionIcon: ICONS.distribution[distLabel] || null, // <--- Icono Opcional
+        normLoad,
+        centroidVector,
+        structureInput: [gapRatio, efficiency, streakNorm],
+        rawStats: stats
+    };
+}
 
-        rhythm: rhythmLabel,
-        rhythmDescription: DESCRIPTIONS.rhythm[rhythmLabel],
-        rhythmIcon: ICONS.rhythm[rhythmLabel] || null,           // <--- Icono Opcional
+export function classifySchedule(ramos: Ramo[], creditosMap: Record<string, number>) {
+    if (!distNN) initAI();
 
-        distConfidence: distOut[distIndex],
-        rhythmConfidence: rhythmOut[rhythmIndex]
+    const features = extractFeatures(ramos, creditosMap);
+
+    // 1. Obtener predicciones crudas (arrays de floats 0.0 - 1.0)
+    const distOut = distNN.predict(features.normLoad);
+    const rhythmOut = rhythmNN.predict(features.centroidVector);
+    const structOut = structureNN.predict(features.structureInput);
+
+    // 2. Helper para decodificar label + métricas de seguridad
+    const decodePrediction = (out: number[], labels: readonly string[]) => {
+        const maxVal = Math.max(...out);       // La "certeza" (ej: 0.89)
+        const maxIdx = out.indexOf(maxVal);    // El índice ganador
+
+        return {
+            label: labels[maxIdx],
+            confidence: maxVal,
+            isLowConfidence: maxVal < CONFIDENCE_THRESHOLD
+        };
+    };
+
+    // 3. Decodificar usando el nuevo helper
+    const distResult = decodePrediction(distOut, DISTRIBUTION_LABELS);
+    const rhythmResult = decodePrediction(rhythmOut, RHYTHM_LABELS);
+    const structResult = decodePrediction(structOut, STRUCTURE_LABELS);
+
+    const getStatus = (category: keyof typeof STATUS_MAP, label: string): StatStatus => {
+        return STATUS_MAP[category][label] || 'success';
+    };
+
+    // 4. Retorno enriquecido con 'confidence' y 'isLowConfidence'
+    return {
+        distribution: {
+            label: distResult.label,
+            description: DESCRIPTIONS.distribution[distResult.label as keyof typeof DESCRIPTIONS.distribution],
+            icon: ICONS.distribution[distResult.label as keyof typeof ICONS.distribution],
+            status: getStatus('distribution', distResult.label),
+            confidence: distResult.confidence,          // <--- Nuevo
+            isLowConfidence: distResult.isLowConfidence // <--- Nuevo (Úsalo para filtrar en UI)
+        },
+        rhythm: {
+            label: rhythmResult.label,
+            description: DESCRIPTIONS.rhythm[rhythmResult.label as keyof typeof DESCRIPTIONS.rhythm],
+            icon: ICONS.rhythm[rhythmResult.label as keyof typeof ICONS.rhythm],
+            status: getStatus('rhythm', rhythmResult.label),
+            confidence: rhythmResult.confidence,          // <--- Nuevo
+            isLowConfidence: rhythmResult.isLowConfidence // <--- Nuevo
+        },
+        structure: {
+            label: structResult.label,
+            description: DESCRIPTIONS.structure[structResult.label as keyof typeof DESCRIPTIONS.structure],
+            icon: ICONS.structure[structResult.label as keyof typeof ICONS.structure],
+            status: getStatus('structure', structResult.label),
+            confidence: structResult.confidence,          // <--- Nuevo
+            isLowConfidence: structResult.isLowConfidence // <--- Nuevo
+        }
     };
 }

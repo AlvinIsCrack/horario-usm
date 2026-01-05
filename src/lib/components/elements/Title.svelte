@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Data } from '$lib/data/data.svelte';
-	import { Calendario } from '$lib/states/calendario.svelte';
 	import { fade, fly } from 'svelte/transition';
+	// import Diffs from './Diffs.svelte';
 
 	let visible = $state(false);
 	$effect(() => {
@@ -16,6 +16,12 @@
 		transition:fade={{ duration: 400 }}
 		class="relative flex h-full w-full flex-col items-center justify-center p-8 select-none"
 	>
+		<!-- <div class="absolute top-0 left-1/2 w-full -translate-x-1/2">
+			<div in:fly={{ y: -100, delay: 500 }}>
+				<Diffs />
+			</div>
+		</div> -->
+
 		<div class="z-10 flex flex-col items-center justify-center">
 			<div class="text-foreground flex flex-col items-center">
 				<span

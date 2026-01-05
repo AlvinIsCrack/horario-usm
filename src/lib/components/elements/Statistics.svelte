@@ -2,19 +2,24 @@
 	// 1. Definimos las constantes de etiquetas disponibles.
 	// 'as const' congela el objeto y convierte los valores en tipos literales (no string genérico).
 	export const STAT_LABELS = {
-		ZEN_DAY: 'Día Zen',
-		HARDCORE: 'Hardcore',
+		BAJA_CARGA: 'Día de Baja Carga',
+		ALTA_INTENSIDAD: 'Día de Alta Intensidad',
 		EN_AULA: 'En Aula',
 		HORARIO: 'Horario',
 		VENTANAS: 'Ventanas',
 		EFICIENCIA: 'Eficiencia',
 		ESTUDIO_AUTONOMO: 'Estudio Autónomo',
-		MARATON: 'Maratón',
-		HIGIENE_SUEÑO: 'Recuperación',
+		SOBRECARGA_CONTINUA: 'Sobrecarga Continua',
+		RECUPERACIÓN_TRANSLADO: 'Recuperación y Traslado',
 		DISTRIBUCION: 'Distribución',
 		RITMO: 'Ritmo',
 		ENFOQUE: 'Enfoque',
-		CONFLICTOS: 'Conflictos'
+		CONFLICTOS: 'Conflictos',
+		ESTRUCTURA: 'Estructura',
+		SALUD: 'Salud',
+		NUTRICION: 'Nutrición',
+		REGULARIDAD: 'Regularidad', // Nueva métrica
+		SEGURIDAD: 'Seguridad' // Nueva métrica
 	} as const;
 
 	// 2. Creamos el tipo derivado automáticamente.
@@ -86,6 +91,7 @@
 	import MaterialSymbolsWarningRounded from '$lib/icons/MaterialSymbolsWarningRounded.svelte';
 	import { flip } from 'svelte/animate';
 	import { cubicOut } from 'svelte/easing';
+	import MaterialSymbolsHrRestingOutlineSharp from '$lib/icons/MaterialSymbolsHrRestingOutlineSharp.svelte';
 
 	let updated = $state(false);
 
@@ -100,6 +106,8 @@
 		if (SideBar.activeWindow) return;
 
 		untrack(() => {
+			const TIEMPO_TRASLADO_MINS = 60;
+
 			async function update() {
 				const ramos = Calendario.ramos;
 				if (!ramos.length) return [];
@@ -164,17 +172,19 @@
 					if (diasCalculados.length > 1 && diff >= UMBRAL_RELEVANCIA) {
 						out.push({
 							icon: MaterialSymbolsNestEcoLeaf,
-							label: STAT_LABELS.ZEN_DAY,
+							label: STAT_LABELS.BAJA_CARGA,
 							value: `${Días[ligero.dia]}`,
-							tooltip: `Día de menor intensidad relativa .`
+							// CAMBIO: Explicación amigable sin "scores" matemáticos
+							tooltip: `Tu día más liviano.<br/><span class="opacity-70 text-xs">Calculado por tener menos créditos (${ligero.carga}) distribuidos con mayor holgura.</span>`
 						});
 
 						if (diff >= UMBRAL_HARDCORE) {
 							out.push({
 								icon: MaterialSymbolsLocalFireDepartmentRounded,
-								label: STAT_LABELS.HARDCORE,
+								label: STAT_LABELS.ALTA_INTENSIDAD,
 								value: `${Días[pesado.dia]}`,
-								tooltip: `Día de intensidad crítica.`
+								// CAMBIO: Enfoque en la carga real
+								tooltip: `Tu día de mayor exigencia.<br/><span class="opacity-70 text-xs">Concentra una alta carga académica (${pesado.carga} créditos) en alta densidad horaria.</span>`
 							});
 						}
 					}
@@ -193,7 +203,7 @@
 					icon: MaterialSymbolsNestClockFarsightAnalogOutline,
 					label: STAT_LABELS.EN_AULA,
 					value: `${(minutosAula / 60).toFixed(1)} horas`,
-					tooltip: 'Tiempo real sentado en la sala de clases.'
+					tooltip: `Carga presencial obligatoria.<br/><span class="opacity-70 text-xs">Total de horas cronológicas "de silla". No incluye estudio, transporte ni ventanas.</span>`
 				});
 
 				// NUEVO: Enfoque de Gestión (Densidad Cognitiva)
@@ -210,12 +220,12 @@
 					if (pesoPromedio < 4.0) {
 						perfil = 'Fragmentado';
 						desc =
-							'Cursas muchas asignaturas de bajo creditaje. Tu principal enemigo será el caos administrativo (múltiples fechas y entregas simultáneas). Prioriza el orden.';
+							'Mucha "challa". Tu enemigo no será la dificultad, sino el desorden administrativo (múltiples certámenes y tareas la misma semana). Usa agenda.';
 						status = 'warning';
 					} else if (pesoPromedio > 5.2) {
 						perfil = 'Denso';
 						desc =
-							'Tu semestre depende de pocas asignaturas pero de alto "tonelaje" académico. El riesgo es la complejidad conceptual; un fallo en una evaluación pesa mucho.';
+							'Pocos ramos, pero "ladrillos". Un error te costará caro; requiere profundidad de estudio, no memorización rápida.';
 						status = 'warning';
 					}
 
@@ -223,60 +233,63 @@
 						icon: MaterialSymbolsBalance,
 						label: STAT_LABELS.ENFOQUE,
 						value: perfil,
-						tooltip: `Promedio: ${pesoPromedio.toFixed(1)} SCT por ramo. ${desc}`,
+						tooltip: `Promedio: ${pesoPromedio.toFixed(1)} créditos por ramo.<br/><span class="opacity-70 text-xs">${desc}</span>`,
 						status
 					});
 				}
 
-				// --- 3. Calidad de Vida (Ventanas con Análisis de Fragmentación) ---
-				const ventanas = Calendario.ventanas;
-				let minutosVentanaTotal = 0;
-				let maxVentanaIndividual = 0;
+				// --- 3. Calidad de Vida (Análisis de Ventanas Tácticas vs Muertas) ---
+				const ventanas = Calendario.ventanas; // Array de { dia, bloqueInicio, bloqueFin, duraciónBloques }
+				let ventanasMuertas = 0; // Bloques aislados (1-2 bloques, difícil de aprovechar)
+				let ventanasTacticas = 0; // Bloques largos (3+ bloques, permiten deep work/gym)
+				let tiempoMuertoTotal = 0;
 
 				for (const v of ventanas) {
-					const duracion = v.duraciónBloques * BLOQUE_DURATION_MINUTES;
-					minutosVentanaTotal += duracion;
-					if (duracion > maxVentanaIndividual) {
-						maxVentanaIndividual = duracion;
+					const duracionMinutos = v.duraciónBloques * BLOQUE_DURATION_MINUTES;
+
+					// Umbral: Menos de 160 min (aprox 2 bloques + intermedios) se considera "Tiempo Basura"
+					// Contexto: No alcanzas a ir a casa, y en la U es difícil concentrarse en menos de 2h.
+					if (duracionMinutos < 160) {
+						ventanasMuertas++;
+						tiempoMuertoTotal += duracionMinutos;
+					} else {
+						ventanasTacticas++;
 					}
 				}
 
-				if (minutosVentanaTotal === 0) {
+				if (ventanas.length === 0) {
 					out.push({
 						icon: Asterisk,
 						label: STAT_LABELS.HORARIO,
 						value: 'Compacto',
-						tooltip:
-							'La ausencia total de tiempos muertos entre bloques maximiza la eficiencia de la permanencia en el campus.',
+						tooltip: 'Horario sin tiempos muertos. Eficiencia máxima de permanencia.',
 						status: 'success'
 					});
 				} else {
-					const horasTotales = minutosVentanaTotal / 60;
-					const horasMaxIndividual = maxVentanaIndividual / 60;
-
 					let status: StatStatus = 'success';
-					let analisis =
-						'Los tiempos de espera se mantienen dentro de márgenes que permiten pausas breves de descanso o alimentación.';
+					let labelValor = 'Eficiente';
+					let analisis = 'Tus tiempos libres son lo suficientemente largos para ser productivos.';
 
-					if (horasMaxIndividual > 3.5) {
+					if (ventanasMuertas >= 3) {
 						status = 'danger';
-						analisis =
-							'La existencia de un periodo inactivo continuo superior a tres horas y media genera una desconexión prolongada que puede afectar el ritmo de estudio diario.';
-					} else if (horasTotales > 5.0) {
+						labelValor = 'Fragmentado'; // Queso Suizo
+						analisis = `Tienes <b>${ventanasMuertas} ventanas "muertas"</b> (cortas). Esto genera fatiga cognitiva: el cerebro gasta energía cambiando de contexto (Clase → Espera → Clase) sin descansar realmente.`;
+					} else if (ventanasMuertas > 0 && ventanasTacticas === 0) {
 						status = 'warning';
+						labelValor = 'Disperso';
 						analisis =
-							'La suma acumulada de tiempos muertos supera las cinco horas semanales, sugiriendo una dispersión horaria considerable que podría reducir la productividad.';
-					} else if (horasTotales > 2.5) {
-						status = 'warning';
-						analisis =
-							'El volumen de tiempo libre entre clases es considerable y requerirá planificación para ser aprovechado efectivamente en actividades académicas.';
+							'Tienes ventanas cortas que no permiten estudio profundo ni vuelta a casa. Intenta agrupar bloques.';
+					} else if (ventanasTacticas > 0) {
+						status = 'success';
+						labelValor = 'Estratégico';
+						analisis = `Tienes ventanas "tácticas" (largas) que te permiten ir al gimnasio, estudiar en biblioteca o volver a casa.`;
 					}
 
 					out.push({
 						icon: Moon,
 						label: STAT_LABELS.VENTANAS,
-						value: `${horasTotales.toFixed(1)} hrs`,
-						tooltip: analisis,
+						value: labelValor,
+						tooltip: `${analisis}<br/><span class="opacity-70 text-xs">Tiempo muerto acumulado: ${(tiempoMuertoTotal / 60).toFixed(1)} hrs.</span>`,
 						status
 					});
 				}
@@ -308,18 +321,18 @@
 						if (eficiencia < 50) {
 							status = 'danger';
 							mensaje =
-								'Tu tiempo de espera supera a tu tiempo de clases. Considera reagrupar bloques.';
+								'Pasas más tiempo "haciendo hora" que en clases. Si vives lejos, estás perdiendo vida.';
 						} else if (eficiencia < 75) {
 							status = 'warning';
-							mensaje = 'Tienes una densidad media. Aprovecha las ventanas para estudio o deporte.';
+							mensaje =
+								'Densidad media. Si no usas las ventanas para avanzar materia, tu jornada se sentirá eterna innecesariamente.';
 						} else {
 							status = 'success';
 							mensaje =
-								'Aprovechamiento máximo del tiempo en campus (incluyendo tiempos de traslado/comida).';
+								'Jornada compacta. Entras, estudias y te vas. Ideal para tener vida fuera de la U.';
 						}
 
 						// Cálculo extra para el tooltip: Minutos libres por hora de clase
-						// (Permanencia - Aula) / (Aula / 60)
 						const minutosLibresPorHora = Math.round(
 							(minutosPermanencia - minutosAula) / (minutosAula / 60)
 						);
@@ -328,7 +341,7 @@
 							icon: MaterialSymbolsTimeline,
 							label: STAT_LABELS.EFICIENCIA,
 							value: `${eficiencia}%`,
-							tooltip: `Por cada hora de clases, tienes aprox. <b>${minutosLibresPorHora} minutos</b> de tiempo libre/espera.<br/>${mensaje}`,
+							tooltip: `Por cada 1 hora de clase, tienes <b>${minutosLibresPorHora} min</b> de "espera".<br/><span class="opacity-70 text-xs">${mensaje}</span>`,
 							status
 						});
 					}
@@ -357,18 +370,18 @@
 						if (horasAutonomasDiarias > 5.5) {
 							status = 'danger';
 							recomendacion =
-								'La carga teórica estimada supera las 5.5 horas diarias de dedicación adicional, lo cual representa un riesgo elevado de agotamiento académico sin una gestión del tiempo excepcional.';
+								'Nivel "Monje Tibetano". La carga teórica exige dedicación casi exclusiva. Despídete de tu vida social si quieres pasar todo.';
 						} else if (horasAutonomasDiarias > 4.0) {
 							status = 'warning';
 							recomendacion =
-								'El volumen de estudio personal se encuentra en un rango exigente que requiere una disciplina de estudio rigurosa de lunes a sábado para mantenerse al día.';
+								'Exigente. Si trabajas, entrenas o tienes hobbies, tendrás que sacrificar fines de semana para mantenerte al día.';
 						}
 
 						out.push({
 							icon: MaterialSymbolsBookRibbon,
 							label: STAT_LABELS.ESTUDIO_AUTONOMO,
 							value: `${horasAutonomasDiarias.toFixed(1)} hrs/día`,
-							tooltip: `Estimación basada en la normativa USM (1 SCT = 27 hrs totales). ${recomendacion}${advertenciaDatos}<br/>El cálculo considera las horas teóricas de estudio personal distribuidas en una semana de seis días.`,
+							tooltip: `Debes estudiar ${horasAutonomasDiarias.toFixed(1)} hrs extra diarias.<br/><span class="opacity-70 text-xs">Cálculo oficial USM (1 Crédito = 27hrs trabajo). Si no le dedicas este tiempo, se te acumulará materia.</span>${advertenciaDatos}`,
 							status
 						});
 					}
@@ -376,48 +389,40 @@
 
 				// --- 6. Análisis con IA ---
 				{
-					const dailyLoads = [0, 1, 2, 3, 4].map((d) => metrics[d].carga);
-					const startTimes = [0, 1, 2, 3, 4].map((d) => {
-						const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
-						if (bloques.length === 0) return 0.5;
-						const minB = Math.min(...bloques.map((b) => b.bloque));
-						return (minB - 1) / 13;
-					});
-					const aiResult = classifySchedule(dailyLoads, startTimes);
-					if (aiResult.distConfidence >= 0.4) {
-						const warnings = ['Montaña Rusa', 'Cuesta Arriba', 'Pirámide'];
-						const successes = ['Viernes Libre', 'Lunes Relax', 'Equilibrada'];
-						let st: StatStatus = null;
-						if (warnings.some((w) => aiResult.distribution.includes(w))) st = 'warning';
-						if (successes.some((s) => aiResult.distribution.includes(s))) st = 'success';
+					const aiResult = classifySchedule(ramos, creditosMap);
 
+					// 1. Distribución
+					if (!aiResult.distribution.isLowConfidence)
 						out.push({
-							icon: aiResult.distributionIcon,
+							icon: aiResult.distribution.icon,
 							label: STAT_LABELS.DISTRIBUCION,
-							value: aiResult.distribution,
-							tooltip: aiResult.distributionDescription,
-							status: st
+							value: aiResult.distribution.label,
+							tooltip: aiResult.distribution.description,
+							status: aiResult.distribution.status // ¡Directo!
 						});
-					}
 
-					if (aiResult.rhythmConfidence >= 0.4) {
-						const dangers = ['Caótico', 'Bifásico'];
-						const successes = ['Reloj Suizo'];
-						let st: StatStatus = null;
-						if (dangers.some((d) => aiResult.rhythm.includes(d))) st = 'danger';
-						if (successes.some((s) => aiResult.rhythm.includes(s))) st = 'success';
-
+					// 2. Ritmo
+					if (!aiResult.rhythm.isLowConfidence)
 						out.push({
-							icon: aiResult.rhythmIcon,
+							icon: aiResult.rhythm.icon,
 							label: STAT_LABELS.RITMO,
-							value: aiResult.rhythm,
-							tooltip: aiResult.rhythmDescription,
-							status: st
+							value: aiResult.rhythm.label,
+							tooltip: aiResult.rhythm.description,
+							status: aiResult.rhythm.status // ¡Directo!
 						});
-					}
+
+					// 3. Estructura
+					if (!aiResult.structure.isLowConfidence)
+						out.push({
+							icon: aiResult.structure.icon,
+							label: STAT_LABELS.ESTRUCTURA,
+							value: aiResult.structure.label,
+							tooltip: aiResult.structure.description,
+							status: aiResult.structure.status // ¡Directo!
+						});
 				}
 
-				// --- 7. Alerta de Maratón ---
+				// --- 7. Alerta de Maratón (Sobrecarga Continua) ---
 				{
 					let maxBloquesSeguidos = 0;
 					for (let d = 0; d <= 5; d++) {
@@ -435,6 +440,8 @@
 							const bloqueActual = bloquesDia[i];
 							const bloqueSiguiente = bloquesDia[i + 1];
 
+							// Lógica de Continuidad:
+							// Se considera seguido si es n+1 Y NO es el corte del almuerzo (Bloque 8 -> 9)
 							if (bloqueSiguiente === bloqueActual + 1 && bloqueActual !== 8) {
 								actuales++;
 							} else {
@@ -447,36 +454,37 @@
 						}
 					}
 
-					// UMBRAL SUAVIZADO:
-					// Se ignora hasta 4 bloques (2 ramos seguidos), ya que es carga estándar.
-					// La alerta comienza en 5 bloques.
+					// ... (resto del código de maratón igual: umbrales 5 y 6)
 					if (maxBloquesSeguidos >= 5) {
 						const horasContinuas = (maxBloquesSeguidos * BLOQUE_DURATION_MINUTES) / 60;
 						let status: StatStatus = 'warning';
 						let recomendacion =
-							'La jornada presenta una carga continua considerable que supera los dos módulos lectivos estándar.';
+							'Jornada extensa sin pausas. El bloque protegido de almuerzo (8-9) no cuenta como pausa suficiente para esta racha.';
 
 						if (maxBloquesSeguidos >= 6) {
 							status = 'danger';
 							recomendacion =
-								'La secuencia continua equivale a tres asignaturas seguidas o más, excediendo los límites recomendados para la atención sostenida.';
+								'Carga académica extrema. Tienes más de 4 horas de clases continuas (sin contar almuerzo). La atención decae drásticamente después del 3er bloque.';
 						}
 
 						out.push({
 							icon: MaterialSymbolsDirectionsRun,
-							label: STAT_LABELS.MARATON,
+							label: STAT_LABELS.SOBRECARGA_CONTINUA,
 							value: `${horasContinuas.toFixed(1)} hrs seguidas`,
-							tooltip: `Se han detectado ${maxBloquesSeguidos} bloques consecutivos sin ventana intermedia (se ignora el bloque protegido). ${recomendacion}`,
+							tooltip: recomendacion,
 							status
 						});
 					}
 				}
 
-				// --- 8. Higiene de Sueño ---
+				// --- 8. Higiene de Sueño & Factor Transporte (Jetlag Social) ---
 				{
-					let minDescansoNocturno = 24 * 60;
+					let minTiempoLibreNocturno = 24 * 60;
+					// Tiempo "muerto" obligado: Viaje vuelta + Viaje ida mañana + Rutina (Cena/Ducha ~60m)
+					const TIEMPO_LOGISTICA = TIEMPO_TRASLADO_MINS * 2 + 60;
 
-					for (let d = 0; d < 5; d++) {
+					for (let d = 0; d < 4; d++) {
+						// Lunes a Jueves (para despertar Mar-Vie)
 						const bloquesHoy = ramos
 							.flatMap((r) => r.horario)
 							.filter((b) => b.dia === d)
@@ -489,24 +497,148 @@
 						if (bloquesHoy.length > 0 && bloquesManana.length > 0) {
 							const ultimoBloqueHoy = Math.max(...bloquesHoy);
 							const primerBloqueManana = Math.min(...bloquesManana);
+
 							const horaFinHoy = Time.bloqueToMinutes(ultimoBloqueHoy) + BLOQUE_DURATION_MINUTES;
 							const horaInicioManana = Time.bloqueToMinutes(primerBloqueManana);
-							const descanso = 1440 - horaFinHoy + horaInicioManana;
 
-							if (descanso < minDescansoNocturno) {
-								minDescansoNocturno = descanso;
+							// Espacio bruto entre salir de la U y volver a entrar
+							const brecha = 1440 - horaFinHoy + horaInicioManana;
+							if (brecha < minTiempoLibreNocturno) {
+								minTiempoLibreNocturno = brecha;
 							}
 						}
 					}
 
-					if (minDescansoNocturno < 720) {
-						const horasDescanso = (minDescansoNocturno / 60).toFixed(1);
+					// Calculamos el sueño REAL disponible (descontando traslados)
+					const sueñoDisponible = minTiempoLibreNocturno - TIEMPO_LOGISTICA;
+
+					// Umbral: Menos de 7 horas (420 min) de sueño disponible es Warning
+					if (sueñoDisponible < 450) {
+						// < 7.5 horas disponibles (para dormir aprox 6-7)
+						const horasSueñoEst = (sueñoDisponible / 60).toFixed(1);
+						let status: StatStatus = 'warning';
+						let msg = `Considerando ${TIEMPO_TRASLADO_MINS} min de traslado, tu ventana real de sueño sería de aprox. <b>${horasSueñoEst} hrs</b>.`;
+
+						if (sueñoDisponible < 360) {
+							// < 6 horas disponibles (Danger)
+							status = 'danger';
+							msg = `<b>Alerta Crítica:</b> Tu horario más los tiempos de traslado (${TIEMPO_TRASLADO_MINS} min) te dejan menos de 6 horas para dormir. Riesgo alto de déficit cognitivo.`;
+						}
+
 						out.push({
 							icon: Moon,
-							label: STAT_LABELS.HIGIENE_SUEÑO,
-							value: `${horasDescanso} hrs`,
-							tooltip: `Tiempo mínimo detectado entre el término de una jornada y el inicio de la siguiente. Considera tiempos de traslado y sueño.`,
-							status: minDescansoNocturno < 660 ? 'danger' : 'warning'
+							label: STAT_LABELS.RECUPERACIÓN_TRANSLADO,
+							value: `${horasSueñoEst} hrs netas`, // Valor más realista
+							tooltip: msg,
+							status
+						});
+					}
+				}
+
+				// --- 9. Riesgo Nutricional (Bloque Protegido) ---
+				{
+					// Usamos BLOQUE_COMIDA importado (usualmente 9 o similar en USM, o franja 12:50-14:00)
+					// Si no está definido, asumimos bloques 9 y 10 como franja crítica de almuerzo.
+					const bloquesAlmuerzo = [BLOQUE_COMIDA, BLOQUE_COMIDA + 1].filter((b) => b !== undefined);
+					// Fallback si la constante es un solo bloque, buscamos la ventana 12:15 - 14:30 aprox
+					const diasSinAlmuerzo: number[] = [];
+
+					for (let d = 0; d <= 5; d++) {
+						const bloquesDia = ramos
+							.flatMap((r) => r.horario)
+							.filter((b) => b.dia === d)
+							.map((b) => b.bloque);
+						if (bloquesDia.length === 0) continue;
+
+						// Verificamos si tiene ocupada TODA la franja de almuerzo (ej: 9 Y 10 ocupados)
+						// Ajustar según la grilla horaria específica de la institución
+						const tieneTopeAlmuerzo = bloquesAlmuerzo.every((b) => bloquesDia.includes(b));
+
+						if (tieneTopeAlmuerzo) {
+							diasSinAlmuerzo.push(d);
+						}
+					}
+
+					if (diasSinAlmuerzo.length > 0) {
+						out.push({
+							icon: MaterialSymbolsLocalFireDepartmentRounded, // Icono de alerta/calorías
+							label: STAT_LABELS.NUTRICION, // Asegurar que exista en STAT_LABELS
+							value: 'Sin Almuerzo',
+							tooltip: `Días críticos: <b>${diasSinAlmuerzo.map((d) => Días[d]).join(', ')}</b> sin ventana para comer. Riesgo de hipoglucemia funcional (baja concentración en bloques de la tarde).`,
+							status: 'danger'
+						});
+					}
+				}
+
+				// --- 10. Regularidad Circadiana (Anclaje Matutino) ---
+				{
+					// Extraer hora de inicio (en minutos) de cada día con clases
+					const inicios = [];
+					for (let d = 0; d <= 5; d++) {
+						const bloquesDia = ramos
+							.flatMap((r) => r.horario)
+							.filter((b) => b.dia === d)
+							.map((b) => b.bloque);
+						if (bloquesDia.length > 0) {
+							inicios.push(Time.bloqueToMinutes(Math.min(...bloquesDia)));
+						}
+					}
+
+					if (inicios.length > 2) {
+						const n = inicios.length;
+						const media = inicios.reduce((a, b) => a + b) / n;
+						const varianza = inicios.reduce((a, b) => a + Math.pow(b - media, 2), 0) / n;
+						const desviacionEstandar = Math.sqrt(varianza);
+
+						// Si la desviación es mayor a 90 minutos (1.5 horas), hay desajuste
+						if (desviacionEstandar > 90) {
+							out.push({
+								icon: MaterialSymbolsHrRestingOutlineSharp,
+								label: STAT_LABELS.REGULARIDAD,
+								value: 'Irregular',
+								tooltip:
+									'Tus horarios de entrada varían demasiado (>1.5h). El cuerpo rinde mejor cuando "anclas" tu hora de inicio (ej. levantarse siempre a la misma hora).',
+								status: 'warning'
+							});
+						}
+					}
+				}
+
+				// --- 11. Seguridad Logística (Llegada a Casa) ---
+				{
+					const diasSalidaTardia: { dia: string; horaLlegada: string }[] = [];
+					// Umbral: Llegar a casa después de las 21:00 se considera riesgo/molestia
+					const MINUTOS_CORTE_LLEGADA = 21 * 60;
+
+					for (let d = 0; d <= 5; d++) {
+						const bloquesDia = ramos
+							.flatMap((r) => r.horario)
+							.filter((b) => b.dia === d)
+							.map((b) => b.bloque);
+						if (bloquesDia.length > 0) {
+							const ultimoBloque = Math.max(...bloquesDia);
+							const horaSalidaMins = Time.bloqueToMinutes(ultimoBloque) + BLOQUE_DURATION_MINUTES;
+							const horaLlegadaMins = horaSalidaMins + TIEMPO_TRASLADO_MINS;
+
+							if (horaLlegadaMins > MINUTOS_CORTE_LLEGADA) {
+								const horaHH = Math.floor(horaLlegadaMins / 60);
+								const horaMM = horaLlegadaMins % 60;
+								diasSalidaTardia.push({
+									dia: Días[d],
+									horaLlegada: `${horaHH}:${horaMM.toString().padStart(2, '0')}`
+								});
+							}
+						}
+					}
+
+					if (diasSalidaTardia.length > 0) {
+						const detalle = diasSalidaTardia.map((d) => `${d.dia} (~${d.horaLlegada})`).join(', ');
+						out.push({
+							icon: MaterialSymbolsWarningRounded,
+							label: STAT_LABELS.SEGURIDAD,
+							value: 'Llegada Tarde',
+							tooltip: `Considerando tu traslado (${TIEMPO_TRASLADO_MINS} min), llegarías a casa después de las 21:00 hrs: <br/><b>${detalle}</b>.<br/>Verifica disponibilidad de transporte.`,
+							status: 'warning'
 						});
 					}
 				}
@@ -520,8 +652,7 @@
 						icon: MaterialSymbolsWarningRounded,
 						label: STAT_LABELS.CONFLICTOS,
 						value: `${topes} topes`,
-						tooltip:
-							'Existen bloques horarios donde se superponen dos o más asignaturas. Revisa la viabilidad administrativa.',
+						tooltip: `Conflicto de horario crítico.<br/><span class="opacity-70 text-xs">Tienes ramos chocando en el mismo bloque.</span>`,
 						status: 'danger'
 					});
 				}
@@ -572,7 +703,18 @@
 </script>
 
 <div class="flex min-h-1/2 w-full flex-col gap-1.5 2xl:gap-2">
-	<h1 class="flex items-center gap-2 text-sm font-normal">Estadísticas</h1>
+	<Tooltip
+		wrapperClass="group"
+		content="Estas métricas son una guía orientativa, diseñadas a partir de patrones comunes en la vida universitaria chilena, tiempos de traslado y heurísticas de gestión del tiempo. No constituyen un diagnóstico profesional; úsalas como una herramienta de apoyo para visualizar mejor tu carga académica."
+	>
+		<h1 class="flex items-center gap-2 text-sm font-normal">
+			<span
+				class="decoration-foreground/50 underline decoration-dotted underline-offset-2 group-hover:decoration-solid"
+				>Estadísticas</span
+			>
+			<span class="opacity-50">(Referencial)</span>
+		</h1>
+	</Tooltip>
 	<div class="flex h-full min-h-0 w-full flex-col gap-1">
 		{#await statistics}
 			<div class="flex h-full w-full items-center justify-center">
@@ -614,7 +756,9 @@
 									<stat.icon class="h-full w-full scale-125" />
 								</div>
 
-								<span class="truncate opacity-90 mix-blend-lighten">{stat.label}</span>
+								<Tooltip wrapperClass="truncate mix-blend-lighten" content={stat.label}>
+									<span class="truncate opacity-90">{stat.label}</span>
+								</Tooltip>
 								<div class="ml-auto grid place-items-end overflow-visible">
 									{#key stat.value}
 										<span

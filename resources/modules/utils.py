@@ -2,6 +2,8 @@ import os
 import json
 import time
 import datetime
+import subprocess
+import hashlib
 
 # --- Constantes ---
 DIAS = {
@@ -10,12 +12,34 @@ DIAS = {
 }
 
 # --- IO Helpers ---
-def atomic_write(filepath, data):
-    """Escribe un JSON de forma atómica."""
+def atomic_write(filepath, data, encoding="utf-8"):
+    """Escribe un JSON de forma atómica (Wrapper legacy)."""
+    # Cambiado default a utf-8
+    write_if_modified(filepath, data, encoding=encoding)
+
+def write_if_modified(filepath, data, old_hash=None, encoding="utf-8"):
+    """
+    Escribe el archivo solo si el contenido (hash) difiere del anterior.
+    Retorna: (content_hash, written_boolean)
+    """
+    # 1. Serialización
+    json_content = json.dumps(data, sort_keys=True, ensure_ascii=False)
+    content_bytes = json_content.encode(encoding)
+    
+    # 2. Calcular Hash MD5
+    new_hash = hashlib.md5(content_bytes).hexdigest()
+    
+    # 3. Verificar si debemos escribir
+    if old_hash and new_hash == old_hash:
+        return new_hash, False
+
+    # 4. Escritura Atómica con encoding correcto
     temp_path = filepath + ".tmp"
-    with open(temp_path, "w+", encoding="iso-8859-1") as f:
-        f.write(json.dumps(data))
+    with open(temp_path, "w+", encoding=encoding) as f:
+        f.write(json_content)
     os.replace(temp_path, filepath)
+    
+    return new_hash, True
 
 def ensure_directories(base_dir):
     """Asegura que exista la ruta de datos."""
@@ -31,79 +55,249 @@ def hhmm_to_minutes(hhmm: str) -> int:
     [h, m] = hhmm.split(":")
     return int(h) * 60 + int(m)
 
-# --- Lógica de Diff ---
+def get_git_revision_short_hash():
+    try:
+        return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
+    except:
+        return "unknown"
+
+# --- Helpers de Comparación (NUEVOS) ---
+
+def _canonicalizar_horario(lista_horario):
+    """
+    Convierte la lista de horarios en un formato comparable e inmune al orden de la lista original.
+    Retorna un set de tuplas (hashables).
+    Clave de identidad: (dia, bloque) -> Lo demás son atributos cambiantes.
+    """
+    if not lista_horario:
+        return set()
+    
+    # Estructura normalizada: (dia, bloque, sala, tipo, profesor_bloque)
+    return set(
+        (
+            h.get('dia'), 
+            h.get('bloque'), 
+            h.get('sala', '').strip(), 
+            h.get('tipo', '').strip(), 
+            h.get('profesor', '').strip()
+        ) 
+        for h in lista_horario
+    )
+
+def _detectar_cambios_profesores(profes_old, profes_new):
+    """Compara listas de profesores titulares (ignorando orden)."""
+    set_old = set(p.strip() for p in profes_old)
+    set_new = set(p.strip() for p in profes_new)
+    
+    if set_old == set_new:
+        return None
+        
+    return {
+        "entrantes": list(set_new - set_old),
+        "salientes": list(set_old - set_new)
+    }
+
+def _comparar_paralelo(ctx, sigla, par_cod, data_old, data_new):
+    """
+    Analiza un paralelo específico en busca de cambios granulares.
+    ctx: Diccionario con {sede, jornada, periodo}
+    """
+    cambios = []
+    base_event = {
+        "entidad": "PARALELO",
+        "ruta": {**ctx, "sigla": sigla, "paralelo": par_cod},
+        "asignatura": data_new['nombre'],
+        "timestamp": int(time.time())
+    }
+
+    # 1. Cambio de Cupos
+    if data_old['cupo'] != data_new['cupo']:
+        diff = data_new['cupo'] - data_old['cupo']
+        es_oportunidad = diff > 0 and data_old['cupo'] == 0 # Estaba cerrado y se abrió
+        
+        cambios.append({
+            **base_event,
+            "tipo": "CAMBIO_CUPO",
+            "detalle": {
+                "anterior": data_old['cupo'],
+                "nuevo": data_new['cupo'],
+                "delta": diff,
+                "es_apertura": es_oportunidad,
+                "es_cierre": data_new['cupo'] == 0 and data_old['cupo'] > 0
+            }
+        })
+
+    # 2. Cambio de Profesores (Cátedra)
+    diff_profes = _detectar_cambios_profesores(data_old.get('profesor', []), data_new.get('profesor', []))
+    if diff_profes:
+        cambios.append({
+            **base_event,
+            "tipo": "CAMBIO_PROFESOR",
+            "detalle": diff_profes
+        })
+
+    # 3. Cambio de Horario (Complejo)
+    # Usamos sets para detectar si el CONTENIDO real cambió, ignorando el orden de la lista
+    sched_old = _canonicalizar_horario(data_old.get('horario', []))
+    sched_new = _canonicalizar_horario(data_new.get('horario', []))
+
+    if sched_old != sched_new:
+        # Analizar qué cambió
+        bloques_agregados = sched_new - sched_old
+        bloques_quitados = sched_old - sched_new
+        
+        # Intentar correlacionar cambios (mismo dia/bloque, diferente sala/profe)
+        map_old = {(x[0], x[1]): x for x in bloques_quitados} # Key: Dia, Bloque
+        cambios_logistica = []
+        nuevos_bloques_reales = []
+        
+        for bloque in bloques_agregados:
+            key = (bloque[0], bloque[1])
+            if key in map_old:
+                # Es una MODIFICACIÓN de un bloque existente
+                b_old = map_old[key]
+                modificaciones = []
+                if b_old[2] != bloque[2]: modificacion = f"Sala {b_old[2]} -> {bloque[2]}"
+                if b_old[4] != bloque[4]: modificacion = f"Prof. {b_old[4]} -> {bloque[4]}"
+                cambios_logistica.append(f"{DIAS_INV.get(key[0], key[0])} {key[1]}: {', '.join(modificaciones)}")
+            else:
+                nuevos_bloques_reales.append(bloque)
+
+        cambios.append({
+            **base_event,
+            "tipo": "CAMBIO_HORARIO",
+            "detalle": {
+                "logistica": cambios_logistica, # Cambios de sala/profe en mismo bloque
+                "bloques_nuevos": len(nuevos_bloques_reales),
+                "bloques_eliminados": len(bloques_quitados) - len(cambios_logistica)
+            }
+        })
+
+    return cambios
+
+# --- Lógica de Diff Principal ---
+# Necesitamos invertir el mapa de días para logs legibles
+DIAS_INV = {v: k for k, v in DIAS.items()}
+
 def calcular_diff_ramos(ramos_antiguos, ramos_nuevos):
-    """Calcula diferencias entre dos estados de ramos."""
+    """
+    Calcula diferencias estructurales y de contenido.
+    Estrategia: Unión de claves para detectar eliminaciones y adiciones en todos los niveles.
+    """
     cambios = []
     ahora = datetime.datetime.now()
-    timestamp = int(time.mktime(ahora.timetuple()))
+    ts = int(time.mktime(ahora.timetuple()))
     
-    for sede, jornadas in ramos_nuevos.items():
-        if sede == "date": continue
-        for jornada, periodos in jornadas.items():
-            for periodo, asignaturas in periodos.items():
-                for sigla, paralelos_nuevos in asignaturas.items():
-                    
-                    paralelos_antiguos = ramos_antiguos.get(sede, {}).get(jornada, {}).get(periodo, {}).get(sigla, {})
-                    
-                    ids_nuevos = set(paralelos_nuevos.keys())
-                    ids_antiguos = set(paralelos_antiguos.keys())
+    # Nivel 1: Sedes
+    all_sedes = set(ramos_antiguos.keys()) | set(ramos_nuevos.keys())
+    
+    for sede in all_sedes:
+        if sede not in ramos_nuevos:
+            cambios.append({"tipo": "ELIMINACION_MASIVA", "nivel": "SEDE", "nombre": sede, "timestamp": ts})
+            continue
+        if sede not in ramos_antiguos:
+            cambios.append({"tipo": "NUEVA_SEDE", "nivel": "SEDE", "nombre": sede, "timestamp": ts})
+            # No comparamos hijos porque todo es nuevo
+            continue
 
-                    # Nuevos
-                    for par_cod in (ids_nuevos - ids_antiguos):
-                        datos = paralelos_nuevos[par_cod]
+        # Nivel 2: Jornadas
+        jornadas_old = ramos_antiguos[sede]
+        jornadas_new = ramos_nuevos[sede]
+        all_jornadas = set(jornadas_old.keys()) | set(jornadas_new.keys())
+
+        for jornada in all_jornadas:
+            if jornada not in jornadas_new:
+                cambios.append({"tipo": "ELIMINACION_MASIVA", "nivel": "JORNADA", "ruta": {"sede": sede}, "nombre": jornada, "timestamp": ts})
+                continue
+            if jornada not in jornadas_old:
+                cambios.append({"tipo": "NUEVA_JORNADA", "nivel": "JORNADA", "ruta": {"sede": sede}, "nombre": jornada, "timestamp": ts})
+                continue
+
+            # Nivel 3: Periodos
+            periodos_old = jornadas_old[jornada]
+            periodos_new = jornadas_new[jornada]
+            all_periodos = set(periodos_old.keys()) | set(periodos_new.keys())
+
+            for periodo in all_periodos:
+                ctx = {"sede": sede, "jornada": jornada, "periodo": periodo}
+                
+                if periodo not in periodos_new:
+                     # Periodo eliminado (raro, pero posible)
+                    cambios.append({"tipo": "ELIMINACION_PERIODO", "ruta": ctx, "timestamp": ts})
+                    continue
+                if periodo not in periodos_old:
+                    cambios.append({"tipo": "NUEVO_PERIODO", "ruta": ctx, "timestamp": ts})
+                    continue
+
+                # Nivel 4: Asignaturas (Siglas)
+                asig_old = periodos_old[periodo]
+                asig_new = periodos_new[periodo]
+                all_siglas = set(asig_old.keys()) | set(asig_new.keys())
+
+                for sigla in all_siglas:
+                    if sigla not in asig_new:
                         cambios.append({
-                            "tipo": "NUEVO_PARALELO",
-                            "asignatura": datos['nombre'],
-                            "sigla": sigla,
-                            "paralelo": par_cod,
-                            "detalle": "Nueva sección abierta."
+                            "tipo": "RETIRO_ASIGNATURA",
+                            "entidad": "ASIGNATURA",
+                            "ruta": {**ctx, "sigla": sigla},
+                            "nombre": asig_old[sigla].get(list(asig_old[sigla].keys())[0], {}).get('nombre', 'Unknown'),
+                            "timestamp": ts
                         })
-
-                    # Eliminados
-                    for par_cod in (ids_antiguos - ids_nuevos):
-                        datos_old = paralelos_antiguos[par_cod] 
+                        continue
+                    
+                    if sigla not in asig_old:
+                        # Nueva asignatura detectada
+                        # Tomamos el nombre del primer paralelo disponible
+                        nombre_asig = asig_new[sigla].get(list(asig_new[sigla].keys())[0], {}).get('nombre', 'Unknown')
                         cambios.append({
-                            "tipo": "ELIMINADO_PARALELO",
-                            "asignatura": datos_old['nombre'],
-                            "sigla": sigla,
-                            "paralelo": par_cod,
-                            "detalle": "Sección cerrada o eliminada."
+                            "tipo": "NUEVA_ASIGNATURA",
+                            "entidad": "ASIGNATURA",
+                            "ruta": {**ctx, "sigla": sigla},
+                            "nombre": nombre_asig,
+                            "timestamp": ts
                         })
+                        continue
 
-                    # Modificados
-                    for par_cod in (ids_nuevos & ids_antiguos):
-                        datos_new = paralelos_nuevos[par_cod]
-                        datos_old = paralelos_antiguos[par_cod]
+                    # Nivel 5: Paralelos
+                    pars_old = asig_old[sigla]
+                    pars_new = asig_new[sigla]
+                    all_pars = set(pars_old.keys()) | set(pars_new.keys())
 
-                        if datos_new['cupo'] != datos_old['cupo']:
-                            diff = datos_new['cupo'] - datos_old['cupo']
+                    for par in all_pars:
+                        ruta_par = {**ctx, "sigla": sigla, "paralelo": par}
+                        
+                        if par not in pars_new:
                             cambios.append({
-                                "tipo": "CAMBIO_CUPO",
-                                "asignatura": datos_new['nombre'],
-                                "sigla": sigla,
-                                "paralelo": par_cod,
-                                "anterior": datos_old['cupo'],
-                                "nuevo": datos_new['cupo'],
-                                "diff": diff,
-                                "detalle": f"Cupos: {datos_old['cupo']} -> {datos_new['cupo']}"
+                                "tipo": "ELIMINADO_PARALELO",
+                                "entidad": "PARALELO",
+                                "ruta": ruta_par,
+                                "asignatura": pars_old[par]['nombre'],
+                                "timestamp": ts
                             })
-
-                        if datos_new['horario'] != datos_old['horario']:
+                            continue
+                        
+                        if par not in pars_old:
                             cambios.append({
-                                "tipo": "AJUSTE_HORARIO",
-                                "asignatura": datos_new['nombre'],
-                                "sigla": sigla,
-                                "paralelo": par_cod,
-                                "detalle": "Horario modificado."
+                                "tipo": "NUEVO_PARALELO",
+                                "entidad": "PARALELO",
+                                "ruta": ruta_par,
+                                "asignatura": pars_new[par]['nombre'],
+                                "timestamp": ts
                             })
+                            continue
+                        
+                        # Modificaciones: Comparación profunda
+                        deltas = _comparar_paralelo(ctx, sigla, par, pars_old[par], pars_new[par])
+                        cambios.extend(deltas)
 
     if not cambios: return None
         
     return {
-        "timestamp": timestamp,
-        "fecha_grupo": ahora.strftime("%Y-%m-%d"),
-        "hora_registro": ahora.strftime("%H:%M"),
-        "total_cambios": len(cambios),
-        "cambios": cambios
+        "metadata": {
+            "timestamp": ts,
+            "fecha": ahora.strftime("%Y-%m-%d"),
+            "hora": ahora.strftime("%H:%M"),
+            "total_eventos": len(cambios)
+        },
+        "eventos": cambios
     }

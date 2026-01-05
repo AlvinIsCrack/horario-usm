@@ -76,7 +76,7 @@
 	const invalid = $derived(!Calendario.sede);
 </script>
 
-<div class="relative h-fit w-full">
+<div class="relative h-fit w-full opacity-100 duration-400 starting:opacity-0">
 	<Card class="{_class} flex flex-col gap-2 overflow-hidden" {...props}>
 		<div class="pointer-events-none relative mb-2 h-20 w-full will-change-contents">
 			{#if invalid}

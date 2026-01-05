@@ -56,11 +56,16 @@
 				</p>
 			</div>
 
-			<Tooltip content={sctStatusInfo.tooltip}>
-				<Badge icon={Circles} class="transition-colors duration-300 {sctStatusInfo.color}">
-					{totalSCT} SCT
-				</Badge>
-			</Tooltip>
+			{#if totalSCT}
+				<Tooltip
+					wrapperClass="starting:opacity-0 opacity-100 duration-400"
+					content={sctStatusInfo.tooltip}
+				>
+					<Badge icon={Circles} class="transition-colors duration-300 {sctStatusInfo.color}">
+						{totalSCT} SCT
+					</Badge>
+				</Tooltip>
+			{/if}
 		</div>
 		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto p-1">
 			{#each Calendario.ramos as ramo, i (i)}

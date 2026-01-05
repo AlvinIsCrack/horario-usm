@@ -4,6 +4,7 @@ import json
 import time
 import datetime
 import argparse
+import hashlib
 from multiprocessing import Pool
 
 # Importación de Módulos Locales
@@ -118,30 +119,78 @@ if __name__ == "__main__":
             utils.atomic_write(dest, progs)
             print(f"Programas actualizados en: {dest}")
 
-    # 5. Escritura y Diff
-    if UPDATE_CARRERAS and carreras_result:
-        utils.atomic_write(os.path.join(DATA_PATH, "planes_carreras.json"), carreras_result)
+    # 5. Escritura y Gestión de Metadata
+    metadata_path = os.path.join(DATA_PATH, "metadata.json")
+    old_metadata = {}
+    
+    if os.path.exists(metadata_path):
+        try:
+            with open(metadata_path, "r", encoding="utf-8") as f:
+                old_metadata = json.load(f)
+        except: pass
+    
+    files_registry = old_metadata.get("files", {})
 
+    # A. Escritura CARRERAS (Forzando UTF-8 implícitamente por el cambio en utils)
+    if UPDATE_CARRERAS and carreras_result:
+        fname = "planes_carreras.json"
+        old_hash = files_registry.get(fname, {}).get("hash")
+        
+        c_hash, c_written = utils.write_if_modified(
+            os.path.join(DATA_PATH, fname), 
+            carreras_result, 
+            old_hash=old_hash,
+            encoding="utf-8" 
+        )
+        
+        if c_written:
+            print(f"[CAMBIOS] {fname} actualizado.")
+        else:
+            print(f"[SKIP] {fname} sin cambios.")
+
+        files_registry[fname] = {
+            "hash": c_hash,
+            "updatedAt": unix, 
+            "size": len(carreras_result) 
+        }
+
+   # B. Escritura RAMOS y Metadata Final
     if UPDATE_RAMOS and ramos_result:
-        ramos_path = os.path.join(DATA_PATH, "horario_asignaturas.json")
+        fname_ramos = "horario_asignaturas.json"
+        ramos_path = os.path.join(DATA_PATH, fname_ramos)
+        
+        # 1. Lectura Inteligente (Try UTF-8 -> Fallback ISO-8859-1)
         ramos_antiguos = {}
         if os.path.exists(ramos_path):
             try:
-                with open(ramos_path, "r", encoding="iso-8859-1") as f:
+                with open(ramos_path, "r", encoding="utf-8") as f:
                     ramos_antiguos = json.load(f)
-            except: pass
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                try:
+                    with open(ramos_path, "r", encoding="iso-8859-1") as f:
+                        ramos_antiguos = json.load(f)
+                except: pass
 
+        cambios_detectados = 0
         if ramos_antiguos:
+            if "date" in ramos_antiguos: del ramos_antiguos["date"]
+            
             diff = utils.calcular_diff_ramos(ramos_antiguos, ramos_result)
+            
+            # --- CORRECCIÓN AQUÍ ---
             if diff:
+                # La nueva estructura agrupa los contadores dentro de 'metadata'
+                # y renombramos 'total_cambios' a 'total_eventos' para ser consistentes
+                cambios_detectados = diff["metadata"]["total_eventos"]
+                
                 log_path = os.path.join(DATA_PATH, "historial_cambios.jsonl")
                 with open(log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(diff, ensure_ascii=False) + "\n")
-                print(f"Cambios guardados en: {log_path}")
+                print(f"Historial guardado en: {log_path}")
+            # -----------------------
 
+            # Merge conservador
             ramos_final = ramos_antiguos.copy()
-            if "date" in ramos_final: del ramos_final["date"]
-            
             for s, js in ramos_result.items():
                 if s not in ramos_final: ramos_final[s] = {}
                 for j, ps in js.items():
@@ -150,8 +199,61 @@ if __name__ == "__main__":
                         ramos_final[s][j][p] = data
             ramos_result = ramos_final
 
-        ramos_result["date"] = unix
-        utils.atomic_write(ramos_path, ramos_result)
-        print(f"Ramos actualizados en: {ramos_path}")
+        # 2. Escritura Ramos (UTF-8)
+        old_hash_ramos = files_registry.get(fname_ramos, {}).get("hash")
+        
+        r_hash, r_written = utils.write_if_modified(
+            ramos_path, 
+            ramos_result, 
+            old_hash=old_hash_ramos,
+            encoding="utf-8"
+        )
+
+        if r_written:
+            print(f"[CAMBIOS] {fname_ramos} actualizado.")
+        else:
+            print(f"[SKIP] {fname_ramos} sin cambios.")
+
+        files_registry[fname_ramos] = {
+            "hash": r_hash,
+            "updatedAt": unix if r_written else files_registry.get(fname_ramos, {}).get("updatedAt", unix),
+            "cambiosUltimaEjecucion": cambios_detectados
+        }
+
+        # 3. Metadata (UTF-8)
+        # Recálculo de estadísticas sobre el objeto final
+        total_asignaturas = 0
+        total_paralelos = 0
+        for s_data in ramos_result.values():
+            for j_data in s_data.values():
+                for p_data in j_data.values():
+                    total_asignaturas += len(p_data)
+                    for sigla_data in p_data.values():
+                        total_paralelos += len(sigla_data)
+        
+        execution_time = time.time() - unix 
+        is_ci = os.getenv('CI', 'false').lower() == 'true'
+
+        metadata = {
+            "version": 3,
+            "status": "success",
+            "generatedAt": {
+                "unix": int(unix),
+                "iso": datetime.datetime.fromtimestamp(unix).isoformat(),
+            },
+            "system": {
+                "scraperVersion": utils.get_git_revision_short_hash(),
+                "environment": "CI/CD" if is_ci else "Local",
+                "executionTimeSeconds": round(execution_time, 2),
+            },
+            "stats": {
+                "totalAsignaturas": total_asignaturas,
+                "totalParalelos": total_paralelos,
+            },
+            "files": files_registry,
+        }
+
+        utils.atomic_write(metadata_path, metadata, encoding="utf-8")
+        print(f"Metadata actualizada en: {metadata_path}")
 
     print("OK")
