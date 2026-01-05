@@ -21,6 +21,7 @@
 	import SedeSelector from '../elements/SedeSelector.svelte';
 	import Statistics from '../elements/Statistics.svelte';
 	import RamosList from '../elements/RamosList.svelte';
+	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -144,8 +145,26 @@
 									class="w-full text-nowrap"
 									onclick={() => (activeWindow = SavedHorariosWindow)}
 								>
-									<Horario class="inline scale-125" />
-									Horarios guardados
+									<p>
+										<Horario class="mr-2 inline scale-125" />
+										Horarios guardados
+									</p>
+								</Button>
+
+								<Button
+									variant="secondary"
+									class="w-full"
+									size="sm"
+									onclick={() =>
+										window.open(
+											'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
+											'_blank'
+										)}
+								>
+									<p>
+										<MaterialSymbolsFeedback class="mr-2 inline scale-125" />
+										Comentarios, reclamos y sugerencias
+									</p>
 								</Button>
 							{/if}
 						</div>
