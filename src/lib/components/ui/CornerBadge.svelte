@@ -4,7 +4,7 @@
 	import { tv } from 'tailwind-variants';
 
 	const cornerBadge = tv({
-		base: 'absolute z-10 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs border drop-shadow-md/50 font-bold',
+		base: 'absolute z-10 flex items-center justify-center gap-1.5 px-1.5 py-1 xl:px-2 text-xs border drop-shadow-md/50 font-bold',
 		variants: {
 			variant: {
 				default: 'bg-accent text-accent-foreground',

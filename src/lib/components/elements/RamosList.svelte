@@ -16,6 +16,32 @@
 			Data.getInfoRamoCarrera(r.sigla, Calendario.sede, Calendario.jornada)
 		)
 	);
+
+	// 1. Calculamos el total de SCT en una variable reactiva limpia
+	const totalSCT = $derived(ramosCarrera.reduce((sum, r) => sum + (r?.creditos ?? 0), 0));
+
+	// 2. Extraemos la lógica de colores/estados de Statistics.svelte (Carga SIGA)
+	const sctStatusInfo = $derived.by(() => {
+		if (totalSCT === 0) return { color: '', tooltip: 'Créditos totales (SCT)' };
+
+		// Lógica oficial: < 17 (Peligro/Subcarga), > 35 (Warning/Sobrecarga), Resto (Success)
+		if (totalSCT < 17) {
+			return {
+				color: 'bg-red-500/20 text-red-100 border-red-500/50 border',
+				tooltip: 'ALERTA: Menos de 17 SCT (Riesgo de alumno parcial/pérdida de beneficios).'
+			};
+		} else if (totalSCT > 35) {
+			return {
+				color: 'bg-amber-500/20 text-amber-100 border-amber-500/50 border',
+				tooltip: 'ADVERTENCIA: Más de 35 SCT (Requiere autorización de sobrecarga).'
+			};
+		} else {
+			return {
+				color: 'bg-green-500/20 text-green-100 border-green-500/50 border',
+				tooltip: 'Carga académica estándar (17 - 35 SCT).'
+			};
+		}
+	});
 </script>
 
 <div class="mt-2 flex h-full flex-col gap-1 overflow-x-visible overflow-y-auto">
@@ -30,13 +56,9 @@
 				</p>
 			</div>
 
-			<Tooltip content="Créditos totales (SCT)">
-				<Badge icon={Circles}>
-					{Calendario.ramos
-						.map(
-							(r) => Data.getInfoRamoCarrera(r.sigla, Calendario.sede, Calendario.jornada)?.creditos
-						)
-						.reduce((prev, curr) => (prev ?? 0) + (curr ?? 0), 0) ?? 0} SCT
+			<Tooltip content={sctStatusInfo.tooltip}>
+				<Badge icon={Circles} class="transition-colors duration-300 {sctStatusInfo.color}">
+					{totalSCT} SCT
 				</Badge>
 			</Tooltip>
 		</div>
@@ -51,7 +73,12 @@
 					<ul class="space-y-1">
 						{#each ramo.profesor as profesor (profesor)}
 							<li class="flex items-center gap-2 leading-tight font-normal">
-								{profesor}
+								<p class="text-left">
+									{@html profesor.replace(
+										'NN',
+										'<b>NN:</b> El profesor aún no ha sido asignado oficialmente por el departamento.'
+									)}
+								</p>
 							</li>
 						{/each}
 					</ul>

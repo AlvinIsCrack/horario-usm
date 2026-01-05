@@ -5,18 +5,16 @@
 		ZEN_DAY: 'Día Zen',
 		HARDCORE: 'Hardcore',
 		EN_AULA: 'En Aula',
-		PROMEDIO: 'Promedio',
 		HORARIO: 'Horario',
 		VENTANAS: 'Ventanas',
-		MADRUGADAS: 'Madrugadas',
-		ALMUERZO_FLASH: 'Almuerzo Flash',
-		ALMUERZO: 'Almuerzo',
 		EFICIENCIA: 'Eficiencia',
-		MARATON: 'Maratón',
 		ESTUDIO_AUTONOMO: 'Estudio Autónomo',
-		SALIDA_TARDIA: 'Salida Tardía',
+		MARATON: 'Maratón',
+		HIGIENE_SUEÑO: 'Recuperación',
 		DISTRIBUCION: 'Distribución',
-		RITMO: 'Ritmo'
+		RITMO: 'Ritmo',
+		ENFOQUE: 'Enfoque',
+		CONFLICTOS: 'Conflictos'
 	} as const;
 
 	// 2. Creamos el tipo derivado automáticamente.
@@ -32,8 +30,8 @@
 		status?: StatStatus;
 	};
 
-	type typeStatistics = Promise<StatItem[]>;
-	let statistics: typeStatistics = $state(Promise.resolve([]));
+	type typeStatistics = StatItem[];
+	let statistics: typeStatistics = $state([]);
 
 	export const StatisticsManager = {
 		get source(): typeStatistics {
@@ -41,7 +39,7 @@
 		},
 
 		async getAll(): Promise<StatItem[]> {
-			return await statistics;
+			return statistics;
 		},
 
 		async getKeys(): Promise<StatLabel[]> {
@@ -64,7 +62,7 @@
 <script lang="ts">
 	import Loader from '$lib/icons/loader.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { fade } from 'svelte/transition';
+	import { blur, fade, fly, scale } from 'svelte/transition';
 	import { untrack } from 'svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import Card from '../ui/Card.svelte';
@@ -72,38 +70,51 @@
 	import { BLOQUE_DURATION_MINUTES, BLOQUE_COMIDA } from '$lib/constants/usm';
 	import Time from '$lib/helpers/time';
 	import { Días } from '$lib/types/horario';
+	import { SideBar } from '../sidebar/SideBar.svelte';
 
 	// Iconos
-	import Sun from '$lib/icons/sun.svelte';
 	import Asterisk from '$lib/icons/asterisk.svelte';
 	import Moon from '$lib/icons/moon.svelte';
-	import ForkSpoon from '$lib/icons/fork-spoon.svelte';
 	import MaterialSymbolsNestEcoLeaf from '$lib/icons/MaterialSymbolsNestEcoLeaf.svelte';
 	import MaterialSymbolsLocalFireDepartmentRounded from '$lib/icons/MaterialSymbolsLocalFireDepartmentRounded.svelte';
-	import TrendingUp from '$lib/icons/trending-up.svelte';
-	import TrendingDown from '$lib/icons/trending-down.svelte';
-	import Activity from '$lib/icons/activity.svelte';
 	import MaterialSymbolsDirectionsRun from '$lib/icons/MaterialSymbolsDirectionsRun.svelte';
 	import MaterialSymbolsTimeline from '$lib/icons/MaterialSymbolsTimeline.svelte';
 	import MaterialSymbolsBookRibbon from '$lib/icons/MaterialSymbolsBookRibbon.svelte';
 	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
-	import ArithmeticMean from '$lib/icons/arithmetic-mean.svelte';
-	import Paralelos from '$lib/icons/paralelos.svelte';
 	import { classifySchedule } from '$lib/ai/classifier';
+	import MaterialSymbolsBalance from '$lib/icons/MaterialSymbolsBalance.svelte';
+	import MaterialSymbolsWarningRounded from '$lib/icons/MaterialSymbolsWarningRounded.svelte';
+	import { flip } from 'svelte/animate';
+	import { cubicOut } from 'svelte/easing';
+
+	let updated = $state(false);
 
 	$effect(() => {
-		const _ = [Calendario.ramos];
+		// 1. Rastreamos cambios en los Ramos Y en la Ventana Activa.
+		// Al acceder a 'SideBar.activeWindow', Svelte 5 lo añade automáticamente a las dependencias.
+		const _ = [Calendario.ramos, SideBar.activeWindow];
+
+		// 2. Cláusula de Guardia (UX):
+		// Si hay una ventana abierta (ej. RamoWindow), NO recalculamos ni notificamos nada aún.
+		// Esperamos a que el usuario cierre la ventana (activeWindow sea undefined) para ejecutar esto.
+		if (SideBar.activeWindow) return;
 
 		untrack(() => {
-			async function update(): typeStatistics {
+			async function update() {
 				const ramos = Calendario.ramos;
 				if (!ramos.length) return [];
 
 				let out: StatItem[] = [];
 				const creditosMap: Record<string, number> = {};
 
-				// --- 1. Cálculo de Días Extremos (Zen vs Hardcore) ---
-				const cargaPorDia: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+				const metrics: Record<number, { carga: number; bloques: number }> = {
+					0: { carga: 0, bloques: 0 },
+					1: { carga: 0, bloques: 0 },
+					2: { carga: 0, bloques: 0 },
+					3: { carga: 0, bloques: 0 },
+					4: { carga: 0, bloques: 0 },
+					5: { carga: 0, bloques: 0 }
+				};
 
 				for (const ramo of ramos) {
 					if (creditosMap[ramo.sigla] === undefined) {
@@ -116,315 +127,452 @@
 
 					const diasRamo = new Set(ramo.horario.map((b) => b.dia));
 					diasRamo.forEach((d) => {
-						if (cargaPorDia[d] !== undefined) cargaPorDia[d] += creditos;
+						if (metrics[d]) metrics[d].carga += creditos;
+					});
+
+					ramo.horario.forEach((b) => {
+						if (metrics[b.dia]) metrics[b.dia].bloques++;
 					});
 				}
 
-				const diasActivos = Object.entries(cargaPorDia)
-					.map(([d, c]) => ({ dia: Number(d), carga: c }))
-					.filter((d) => d.carga > 0)
-					.sort((a, b) => a.carga - b.carga);
+				// --- 1. Cálculo de Días Extremos (Zen vs Hardcore) con Score de Intensidad ---
+				const diasCalculados = Object.entries(metrics)
+					.map(([d, m]) => {
+						if (m.bloques === 0) return null;
 
-				if (diasActivos.length > 0) {
-					const ligero = diasActivos[0];
-					const pesado = diasActivos[diasActivos.length - 1];
+						const densidad = m.carga / m.bloques;
+						const score = m.carga + densidad;
 
-					out.push({
-						icon: MaterialSymbolsNestEcoLeaf,
-						label: STAT_LABELS.ZEN_DAY,
-						value: Días[ligero.dia],
-						tooltip: `Día con la menor sumatoria de créditos SCT (Min de {Σ Créditos/Día}). En tu caso es ${ligero.carga} SCT.`,
-						status: 'success' // Zen = Bueno
-					});
+						return {
+							dia: Number(d),
+							carga: m.carga,
+							bloques: m.bloques,
+							score
+						};
+					})
+					.filter((d) => d !== null)
+					.sort((a, b) => a.score - b.score);
 
-					if (diasActivos.length > 1 && pesado.dia !== ligero.dia) {
+				if (diasCalculados.length > 0) {
+					const ligero = diasCalculados[0];
+					const pesado = diasCalculados[diasCalculados.length - 1];
+					const diff = pesado.score - ligero.score;
+
+					const UMBRAL_RELEVANCIA = 1.5;
+					const UMBRAL_HARDCORE = 3.0;
+
+					if (diasCalculados.length > 1 && diff >= UMBRAL_RELEVANCIA) {
 						out.push({
-							icon: MaterialSymbolsLocalFireDepartmentRounded,
-							label: STAT_LABELS.HARDCORE,
-							value: Días[pesado.dia],
-							tooltip: `Día con la mayor sumatoria de créditos SCT (Max de {Σ Créditos/Día}). En tu caso es ${pesado.carga} SCT.`,
-							status: 'danger' // Hardcore = Intenso
+							icon: MaterialSymbolsNestEcoLeaf,
+							label: STAT_LABELS.ZEN_DAY,
+							value: `${Días[ligero.dia]}`,
+							tooltip: `Día de menor intensidad relativa .`
 						});
+
+						if (diff >= UMBRAL_HARDCORE) {
+							out.push({
+								icon: MaterialSymbolsLocalFireDepartmentRounded,
+								label: STAT_LABELS.HARDCORE,
+								value: `${Días[pesado.dia]}`,
+								tooltip: `Día de intensidad crítica.`
+							});
+						}
 					}
 				}
 
-				// --- 2. Tiempos y Bloques ---
-				const totalBloques = ramos.reduce((sum, r) => sum + r.horario.length, 0);
-				const minutosAula = totalBloques * BLOQUE_DURATION_MINUTES;
+				// A. Cálculo real de tiempo en aula (Manejando topes de horario)
+				const bloquesUnicos = new Set<string>();
+				ramos.forEach((r) => {
+					r.horario.forEach((b) => bloquesUnicos.add(`${b.dia}-${b.bloque}`));
+				});
+
+				const totalBloquesReales = bloquesUnicos.size;
+				const minutosAula = totalBloquesReales * BLOQUE_DURATION_MINUTES;
 
 				out.push({
 					icon: MaterialSymbolsNestClockFarsightAnalogOutline,
 					label: STAT_LABELS.EN_AULA,
 					value: `${(minutosAula / 60).toFixed(1)} horas`,
-					tooltip: 'Sumatoria de minutos de todos los bloques inscritos (Σ Duración Bloques).'
+					tooltip: 'Tiempo real sentado en la sala de clases.'
 				});
 
-				const diasConClases = diasActivos.length || 1;
-				const prom = (totalBloques / diasConClases).toFixed(1);
-				out.push({
-					icon: ArithmeticMean,
-					label: STAT_LABELS.PROMEDIO,
-					value: `${prom} bloq/día`,
-					tooltip: 'Promedio aritmético: Total Bloques / Cantidad de días asistidos.'
-				});
+				// NUEVO: Enfoque de Gestión (Densidad Cognitiva)
+				const totalSCT = Object.values(creditosMap).reduce((sum, c) => sum + c, 0);
+				const cantidadRamos = ramos.length;
 
-				// --- 3. Calidad de Vida (Ventanas y Madrugadas) ---
-				const ventanas = Calendario.ventanas;
-				const minutosVentana = ventanas.reduce(
-					(sum, v) => sum + v.duraciónBloques * BLOQUE_DURATION_MINUTES,
-					0
-				);
+				if (cantidadRamos > 0 && totalSCT > 0) {
+					const pesoPromedio = totalSCT / cantidadRamos;
+					let perfil = 'Estándar';
+					let desc =
+						'Tu carga combina asignaturas de distinto peso, requiriendo un balance normal entre gestión y estudio.';
+					let status: StatStatus = 'success';
 
-				if (minutosVentana === 0) {
-					out.push({
-						icon: Asterisk,
-						label: STAT_LABELS.HORARIO,
-						value: 'Compacto',
-						tooltip: '0 minutos de tiempo muerto entre el primer y último bloque.'
-					});
-				} else {
-					const horasVentana = minutosVentana / 60;
-					out.push({
-						icon: Moon,
-						label: STAT_LABELS.VENTANAS,
-						value: `${horasVentana.toFixed(1)} hrs`,
-						tooltip: 'Sumatoria de minutos libres entre bloques de clase.'
-					});
-				}
-
-				// Madrugadas
-				// {
-				// 	let madrugadas = 0;
-				// for (let d = 0; d <= 5; d++) {
-				// 	const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
-				// 	if (bloques.length > 0) {
-				// 		const minB = Math.min(...bloques.map((b) => b.bloque));
-				// 		if (minB <= 2) madrugadas++;
-				// 	}
-				// }
-				// if (madrugadas > 0) {
-				// 	out.push({
-				// 		icon: Sun,
-				// 		label: STAT_LABELS.MADRUGADAS,
-				// 		value: `${madrugadas} días`,
-				// 		tooltip: 'Cantidad de días donde el primer bloque inicia antes de las 09:35 AM.'
-				// 	});
-				// }
-				// }
-
-				// --- Almuerzos (QoL: Detectar días con tiempo justo) ---
-				let almuerzosFlash = 0;
-				for (let d = 0; d <= 5; d++) {
-					const bloquesDia = ramos
-						.flatMap((r) => r.horario)
-						.filter((b) => b.dia === d)
-						.map((b) => b.bloque);
-
-					// Si tienes clase en el bloque anterior (7) Y en el posterior (9) al bloque de comida (8)
-					const claseAntes = bloquesDia.includes(BLOQUE_COMIDA - 1);
-					const claseDespues = bloquesDia.includes(BLOQUE_COMIDA + 1);
-
-					if (claseAntes && claseDespues) {
-						almuerzosFlash++;
+					if (pesoPromedio < 4.0) {
+						perfil = 'Fragmentado';
+						desc =
+							'Cursas muchas asignaturas de bajo creditaje. Tu principal enemigo será el caos administrativo (múltiples fechas y entregas simultáneas). Prioriza el orden.';
+						status = 'warning';
+					} else if (pesoPromedio > 5.2) {
+						perfil = 'Denso';
+						desc =
+							'Tu semestre depende de pocas asignaturas pero de alto "tonelaje" académico. El riesgo es la complejidad conceptual; un fallo en una evaluación pesa mucho.';
+						status = 'warning';
 					}
-				}
-
-				if (almuerzosFlash > 0) {
-					out.push({
-						icon: ForkSpoon,
-						label: STAT_LABELS.ALMUERZO_FLASH,
-						value: `${almuerzosFlash} días`,
-						tooltip: `Días donde tienes clases pegadas justo antes y después del almuerzo (Bloques ${BLOQUE_COMIDA - 1} y ${BLOQUE_COMIDA + 1}).`,
-						status: 'danger'
-					});
-				} else {
-					out.push({
-						icon: ForkSpoon,
-						label: STAT_LABELS.ALMUERZO,
-						value: 'Relax',
-						tooltip: 'Todos los días tienes al menos un bloque libre adicional pegado al almuerzo.',
-						status: 'success'
-					});
-				}
-
-				// --- 4. Eficiencia de Campus ---
-				let minutosPermanencia = 0;
-				for (let d = 0; d <= 5; d++) {
-					const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
-					if (bloques.length > 0) {
-						const minB = Math.min(...bloques.map((b) => b.bloque));
-						const maxB = Math.max(...bloques.map((b) => b.bloque));
-						const start = Time.bloqueToMinutes(minB);
-						const end = Time.bloqueToMinutes(maxB) + BLOQUE_DURATION_MINUTES;
-						minutosPermanencia += end - start;
-					}
-				}
-
-				if (minutosPermanencia > 0) {
-					const eficiencia = Math.round((minutosAula / minutosPermanencia) * 100);
-
-					let status: StatStatus = null;
-					if (eficiencia <= 55) status = 'danger';
-					else if (eficiencia < 70) status = 'warning';
-					else if (eficiencia >= 90) status = 'success';
 
 					out.push({
-						icon: MaterialSymbolsTimeline,
-						label: STAT_LABELS.EFICIENCIA,
-						value: `${eficiencia}%`,
-						tooltip: 'Ratio porcentual: (Tiempo Aula / Tiempo Permanencia Total).',
+						icon: MaterialSymbolsBalance,
+						label: STAT_LABELS.ENFOQUE,
+						value: perfil,
+						tooltip: `Promedio: ${pesoPromedio.toFixed(1)} SCT por ramo. ${desc}`,
 						status
 					});
 				}
 
-				// --- 5. Maratón ---
-				// let maxMaraton = 0;
-				// for (let d = 0; d <= 5; d++) {
-				// 	const bloquesDia = ramos
-				// 		.flatMap((r) => r.horario)
-				// 		.filter((b) => b.dia === d)
-				// 		.map((b) => b.bloque)
-				// 		.sort((a, b) => a - b);
+				// --- 3. Calidad de Vida (Ventanas con Análisis de Fragmentación) ---
+				const ventanas = Calendario.ventanas;
+				let minutosVentanaTotal = 0;
+				let maxVentanaIndividual = 0;
 
-				// 	let actual = 0;
-				// 	let last = -99;
-				// 	for (const b of bloquesDia) {
-				// 		if (b === last + 1) actual++;
-				// 		else actual = 1;
-				// 		last = b;
-				// 		maxMaraton = Math.max(maxMaraton, actual);
-				// 	}
-				// }
-				// if (maxMaraton >= 4) {
-				// 	out.push({
-				// 		icon: MaterialSymbolsDirectionsRun,
-				// 		label: STAT_LABELS.MARATON,
-				// 		value: `${maxMaraton} bloq. seguidos`,
-				// 		tooltip: 'Mayor cantidad de bloques consecutivos sin interrupción (>3).'
-				// 	});
-				// }
+				for (const v of ventanas) {
+					const duracion = v.duraciónBloques * BLOQUE_DURATION_MINUTES;
+					minutosVentanaTotal += duracion;
+					if (duracion > maxVentanaIndividual) {
+						maxVentanaIndividual = duracion;
+					}
+				}
+
+				if (minutosVentanaTotal === 0) {
+					out.push({
+						icon: Asterisk,
+						label: STAT_LABELS.HORARIO,
+						value: 'Compacto',
+						tooltip:
+							'La ausencia total de tiempos muertos entre bloques maximiza la eficiencia de la permanencia en el campus.',
+						status: 'success'
+					});
+				} else {
+					const horasTotales = minutosVentanaTotal / 60;
+					const horasMaxIndividual = maxVentanaIndividual / 60;
+
+					let status: StatStatus = 'success';
+					let analisis =
+						'Los tiempos de espera se mantienen dentro de márgenes que permiten pausas breves de descanso o alimentación.';
+
+					if (horasMaxIndividual > 3.5) {
+						status = 'danger';
+						analisis =
+							'La existencia de un periodo inactivo continuo superior a tres horas y media genera una desconexión prolongada que puede afectar el ritmo de estudio diario.';
+					} else if (horasTotales > 5.0) {
+						status = 'warning';
+						analisis =
+							'La suma acumulada de tiempos muertos supera las cinco horas semanales, sugiriendo una dispersión horaria considerable que podría reducir la productividad.';
+					} else if (horasTotales > 2.5) {
+						status = 'warning';
+						analisis =
+							'El volumen de tiempo libre entre clases es considerable y requerirá planificación para ser aprovechado efectivamente en actividades académicas.';
+					}
+
+					out.push({
+						icon: Moon,
+						label: STAT_LABELS.VENTANAS,
+						value: `${horasTotales.toFixed(1)} hrs`,
+						tooltip: analisis,
+						status
+					});
+				}
 
 				{
-					const totalSCT = Object.values(creditosMap).reduce((sum, c) => sum + c, 0);
-					// 1 SCT equivale a 27 horas semestrales. En 18 semanas, son 1.5 horas totales por crédito.
-					const horasTotalesSugeridas = totalSCT * 1.5;
-					const horasAutónomas = Math.max(0, horasTotalesSugeridas - minutosAula / 60) / 7;
+					// --- 4. Eficiencia de Campus (Ajustada y Humanizada) ---
+					let minutosPermanencia = 0;
+					for (let d = 0; d <= 5; d++) {
+						const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
+						if (bloques.length > 0) {
+							const minB = Math.min(...bloques.map((b) => b.bloque));
+							const maxB = Math.max(...bloques.map((b) => b.bloque));
+							const start = Time.bloqueToMinutes(minB);
+							const end = Time.bloqueToMinutes(maxB) + BLOQUE_DURATION_MINUTES;
+							minutosPermanencia += end - start;
+						}
+					}
 
-					if (totalSCT > 0) {
+					if (minutosPermanencia > 0) {
+						const eficiencia = Math.round((minutosAula / minutosPermanencia) * 100);
+						let status: StatStatus = null;
+
+						// ANÁLISIS RAZONABLE:
+						// - Menos del 50%: Pasas más tiempo esperando que en clases. (Danger)
+						// - Entre 50% y 75%: Tienes ventanas significativas, pero es manejable. (Warning)
+						// - Más del 75%: Horario compacto. Considera el almuerzo como parte de la vida. (Success)
+
+						let mensaje = '';
+						if (eficiencia < 50) {
+							status = 'danger';
+							mensaje =
+								'Tu tiempo de espera supera a tu tiempo de clases. Considera reagrupar bloques.';
+						} else if (eficiencia < 75) {
+							status = 'warning';
+							mensaje = 'Tienes una densidad media. Aprovecha las ventanas para estudio o deporte.';
+						} else {
+							status = 'success';
+							mensaje =
+								'Aprovechamiento máximo del tiempo en campus (incluyendo tiempos de traslado/comida).';
+						}
+
+						// Cálculo extra para el tooltip: Minutos libres por hora de clase
+						// (Permanencia - Aula) / (Aula / 60)
+						const minutosLibresPorHora = Math.round(
+							(minutosPermanencia - minutosAula) / (minutosAula / 60)
+						);
+
 						out.push({
-							icon: MaterialSymbolsBookRibbon, // O un icono de libro/estudio
-							label: STAT_LABELS.ESTUDIO_AUTONOMO,
-							value: `${horasAutónomas.toFixed(1)} hrs/día`,
-							tooltip: `Basado en tus ${totalSCT} créditos totales. Un crédito equivale a 27 horas de trabajo semestral; restando tus horas de clase y dividiendo por los 7 días de la semana, este es el tiempo que debieras dedicarle por tu cuenta al día para que te vaya bien.`
+							icon: MaterialSymbolsTimeline,
+							label: STAT_LABELS.EFICIENCIA,
+							value: `${eficiencia}%`,
+							tooltip: `Por cada hora de clases, tienes aprox. <b>${minutosLibresPorHora} minutos</b> de tiempo libre/espera.<br/>${mensaje}`,
+							status
 						});
 					}
 				}
 
-				// {
-				// 	let salidasTardias = 0;
-				// 	for (let d = 0; d <= 5; d++) {
-				// 		const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
-				// 		if (bloques.length > 0) {
-				// 			const maxB = Math.max(...bloques.map((b) => b.bloque));
-				// 			// Consideramos salida tardía si termina en el bloque 11 o superior
-				// 			if (maxB >= 11) salidasTardias++;
-				// 		}
-				// 	}
-
-				// 	if (salidasTardias > 0) {
-				// 		out.push({
-				// 			icon: Moon, // Reutilizando el icono Moon o uno de reloj nocturno
-				// 			label: STAT_LABELS.SALIDA_TARDIA,
-				// 			value: `${salidasTardias} días`,
-				// 			tooltip: 'Cantidad de días donde el último bloque termina después de las 18:30 PM.'
-				// 		});
-				// 	}
-				// }
-
-				// --- 6. Análisis con IA (Ritmo y Distribución) ---
+				// --- 5. Estudio Autónomo ---
 				{
-					// Preparar datos para la IA
-					// 1. Carga por día (L-V)
-					const dailyLoads = [0, 1, 2, 3, 4].map((d) => cargaPorDia[d] || 0);
+					const ramosSinSCT = Object.values(creditosMap).filter((c) => c === 0).length;
+					const totalSCT = Object.values(creditosMap).reduce((sum, c) => sum + c, 0);
+					const semanasSemestre = 17;
+					const horasTotalesSugeridasSemanal = (totalSCT * 27) / semanasSemestre;
+					const horasAutonomasDiarias =
+						Math.max(0, horasTotalesSugeridasSemanal - minutosAula / 60) / 6;
 
-					// 2. Inicios normalizados (L-V)
-					// Bloque 1 = 0.0, Bloque 12 = 1.0 (aprox)
+					if (totalSCT > 0 || ramosSinSCT > 0) {
+						let status: StatStatus = 'success';
+						let recomendacion =
+							'La carga estimada permite mantener un equilibrio adecuado entre el estudio personal y el descanso.';
+						let advertenciaDatos = '';
+
+						if (ramosSinSCT > 0) {
+							status = 'warning';
+							advertenciaDatos = `<br/>Nota: Se han detectado ${ramosSinSCT} asignatura(s) sin créditos registrados, por lo que la carga real será superior a la estimada.`;
+						}
+
+						if (horasAutonomasDiarias > 5.5) {
+							status = 'danger';
+							recomendacion =
+								'La carga teórica estimada supera las 5.5 horas diarias de dedicación adicional, lo cual representa un riesgo elevado de agotamiento académico sin una gestión del tiempo excepcional.';
+						} else if (horasAutonomasDiarias > 4.0) {
+							status = 'warning';
+							recomendacion =
+								'El volumen de estudio personal se encuentra en un rango exigente que requiere una disciplina de estudio rigurosa de lunes a sábado para mantenerse al día.';
+						}
+
+						out.push({
+							icon: MaterialSymbolsBookRibbon,
+							label: STAT_LABELS.ESTUDIO_AUTONOMO,
+							value: `${horasAutonomasDiarias.toFixed(1)} hrs/día`,
+							tooltip: `Estimación basada en la normativa USM (1 SCT = 27 hrs totales). ${recomendacion}${advertenciaDatos}<br/>El cálculo considera las horas teóricas de estudio personal distribuidas en una semana de seis días.`,
+							status
+						});
+					}
+				}
+
+				// --- 6. Análisis con IA ---
+				{
+					const dailyLoads = [0, 1, 2, 3, 4].map((d) => metrics[d].carga);
 					const startTimes = [0, 1, 2, 3, 4].map((d) => {
 						const bloques = ramos.flatMap((r) => r.horario).filter((b) => b.dia === d);
-						if (bloques.length === 0) return 0.5; // Día libre = neutro para ritmo
+						if (bloques.length === 0) return 0.5;
 						const minB = Math.min(...bloques.map((b) => b.bloque));
-						// Normalizar bloque 1-14 a 0-1
 						return (minB - 1) / 13;
 					});
-
-					// Invocar al oráculo
 					const aiResult = classifySchedule(dailyLoads, startTimes);
-
-					// --- Resultado Distribución ---
-					let iconDist: any = Paralelos; // Default Equilibrada
-					switch (aiResult.distribution) {
-						case 'Cuesta Abajo':
-							iconDist = TrendingDown;
-							break;
-						case 'Cuesta Arriba':
-							iconDist = TrendingUp;
-							break;
-						case 'Pirámide':
-							iconDist = MaterialSymbolsLocalFireDepartmentRounded;
-							break;
-						case 'Valle':
-							iconDist = MaterialSymbolsNestEcoLeaf;
-							break;
-						case 'Montaña Rusa':
-							iconDist = Activity;
-							break;
-					}
-
-					if (aiResult.distConfidence > 0.4) {
+					if (aiResult.distConfidence >= 0.4) {
 						const warnings = ['Montaña Rusa', 'Cuesta Arriba', 'Pirámide'];
 						const successes = ['Viernes Libre', 'Lunes Relax', 'Equilibrada'];
-
 						let st: StatStatus = null;
 						if (warnings.some((w) => aiResult.distribution.includes(w))) st = 'warning';
 						if (successes.some((s) => aiResult.distribution.includes(s))) st = 'success';
 
 						out.push({
-							icon: iconDist,
+							icon: aiResult.distributionIcon,
 							label: STAT_LABELS.DISTRIBUCION,
 							value: aiResult.distribution,
-							tooltip: `Análisis con IA (${Math.round(aiResult.distConfidence * 100)}%): ${aiResult.distributionDescription}`,
+							tooltip: aiResult.distributionDescription,
 							status: st
 						});
 					}
 
-					if (aiResult.rhythmConfidence > 0.4) {
+					if (aiResult.rhythmConfidence >= 0.4) {
 						const dangers = ['Caótico', 'Bifásico'];
 						const successes = ['Reloj Suizo'];
 						let st: StatStatus = null;
-
 						if (dangers.some((d) => aiResult.rhythm.includes(d))) st = 'danger';
 						if (successes.some((s) => aiResult.rhythm.includes(s))) st = 'success';
 
 						out.push({
-							icon: MaterialSymbolsNestClockFarsightAnalogOutline, // O Activity
+							icon: aiResult.rhythmIcon,
 							label: STAT_LABELS.RITMO,
 							value: aiResult.rhythm,
-							tooltip: `Análisis IA (${Math.round(aiResult.rhythmConfidence * 100)}%): ${aiResult.rhythmDescription}`,
+							tooltip: aiResult.rhythmDescription,
 							status: st
 						});
 					}
 				}
 
-				return out;
+				// --- 7. Alerta de Maratón ---
+				{
+					let maxBloquesSeguidos = 0;
+					for (let d = 0; d <= 5; d++) {
+						const bloquesDia = [
+							...new Set(
+								ramos
+									.flatMap((r) => r.horario)
+									.filter((b) => b.dia === d)
+									.map((b) => b.bloque)
+							)
+						].sort((a, b) => a - b);
+
+						let actuales = 1;
+						for (let i = 0; i < bloquesDia.length - 1; i++) {
+							const bloqueActual = bloquesDia[i];
+							const bloqueSiguiente = bloquesDia[i + 1];
+
+							if (bloqueSiguiente === bloqueActual + 1 && bloqueActual !== 8) {
+								actuales++;
+							} else {
+								maxBloquesSeguidos = Math.max(maxBloquesSeguidos, actuales);
+								actuales = 1;
+							}
+						}
+						if (bloquesDia.length > 0) {
+							maxBloquesSeguidos = Math.max(maxBloquesSeguidos, actuales);
+						}
+					}
+
+					// UMBRAL SUAVIZADO:
+					// Se ignora hasta 4 bloques (2 ramos seguidos), ya que es carga estándar.
+					// La alerta comienza en 5 bloques.
+					if (maxBloquesSeguidos >= 5) {
+						const horasContinuas = (maxBloquesSeguidos * BLOQUE_DURATION_MINUTES) / 60;
+						let status: StatStatus = 'warning';
+						let recomendacion =
+							'La jornada presenta una carga continua considerable que supera los dos módulos lectivos estándar.';
+
+						if (maxBloquesSeguidos >= 6) {
+							status = 'danger';
+							recomendacion =
+								'La secuencia continua equivale a tres asignaturas seguidas o más, excediendo los límites recomendados para la atención sostenida.';
+						}
+
+						out.push({
+							icon: MaterialSymbolsDirectionsRun,
+							label: STAT_LABELS.MARATON,
+							value: `${horasContinuas.toFixed(1)} hrs seguidas`,
+							tooltip: `Se han detectado ${maxBloquesSeguidos} bloques consecutivos sin ventana intermedia (se ignora el bloque protegido). ${recomendacion}`,
+							status
+						});
+					}
+				}
+
+				// --- 8. Higiene de Sueño ---
+				{
+					let minDescansoNocturno = 24 * 60;
+
+					for (let d = 0; d < 5; d++) {
+						const bloquesHoy = ramos
+							.flatMap((r) => r.horario)
+							.filter((b) => b.dia === d)
+							.map((b) => b.bloque);
+						const bloquesManana = ramos
+							.flatMap((r) => r.horario)
+							.filter((b) => b.dia === d + 1)
+							.map((b) => b.bloque);
+
+						if (bloquesHoy.length > 0 && bloquesManana.length > 0) {
+							const ultimoBloqueHoy = Math.max(...bloquesHoy);
+							const primerBloqueManana = Math.min(...bloquesManana);
+							const horaFinHoy = Time.bloqueToMinutes(ultimoBloqueHoy) + BLOQUE_DURATION_MINUTES;
+							const horaInicioManana = Time.bloqueToMinutes(primerBloqueManana);
+							const descanso = 1440 - horaFinHoy + horaInicioManana;
+
+							if (descanso < minDescansoNocturno) {
+								minDescansoNocturno = descanso;
+							}
+						}
+					}
+
+					if (minDescansoNocturno < 720) {
+						const horasDescanso = (minDescansoNocturno / 60).toFixed(1);
+						out.push({
+							icon: Moon,
+							label: STAT_LABELS.HIGIENE_SUEÑO,
+							value: `${horasDescanso} hrs`,
+							tooltip: `Tiempo mínimo detectado entre el término de una jornada y el inicio de la siguiente. Considera tiempos de traslado y sueño.`,
+							status: minDescansoNocturno < 660 ? 'danger' : 'warning'
+						});
+					}
+				}
+
+				// --- 9. Alerta de Topes ---
+				const totalInscripciones = ramos.reduce((sum, r) => sum + r.horario.length, 0);
+				const bloquesReales = bloquesUnicos.size;
+				const topes = (totalInscripciones - bloquesReales) / 2;
+				if (topes > 0) {
+					out.push({
+						icon: MaterialSymbolsWarningRounded,
+						label: STAT_LABELS.CONFLICTOS,
+						value: `${topes} topes`,
+						tooltip:
+							'Existen bloques horarios donde se superponen dos o más asignaturas. Revisa la viabilidad administrativa.',
+						status: 'danger'
+					});
+				}
+
+				// --- 11. Ordenamiento UX ---
+				const priorityMap: Record<string, number> = {
+					danger: 0,
+					warning: 1,
+					null: 2,
+					success: 3
+				};
+
+				return out.sort((a, b) => {
+					const pA = priorityMap[a.status || 'null'] ?? 2;
+					const pB = priorityMap[b.status || 'null'] ?? 2;
+					return pA - pB;
+				});
 			}
 
-			statistics = update();
+			// CAMBIO: Gestión manual de la promesa para evitar recarga completa del bloque HTML
+			// (Reemplaza a: const promise = update(); statistics = promise; promise.then...)
+			update().then((res) => {
+				statistics = res;
+
+				// Delay visual para el efecto de "ping" en el título (opcional, mantenido)
+				setTimeout(() => {
+					updated = true;
+					setTimeout(() => (updated = false), 2500);
+				}, 100);
+			});
 		});
 	});
+
+	function levitate(node: Element, { duration = 400, y = -20, delay = 0 }) {
+		return {
+			delay,
+			duration,
+			css: (t: number, u: number) => {
+				const eased = cubicOut(u);
+				return `
+				z-index: 100;
+                transform: translateY(${eased * y}px);
+                opacity: ${t};
+            `;
+			}
+		};
+	}
 </script>
 
 <div class="flex min-h-1/2 w-full flex-col gap-1.5 2xl:gap-2">
-	<h1 class="text-sm font-normal">Estadísticas</h1>
+	<h1 class="flex items-center gap-2 text-sm font-normal">Estadísticas</h1>
 	<div class="flex h-full min-h-0 w-full flex-col gap-1">
 		{#await statistics}
 			<div class="flex h-full w-full items-center justify-center">
@@ -434,31 +582,52 @@
 			</div>
 		{:then statistics}
 			<div
-				class="flex w-full flex-1 flex-col gap-1 overflow-y-auto pr-1 text-justify text-sm 2xl:gap-1.5"
+				class="flex w-full flex-1 flex-col gap-1 overflow-y-auto pr-1 text-justify text-sm transition-colors duration-1000 2xl:gap-1.5"
 			>
-				{#each statistics as stat}
+				{#each statistics as stat (stat.label)}
 					{@const statusColors = {
-						success: 'bg-green-500/25 border-green-500/50',
-						warning: 'bg-amber-500/25 border-amber-500/50',
-						danger: 'bg-red-500/25 border-red-500/50'
+						success:
+							'bg-gradient-to-r to-green-500/20 from-green-500/40 text-green-50 border-green-500/80',
+						warning:
+							'bg-gradient-to-r to-amber-500/20 from-amber-500/40 text-amber-50 border-amber-500/80',
+						danger: 'bg-gradient-to-r to-red-500/20 from-red-500/40 text-red-50 border-red-500/80'
 					}}
 
-					<Tooltip content={stat.tooltip} class="text-left" wrapperClass="w-full" position="right">
-						<Card
-							class="isolate flex w-full flex-row items-center gap-1.5 px-2.5! py-1! 2xl:gap-2 2xl:px-3! 2xl:py-1.5! {stat.status
-								? statusColors[stat.status]
-								: ''} shadow-sm/50!"
-						>
-							<div class="size-4 shrink-0 opacity-70">
-								<stat.icon class="h-full w-full scale-125" />
-							</div>
+					<!-- <div animate:flip={{ delay: 200, duration: 400 }}> -->
+					<div>
+						{#snippet tooltipContent()}
+							{@html stat.tooltip}
+						{/snippet}
 
-							<span class="truncate opacity-90 mix-blend-plus-lighter">{stat.label}</span>
-							<span class="ml-auto shrink-0 font-medium whitespace-nowrap opacity-90"
-								>{stat.value}</span
+						<Tooltip
+							content={tooltipContent}
+							class="text-left"
+							wrapperClass="w-full"
+							position="right"
+						>
+							<Card
+								class="isolate flex w-full flex-row items-center gap-1.5 px-2.5! py-1! 2xl:gap-2 2xl:px-3! 2xl:py-1.5! {stat.status
+									? statusColors[stat.status]
+									: ''} shadow-sm/50!"
 							>
-						</Card>
-					</Tooltip>
+								<div class="size-4 shrink-0 opacity-70">
+									<stat.icon class="h-full w-full scale-125" />
+								</div>
+
+								<span class="truncate opacity-90 mix-blend-lighten">{stat.label}</span>
+								<div class="ml-auto grid place-items-end overflow-visible">
+									{#key stat.value}
+										<span
+											out:levitate={{ duration: 3000, y: -30, delay: 50 }}
+											class="col-start-1 row-start-1 font-medium whitespace-nowrap opacity-90"
+										>
+											{stat.value}
+										</span>
+									{/key}
+								</div>
+							</Card>
+						</Tooltip>
+					</div>
 				{/each}
 			</div>
 		{/await}

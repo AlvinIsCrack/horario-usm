@@ -1,138 +1,116 @@
-// src/lib/ai/mini-brain.ts
-
 /**
- * Una implementación minimalista de una Red Neuronal (MLP)
- * para correr en el navegador sin dependencias pesadas.
+ * Una implementación de Red Neuronal Profunda (Deep MLP)
+ * Soporta N capas ocultas dinámicas.
  */
 export class NeuralNetwork {
-    inputNodes: number;
-    hiddenNodes: number;
-    outputNodes: number;
+    layerSizes: number[]; // Ej: [5, 8, 8, 6] (Input, Hidden1, Hidden2, Output)
     learningRate: number;
-    weightsIH: number[][]; // Input -> Hidden
-    weightsHO: number[][]; // Hidden -> Output
-    biasH: number[];
-    biasO: number[];
+    weights: number[][][]; // Array de matrices de pesos entre capas
+    biases: number[][];    // Array de arrays de sesgos para cada capa (excepto input)
 
-    constructor(inputNodes: number, hiddenNodes: number, outputNodes: number) {
-        this.inputNodes = inputNodes;
-        this.hiddenNodes = hiddenNodes;
-        this.outputNodes = outputNodes;
+    /**
+     * @param layerSizes Array con el tamaño de cada capa. Ej: [5, 10, 10, 3]
+     */
+    constructor(layerSizes: number[]) {
+        this.layerSizes = layerSizes;
         this.learningRate = 0.1;
+        this.weights = [];
+        this.biases = [];
 
-        // Inicialización aleatoria de pesos (-1 a 1)
-        this.weightsIH = Array(this.hiddenNodes)
-            .fill(0)
-            .map(() =>
-                Array(this.inputNodes)
-                    .fill(0)
-                    .map(() => Math.random() * 2 - 1)
+        // Inicializar Pesos y Bias para cada conexión entre capas
+        for (let i = 0; i < layerSizes.length - 1; i++) {
+            const currentSize = layerSizes[i];     // Nodos capa actual (Inputs hacia la siguiente)
+            const nextSize = layerSizes[i + 1];    // Nodos capa siguiente (Outputs de la actual)
+
+            // Weights: [nextSize][currentSize]
+            const layerWeights = Array(nextSize).fill(0).map(() =>
+                Array(currentSize).fill(0).map(() => Math.random() * 2 - 1)
             );
-        this.weightsHO = Array(this.outputNodes)
-            .fill(0)
-            .map(() =>
-                Array(this.hiddenNodes)
-                    .fill(0)
-                    .map(() => Math.random() * 2 - 1)
-            );
-        this.biasH = Array(this.hiddenNodes)
-            .fill(0)
-            .map(() => Math.random() * 2 - 1);
-        this.biasO = Array(this.outputNodes)
-            .fill(0)
-            .map(() => Math.random() * 2 - 1);
+            this.weights.push(layerWeights);
+
+            // Biases: [nextSize]
+            const layerBias = Array(nextSize).fill(0).map(() => Math.random() * 2 - 1);
+            this.biases.push(layerBias);
+        }
     }
 
-    // Función de activación Sigmoid
     private sigmoid(x: number): number {
         return 1 / (1 + Math.exp(-x));
     }
 
-    // Derivada de Sigmoid (para entrenamiento)
     private dsigmoid(y: number): number {
         return y * (1 - y);
     }
 
     predict(inputArray: number[]): number[] {
-        // 1. Input -> Hidden
-        let hidden = this.weightsIH.map((row, i) =>
-            this.sigmoid(
-                row.reduce((sum, weight, j) => sum + weight * inputArray[j], 0) + this.biasH[i]
-            )
-        );
+        let currentOutput = inputArray;
 
-        // 2. Hidden -> Output
-        let output = this.weightsHO.map((row, i) =>
-            this.sigmoid(
-                row.reduce((sum, weight, j) => sum + weight * hidden[j], 0) + this.biasO[i]
-            )
-        );
-
-        return output;
+        // Feedforward a través de todas las capas
+        for (let i = 0; i < this.weights.length; i++) {
+            currentOutput = this.weights[i].map((row, j) => {
+                const sum = row.reduce((acc, weight, k) => acc + weight * currentOutput[k], 0);
+                return this.sigmoid(sum + this.biases[i][j]);
+            });
+        }
+        return currentOutput;
     }
 
     train(inputArray: number[], targetArray: number[]) {
-        // --- Feedforward (igual que predict) ---
-        let hidden = this.weightsIH.map((row, i) =>
-            this.sigmoid(
-                row.reduce((sum, weight, j) => sum + weight * inputArray[j], 0) + this.biasH[i]
-            )
-        );
+        // 1. Feedforward (Guardando los outputs de cada capa para el backprop)
+        let outputs: number[][] = [inputArray];
 
-        let outputs = this.weightsHO.map((row, i) =>
-            this.sigmoid(
-                row.reduce((sum, weight, j) => sum + weight * hidden[j], 0) + this.biasO[i]
-            )
-        );
+        for (let i = 0; i < this.weights.length; i++) {
+            const prevLayer = outputs[i];
+            const layerOutput = this.weights[i].map((row, j) => {
+                const sum = row.reduce((acc, weight, k) => acc + weight * prevLayer[k], 0);
+                return this.sigmoid(sum + this.biases[i][j]);
+            });
+            outputs.push(layerOutput);
+        }
 
-        // --- Backpropagation ---
+        // 2. Backpropagation
+        // Calculamos el error inicial (Target - Output Final)
+        let currentError = targetArray.map((t, i) => t - outputs[outputs.length - 1][i]);
 
-        // 1. Calcular errores de Salida (Target - Output)
-        let outputErrors = targetArray.map((t, i) => t - outputs[i]);
+        // Recorremos las capas desde la última hacia atrás
+        for (let i = this.weights.length - 1; i >= 0; i--) {
+            const layerOutput = outputs[i + 1]; // Salida de la capa actual
+            const prevOutput = outputs[i];      // Salida de la capa anterior (Input para esta)
 
-        // 2. Calcular gradientes Salida
-        let gradients = outputs.map((o, i) => this.dsigmoid(o) * outputErrors[i] * this.learningRate);
-
-        // 3. Ajustar Pesos Hidden -> Output
-        this.weightsHO = this.weightsHO.map((row, i) =>
-            row.map((w, j) => w + gradients[i] * hidden[j])
-        );
-        this.biasO = this.biasO.map((b, i) => b + gradients[i]);
-
-        // 4. Calcular errores Ocultos
-        // (Transpuesta de weightsHO * outputErrors)
-        let hiddenErrors = Array(this.hiddenNodes)
-            .fill(0)
-            .map((_, i) =>
-                this.weightsHO.reduce((sum, row, j) => sum + row[i] * outputErrors[j], 0)
+            // Calcular gradientes para esta capa
+            const gradients = layerOutput.map((val, j) =>
+                val * (1 - val) * currentError[j] * this.learningRate // dsigmoid(val) * error * lr
             );
 
-        // 5. Calcular gradientes Ocultos
-        let hiddenGradients = hidden.map(
-            (h, i) => this.dsigmoid(h) * hiddenErrors[i] * this.learningRate
-        );
+            // Calcular los errores para la capa ANTERIOR (antes de modificar pesos actuales)
+            // ErrorPrevio = Transpuesta(Pesos) * ErrorActual
+            const prevError = Array(prevOutput.length).fill(0).map((_, k) =>
+                this.weights[i].reduce((sum, row, j) => sum + row[k] * currentError[j], 0)
+            );
 
-        // 6. Ajustar Pesos Input -> Hidden
-        this.weightsIH = this.weightsIH.map((row, i) =>
-            row.map((w, j) => w + hiddenGradients[i] * inputArray[j])
-        );
-        this.biasH = this.biasH.map((b, i) => b + hiddenGradients[i]);
+            // Ajustar Pesos (Deltas) y Biases
+            this.weights[i] = this.weights[i].map((row, j) =>
+                row.map((w, k) => w + gradients[j] * prevOutput[k])
+            );
+            this.biases[i] = this.biases[i].map((b, j) => b + gradients[j]);
+
+            // Pasar el error hacia atrás
+            currentError = prevError;
+        }
     }
 
-    // Exportar/Importar cerebro (pesos)
+    // Exportar pesos (Formato nuevo compatible con JSON simple)
     toJSON() {
         return {
-            wIH: this.weightsIH,
-            wHO: this.weightsHO,
-            bH: this.biasH,
-            bO: this.biasO
+            weights: this.weights,
+            biases: this.biases
         };
     }
 
     fromJSON(data: any) {
-        this.weightsIH = data.wIH;
-        this.weightsHO = data.wHO;
-        this.biasH = data.bH;
-        this.biasO = data.bO;
+        this.weights = data.weights;
+        this.biases = data.biases;
+        // Inferir layerSizes basado en los pesos cargados podría ser necesario si se requiere reiniciar,
+        // pero para predecir solo necesitamos weights/biases.
     }
 }

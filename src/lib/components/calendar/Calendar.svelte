@@ -8,6 +8,7 @@
 	import ForkSpoon from '$lib/icons/fork-spoon.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { Días } from '$lib/types/horario';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	const [bloqueBegin, bloqueEnd] = $derived(Calendario.bloqueRange);
 	const [díaBegin, díaEnd] = $derived(Calendario.range);
@@ -56,11 +57,15 @@
 					{@const bloqueComida = bloquePar - 1 === BLOQUE_COMIDA}
 					<div class="relative h-full w-3">
 						{#if bloqueComida}
-							<div class="absolute -top-4 -right-2 z-50 translate-x-full">
-								<Badge variant="primary" class="whitespace-nowrap">
-									<ForkSpoon class="mr-1 inline scale-150" />
-									Post-almuerzo
-								</Badge>
+							<div
+								class="pointer-events-auto absolute -top-4 -right-2 z-50 translate-x-full select-none"
+							>
+								<Tooltip content="De aquí en adelante es después del bloque protegido de almuerzo">
+									<Badge variant="primary" class="overflow-hidden whitespace-nowrap">
+										<ForkSpoon class="inline translate-y-0.5 scale-140 xl:mr-1 xl:scale-180" />
+										Post-almuerzo
+									</Badge>
+								</Tooltip>
 							</div>
 						{/if}
 						<div

@@ -91,8 +91,12 @@
 }
 
 @layer base {
+  html {
+    @apply bg-background;
+  }
+
   body {
-    @apply bg-background text-foreground font-roboto;
+    @apply bg-primary/80 text-foreground font-roboto;
   }
 
   html,

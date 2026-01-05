@@ -55,7 +55,7 @@
 		<div class="flex flex-1 flex-col overflow-hidden text-left leading-snug">
 			{#each paralelo.profesor as profesor (profesor)}
 				<div class="truncate text-sm font-medium" title={profesor}>
-					{profesor}
+					{@html profesor.replace('NN', 'NN (Profesor aún no asignado)')}
 				</div>
 			{/each}
 		</div>

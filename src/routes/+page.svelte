@@ -5,7 +5,7 @@
 	import Dialog from '$lib/components/ui/Dialog.svelte';
 </script>
 
-<div role="application" class="bg-primary/80 relative h-full w-full overflow-hidden">
+<div role="application" class="relative h-full w-full overflow-hidden">
 	<div class="flex h-full w-full flex-row items-center justify-center">
 		{#await import('$lib/components/sidebar/SideBar.svelte') then { default: SideBar }}
 			<SideBar />
