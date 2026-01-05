@@ -10,6 +10,7 @@
 	import Warning from '$lib/icons/warning.svelte';
 	import { fade } from 'svelte/transition';
 	import Tooltip from '../ui/Tooltip.svelte';
+	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
@@ -74,6 +75,22 @@
 	);
 	const isVespertina = $derived(selectedJornada === 'Vespertina');
 	const invalid = $derived(!Calendario.sede);
+
+	let selectedTraslado = $state(Calendario.tiempoTraslado.toString());
+
+	$effect(() => {
+		// Sincronizar hacia el store cuando cambia la selección
+		Calendario.tiempoTraslado = parseInt(selectedTraslado);
+	});
+
+	const trasladoOptions = [
+		{ value: '30', label: 'Cerca (30 min)' },
+		{ value: '60', label: 'Promedio (1 hr)' },
+		{ value: '90', label: 'Lejos (1 hr 30)' },
+		{ value: '120', label: 'Viaje largo (2 hrs+)' },
+		{ value: '0', label: 'Vivo aquí / Online (0 min)' },
+		{ value: '-1', label: 'Prefiero no decirlo' } // Fallback a 60 min internamente
+	];
 </script>
 
 <div class="relative h-fit w-full opacity-100 duration-400 starting:opacity-0">
@@ -170,6 +187,23 @@
 		{/key}
 	{/if}
 </div>
+
+{#if selectedSede && selectedJornada && selectedSemestre}
+	<div class="mb-1" transition:fade>
+		<div class="mb-1 flex flex-row items-center gap-1 text-sm">
+			<MaterialSymbolsNestClockFarsightAnalogOutline
+				class="mr-1 inline h-3 w-3 scale-150 opacity-70"
+			/>
+			<p>Tiempo de Traslado (Ida)</p>
+		</div>
+		<Select
+			class="w-full text-sm"
+			items={trasladoOptions}
+			bind:value={selectedTraslado}
+			placeholder="Selecciona tiempo aproximado..."
+		/>
+	</div>
+{/if}
 
 <style>
 	:global(.sede-selector-warning-bg) {

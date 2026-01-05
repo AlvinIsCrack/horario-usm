@@ -1,4 +1,4 @@
-import { SAVED_HORARIOS, STORAGE_CARRERA, STORAGE_JORNADA, STORAGE_SEDE, STORAGE_SEMESTRE } from "$lib/constants/ids";
+import { SAVED_HORARIOS, STORAGE_CARRERA, STORAGE_JORNADA, STORAGE_SEDE, STORAGE_SEMESTRE, STORAGE_TIEMPO_TRASLADO } from "$lib/constants/ids";
 import { generateColorForRamo } from "$lib/helpers/colors.svelte";
 import { type Ramo, Días, type Bloque, TipoBloque } from "$lib/types/horario";
 import Color from "color";
@@ -27,6 +27,7 @@ let _jornada: string = $state("");
 let _sede: string = $state("");
 let _semestre: string = $state("");
 let _carrera: string = $state("");
+let _tiempoTraslado: number = $state(60);
 
 let _ramoPreview: Ramo | undefined = $state(undefined);
 let _ramos: Ramo[] = $state([]);
@@ -127,6 +128,8 @@ export const Calendario = {
         _jornada = localStorage.getItem(STORAGE_JORNADA) ?? "";
         _semestre = localStorage.getItem(STORAGE_SEMESTRE) ?? "";
         _carrera = localStorage.getItem(STORAGE_CARRERA) ?? "";
+        const savedTraslado = localStorage.getItem(STORAGE_TIEMPO_TRASLADO);
+        _tiempoTraslado = savedTraslado ? parseInt(savedTraslado) : 60;
         _initialized = true;
     },
 
@@ -144,6 +147,15 @@ export const Calendario = {
 
     get carrera() {
         return _carrera;
+    },
+
+    get tiempoTraslado() {
+        return _tiempoTraslado;
+    },
+
+    set tiempoTraslado(minutos: number) {
+        _tiempoTraslado = minutos;
+        localStorage.setItem(STORAGE_TIEMPO_TRASLADO, minutos.toString());
     },
 
     get ramos(): Ramo[] {

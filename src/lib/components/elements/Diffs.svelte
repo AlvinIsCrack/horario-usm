@@ -329,12 +329,12 @@
 	// --- Estilos ---
 	const diffs = tv({
 		slots: {
-			container: 'mx-auto flex w-full max-w-[800px] flex-col gap-4 font-sans pb-10',
+			container: 'mx-auto flex w-full max-w-md max-h-60 overflow-hidden flex-col gap-4 pb-10',
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
-				'flex items-baseline gap-2 px-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground',
+				'flex items-baseline gap-2 px-1 text-[10px] mb-1 font-bold uppercase tracking-wide text-muted-foreground',
 			// Cards
-			card: 'group flex items-center gap-3 border-b border-border/40 bg-background px-3 py-1.5 transition-colors hover:bg-accent/30',
+			card: 'group flex items-center gap-3 border-b border-border/40 bg-background/20 rounded-md px-3 py-1.5',
 			cardStructural: 'mx-1 rounded-md border border-dashed px-2 py-1 text-xs font-medium',
 
 			// Elementos internos
@@ -346,7 +346,7 @@
 			nombre: 'truncate text-xs text-foreground/70',
 
 			badgesRow: 'flex flex-wrap gap-1',
-			alertaTexto: 'truncate text-[10px] text-muted-foreground/80 font-mono',
+			alertaTexto: 'truncate text-xs font-normal text-muted-foreground/80',
 
 			stats: 'ml-auto flex shrink-0 items-center gap-2 text-xs'
 		},
@@ -373,81 +373,135 @@
 		if (r.esCritico || r.tipos.has('HORARIO')) return 'warn';
 		return 'neu';
 	}
+
+	// Helper para texto del tooltip del estado (el punto de color)
+	function getStatusTooltip(r: ResumenAsignatura): string {
+		if (r.tipos.has('RETIRO')) return 'Asignatura Retirada';
+		if (r.tipos.has('ELIMINADO_PARALELO')) return 'Paralelo Eliminado';
+		if (r.tipos.has('NUEVA')) return 'Nueva Asignatura';
+		if (r.cupoAperturas > 0) return 'Apertura de Cupos (Nuevo)';
+		if (r.cupoDelta > 0) return 'Aumento de Cupos';
+		if (r.cupoDelta < 0) return 'Disminución de Cupos';
+		if (r.tipos.has('HORARIO')) return 'Cambio de Horario Logístico';
+		if (r.tipos.has('PROFESOR')) return 'Cambio de Profesor';
+		return 'Evento registrado';
+	}
 </script>
 
-<section class={s.container()}>
-	<div class="-mb-2 px-1">
-		<h1 class="text-foreground/80 text-sm font-semibold">Historial de Cambios</h1>
-	</div>
-
-	{#each historial as grupo (grupo.timestamp)}
-		<div class={s.grupoWrapper()}>
-			<header class={s.header()}>
-				<Tooltip content="{grupo.fecha} a las {grupo.hora}">
-					<span class="cursor-help decoration-dotted hover:underline">{grupo.relativo}</span>
-				</Tooltip>
-				<div class="bg-border/40 ml-2 h-px flex-1"></div>
-				<span class="ml-2 opacity-60">{grupo.items.length} eventos</span>
-			</header>
-
-			<div class="border-border/30 ml-2 flex flex-col border-l-2 pl-0">
-				{#each grupo.items as item}
-					{#if 'esEstructural' in item}
-						<div class={s.cardStructural({ structType: item.tipo })}>
-							{item.mensaje}
-						</div>
-					{:else}
-						{@const status = getStatus(item)}
-						<div class={s.card()}>
-							<div class={s.indicador({ status })}></div>
-
-							<div class={s.content()}>
-								<div class={s.filaPrincipal()}>
-									<span class={s.sigla()}>{item.sigla}</span>
-									<span class={s.nombre()}>{item.nombre}</span>
-								</div>
-
-								<div class={s.badgesRow()}>
-									{#each Array.from(item.tipos) as t}
-										<Badge variant="outline" class="h-3.5 px-1 text-[9px] font-bold">
-											{t}
-										</Badge>
-									{/each}
-
-									{#if item.alertas.length > 0}
-										<span class={s.alertaTexto()}>
-											{item.alertas[0]}
-											{#if item.alertas.length > 1}
-												<span class="opacity-50">+{item.alertas.length - 1}</span>
-											{/if}
-										</span>
-									{/if}
-								</div>
-							</div>
-
-							<div class={s.stats()}>
-								{#if item.cupoDelta !== 0}
-									<div class="flex flex-col items-end leading-none">
-										<span
-											class="font-bold {item.cupoDelta > 0 ? 'text-emerald-500' : 'text-rose-500'}"
-										>
-											{item.cupoDelta > 0 ? '+' : ''}{item.cupoDelta}
-										</span>
-										<span class="text-muted-foreground text-[9px] uppercase">Cupos</span>
-									</div>
-								{/if}
-								{#if item.cupoAperturas > 0}
-									<Badge
-										class="border-emerald-500/20 bg-emerald-500/15 text-[9px] text-emerald-600 hover:bg-emerald-500/25"
-									>
-										OPEN
-									</Badge>
-								{/if}
-							</div>
-						</div>
-					{/if}
-				{/each}
-			</div>
+{#if Calendario.sede && Calendario.jornada}
+	<section class={s.container()}>
+		<div class="-mb-2 px-1">
+			<h1 class="text-foreground text-sm font-bold tracking-wide uppercase">
+				Historial de Cambios de siga para {Calendario.sede}
+			</h1>
 		</div>
-	{/each}
-</section>
+
+		<div class="scroller h-full overflow-y-auto mask-b-from-80% mask-b-to-100%">
+			{#each historial as grupo (grupo.timestamp)}
+				<div class={s.grupoWrapper()}>
+					<header class={s.header()}>
+						<Tooltip content="{grupo.fecha} a las {grupo.hora}">
+							<span class="cursor-help decoration-dotted hover:underline">{grupo.relativo}</span>
+						</Tooltip>
+						<div class="bg-border/40 ml-2 h-px flex-1"></div>
+						<span class="ml-2 opacity-60">{grupo.items.length} eventos</span>
+					</header>
+
+					<div class="ml-2 flex flex-col pl-0">
+						{#each grupo.items as item}
+							{#if 'esEstructural' in item}
+								<div class={s.cardStructural({ structType: item.tipo })}>
+									{item.mensaje}
+								</div>
+							{:else}
+								{@const status = getStatus(item)}
+								<div class={s.card()}>
+									<Tooltip content={getStatusTooltip(item)}>
+										<div class={s.indicador({ status })}></div>
+									</Tooltip>
+
+									<div class={s.content()}>
+										<div class={s.filaPrincipal()}>
+											<span class={s.sigla()}>{item.sigla}</span>
+											<span class={s.nombre()}>{item.nombre}</span>
+										</div>
+
+										<div class={s.badgesRow()}>
+											{#if item.alertas.length > 0}
+												<span class={s.alertaTexto()}>{item.alertas[0]}</span>
+
+												{#if item.alertas.length > 1}
+													<Tooltip content={item.alertas.slice(1).join('\n')}>
+														<Badge
+															class="bg-muted/50 text-muted-foreground hover:bg-muted h-4 cursor-help px-1 py-0 text-[9px]"
+														>
+															+{item.alertas.length - 1}
+														</Badge>
+													</Tooltip>
+												{/if}
+											{/if}
+										</div>
+									</div>
+
+									<div class={s.stats()}>
+										{#if item.cupoDelta !== 0}
+											<Tooltip content="Variación de Cupos">
+												<div class="flex flex-col items-end leading-none">
+													<span
+														class="font-bold {item.cupoDelta > 0
+															? 'text-emerald-500'
+															: 'text-rose-500'}"
+													>
+														{item.cupoDelta > 0 ? '+' : ''}{item.cupoDelta}
+													</span>
+													<span class="text-muted-foreground text-[9px] uppercase">Cupos</span>
+												</div>
+											</Tooltip>
+										{/if}
+										{#if item.cupoAperturas > 0}
+											<Tooltip content="Se han abierto nuevos cupos en paralelos cerrados">
+												<Badge
+													class="border-emerald-500/20 bg-emerald-500/15 text-[9px] text-emerald-600 hover:bg-emerald-500/25"
+												>
+													OPEN
+												</Badge>
+											</Tooltip>
+										{/if}
+									</div>
+								</div>
+							{/if}
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+	</section>
+{/if}
+
+<style>
+	/* Estilo para Chrome, Edge, Safari */
+	.scroller::-webkit-scrollbar {
+		width: 6px; /* Ancho delgado */
+	}
+
+	.scroller::-webkit-scrollbar-track {
+		background: transparent; /* Fondo invisible */
+	}
+
+	.scroller::-webkit-scrollbar-thumb {
+		background-color: rgba(156, 163, 175, 0.3); /* Color gris sutil y translúcido */
+		border-radius: 20px; /* Bordes totalmente redondeados */
+		border: 2px solid transparent; /* Truco para 'encoger' visualmente el thumb si se quiere más fino, o quitar si se quiere sólido */
+		background-clip: content-box;
+	}
+
+	.scroller::-webkit-scrollbar-thumb:hover {
+		background-color: rgba(156, 163, 175, 0.6); /* Un poco más oscuro al pasar el mouse */
+	}
+
+	/* Estilo para Firefox */
+	.scroller {
+		scrollbar-width: thin;
+		scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+	}
+</style>
