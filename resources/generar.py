@@ -23,8 +23,13 @@ if __name__ == "__main__":
     parser.add_argument("--ramos", action="store_true", help="Actualizar horario de asignaturas")
     parser.add_argument("--carrera", "--carreras", dest="carreras", action="store_true", help="Actualizar planes y mallas de carrera")
     parser.add_argument("--programas", action="store_true", help="Actualizar programas académicos")
+
+    # Flag para ignorar ejecución
+    parser.add_argument("--ignore", action="store_true", help="Salir exitosamente sin hacer nada")
     
     args = parser.parse_args()
+    if args.ignore:
+        sys.exit(0)
 
     # Lógica de Default: Si no se pasa ningún flag, se asume el comportamiento por defecto (Solo Ramos)
     if not (args.ramos or args.carreras or args.programas):
