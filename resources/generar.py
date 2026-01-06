@@ -81,39 +81,51 @@ if __name__ == "__main__":
             print("Sesión expirada al intentar obtener sedes.")
             sys.exit(0)
 
-    # B. Procesar RAMOS
-    ramos_result = {}
-    if UPDATE_RAMOS:
-        print("Iniciando actualización de RAMOS...")
-        tasks = [[cookies, s, j, sedes[s], jornadas[j]] for j in jornadas for s in sedes]
-        
-        with Pool(len(sedes)) as pool:
-            results = pool.map(workers.worker_process_ramos, tasks)
+    # Bloque de Seguridad: Si algo falla dentro de los workers, matamos el proceso.
+    try:
+        # B. Procesar RAMOS
+        ramos_result = {}
+        if UPDATE_RAMOS:
+            print("Iniciando actualización de RAMOS...")
+            tasks = [[cookies, s, j, sedes[s], jornadas[j]] for j in jornadas for s in sedes]
             
-            for res in results:
-                sede_nom, jornada_nom, periodos = res
-                target_sede = ramos_result.setdefault(sede_nom, {})
-                target_jornada = target_sede.setdefault(jornada_nom, {})
+            # Usamos el Pool dentro del try para capturar explosiones de workers
+            with Pool(len(sedes)) as pool:
+                # Si un worker lanza excepción (ej. ValueError por HTML roto), 
+                # pool.map la relanzará aquí inmediatamente.
+                results = pool.map(workers.worker_process_ramos, tasks)
                 
-                for periodo, lista_ramos in periodos:
-                    target_periodo = target_jornada.setdefault(periodo, {})
-                    for r in lista_ramos:
-                        target_sigla = target_periodo.setdefault(r["sigla"], {})
-                        target_sigla[r["paralelo"]] = r
+                for res in results:
+                    sede_nom, jornada_nom, periodos = res
+                    target_sede = ramos_result.setdefault(sede_nom, {})
+                    target_jornada = target_sede.setdefault(jornada_nom, {})
+                    
+                    for periodo, lista_ramos in periodos:
+                        target_periodo = target_jornada.setdefault(periodo, {})
+                        for r in lista_ramos:
+                            target_sigla = target_periodo.setdefault(r["sigla"], {})
+                            target_sigla[r["paralelo"]] = r
 
-    # C. Procesar CARRERAS
-    carreras_result = []
-    if UPDATE_CARRERAS:
-        print("Iniciando actualización de CARRERAS...")
-        tasks = []
-        for s in sedes:
-            for j in jornadas:
-                local_carreras = scrapers.get_carreras(cookies, s, j)
-                for cid, cnom in local_carreras.items():
-                    tasks.append([cookies, cid, cnom, s, j, sedes[s], jornadas[j]])
-        
-        with Pool(20) as pool:
-            carreras_result = pool.map(workers.worker_process_carrera, tasks)
+        # C. Procesar CARRERAS
+        carreras_result = []
+        if UPDATE_CARRERAS:
+            print("Iniciando actualización de CARRERAS...")
+            tasks = []
+            for s in sedes:
+                for j in jornadas:
+                    local_carreras = scrapers.get_carreras(cookies, s, j)
+                    for cid, cnom in local_carreras.items():
+                        tasks.append([cookies, cid, cnom, s, j, sedes[s], jornadas[j]])
+            
+            with Pool(20) as pool:
+                carreras_result = pool.map(workers.worker_process_carrera, tasks)
+
+    except Exception as e:
+        # ABORTAR MISIÓN: Cualquier error en scraping impide la escritura de archivos
+        print(f"\n[ERROR FATAL] Se detectó una inconsistencia en el scraping: {e}")
+        print(">>> Abortando ejecución para proteger la integridad de los datos.")
+        print(">>> NO se han guardado cambios.")
+        sys.exit(1)
 
     # D. Procesar PROGRAMAS (Serial)
     if UPDATE_PROGRAMAS:
