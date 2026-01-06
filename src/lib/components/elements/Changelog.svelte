@@ -1,15 +1,18 @@
 <script lang="ts">
-	import { fade } from 'svelte/transition';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-
 	// Iconos
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
+	import MaterialSymbolsToolsWrench from '$lib/icons/MaterialSymbolsToolsWrench.svelte';
 
 	const UPDATES = {
 		'Prompt para IA': {
 			icon: MaterialSymbolsMagicButton,
 			description:
 				'Función EXPERIMENTAL de exportación de prompt para uso con IA (Gemini, ChatGPT, etc...). Este prompt consolida métricas de carga, logística y tiempos para facilitar una evaluación externa. <b>Los resultados son estrictamente referenciales y no sustituyen una planificación académica oficial.</b>'
+		},
+		'Correcciones ramos y salas': {
+			icon: MaterialSymbolsToolsWrench,
+			description:
+				'Se corrigieron errores de salas mal registradas, y ramos no existentes. (Gracias por los avisos!!)'
 		}
 	};
 </script>

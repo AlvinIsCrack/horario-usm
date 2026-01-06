@@ -20,6 +20,7 @@ import MaterialSymbolsFastfoodRounded from '$lib/icons/MaterialSymbolsFastfoodRo
 import Asterisk from "$lib/icons/asterisk.svelte";
 import MaterialSymbolsMagicButton from "$lib/icons/MaterialSymbolsMagicButton.svelte";
 import MingcuteBrainLine from "$lib/icons/MingcuteBrainLine.svelte";
+import MajesticonsTicket from "$lib/icons/MajesticonsTicket.svelte";
 
 export const ICONS = {
     Leaf: MaterialSymbolsNestEcoLeaf,
@@ -38,7 +39,8 @@ export const ICONS = {
     FastFood: MaterialSymbolsFastfoodRounded,
     Asterisk: Asterisk,
     Magic: MaterialSymbolsMagicButton,
-    Brain: MingcuteBrainLine
+    Brain: MingcuteBrainLine,
+    Ticket: MajesticonsTicket
 } as const;
 
 export const STAT_LABELS = {

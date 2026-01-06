@@ -17,7 +17,7 @@
 		transition:fade={{ duration: 400 }}
 		class="relative flex h-full w-full flex-col items-center justify-center p-8 select-none"
 	>
-		<div class="absolute top-0 left-1/2 w-full -translate-x-1/2">
+		<div class="absolute top-0 right-0 m-1">
 			<div in:fly={{ y: -100, delay: 500 }}>
 				<Diffs />
 			</div>

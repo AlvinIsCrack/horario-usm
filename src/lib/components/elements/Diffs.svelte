@@ -326,13 +326,38 @@
 			.reverse();
 	});
 
+	// --- Lógica de Estado de Expansión Mejorada ---
+	let isExpanded = $state(true);
+	let leaveTimer: ReturnType<typeof setTimeout>;
+
+	// Auto-colapso inicial
+	$effect(() => {
+		const timer = setTimeout(() => {
+			isExpanded = false;
+		}, 2000);
+		return () => clearTimeout(timer);
+	});
+
+	function handleMouseEnter() {
+		clearTimeout(leaveTimer);
+		isExpanded = true;
+	}
+
+	function handleMouseLeave() {
+		// Delay para evitar cierres accidentales (flicker)
+		leaveTimer = setTimeout(() => {
+			isExpanded = false;
+		}, 450);
+	}
+
 	// --- Estilos ---
 	const diffs = tv({
 		slots: {
-			container: 'mx-auto flex w-full max-w-fit max-h-60 overflow-hidden flex-col gap-4 pb-10',
+			container:
+				'mx-auto will-change-contents flex w-full max-w-fit flex-col gap-4 pb-10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]',
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
-				'flex items-baseline gap-2 px-1 text-[10px] mb-1 font-bold uppercase tracking-wide text-muted-foreground',
+				'flex items-baseline gap-2 px-1 text-[10px] -mb-1 font-bold uppercase tracking-wide text-muted-foreground',
 			// Cards
 			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-1',
 			cardStructural: 'mx-1 rounded-md border border-dashed px-2 py-1 text-xs font-medium',
@@ -352,14 +377,22 @@
 		},
 		variants: {
 			status: {
-				pos: { indicador: 'bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.4)]' },
-				neg: { indicador: 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.4)]' },
-				warn: { indicador: 'bg-amber-500' },
-				neu: { indicador: 'bg-blue-500' }
+				pos: { indicador: 'bg-green-500', alertaTexto: 'text-green-500' },
+				neg: { indicador: 'bg-rose-500', alertaTexto: 'text-rose-500' },
+				warn: { indicador: 'bg-amber-500', alertaTexto: 'text-amber-500' },
+				neu: { indicador: 'bg-cyan-500', alertaTexto: 'text-cyan-500' }
 			},
 			structType: {
 				ALERTA: { cardStructural: 'border-rose-500/50 bg-rose-500/10 text-rose-600' },
 				INFO: { cardStructural: 'border-blue-500/50 bg-blue-500/10 text-blue-600' }
+			},
+			expanded: {
+				true: {
+					container: 'max-h-100 opacity-100'
+				},
+				false: {
+					container: 'max-h-30 opacity-60! scale-90'
+				}
 			}
 		}
 	});
@@ -389,14 +422,22 @@
 </script>
 
 {#if Calendario.sede && Calendario.jornada}
-	<section class={s.container()}>
+	<section
+		class={s.container({ expanded: isExpanded })}
+		onmouseenter={handleMouseEnter}
+		onmouseleave={handleMouseLeave}
+	>
 		<div class="-mb-4 px-1">
 			<h1 class="text-foreground text-sm font-bold uppercase">
 				Cambios de siga para {Calendario.sede}
 			</h1>
 		</div>
 
-		<div class="scroller h-full overflow-y-auto mask-b-from-90% mask-b-to-100%">
+		<div
+			class="scroller h-full overflow-y-auto {isExpanded
+				? 'mask-b-from-95% mask-b-to-100%'
+				: 'overflow-hidden mask-b-from-60% mask-b-to-100%'}"
+		>
 			{#each historial as grupo (grupo.timestamp)}
 				<div class={s.grupoWrapper()}>
 					<header class={s.header()}>
@@ -415,6 +456,7 @@
 								</div>
 							{:else}
 								{@const status = getStatus(item)}
+
 								<div class={s.card()}>
 									<Tooltip content={getStatusTooltip(item)}>
 										<div class={s.indicador({ status })}></div>
@@ -428,9 +470,8 @@
 
 										<div class={s.badgesRow()}>
 											{#if item.alertas.length > 0}
-												<span class={s.alertaTexto()}>{item.alertas[0]}</span>
-
-												{#if item.alertas.length > 1}
+												<span class={s.alertaTexto({ status })}>{item.alertas[0]}</span>
+												{#if item.alertas.length > 1 && isExpanded}
 													<Tooltip content={item.alertas.slice(1).join('\n')}>
 														<Badge
 															class="bg-muted/50 text-muted-foreground hover:bg-muted h-4 cursor-help px-1 py-0 text-[9px]"
