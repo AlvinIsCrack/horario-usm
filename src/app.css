@@ -99,6 +99,30 @@
     @apply bg-primary/80 text-foreground font-roboto;
   }
 
+  * {
+
+    /* Estilos generales para navegadores basados en Webkit (Chrome, Safari, Edge) */
+    &::-webkit-scrollbar {
+      @apply w-2;
+    }
+
+    &::-webkit-scrollbar-track {
+      @apply bg-transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-muted-foreground);
+      @apply rounded-full border-2 border-transparent bg-clip-content;
+
+      &:hover {
+        background: var(--color-muted-foreground);
+      }
+    }
+
+    /* Soporte básico para Firefox */
+    scrollbar-color: var(--color-muted-foreground) transparent;
+  }
+
   html,
   body {
     width: 100%;

@@ -278,27 +278,4 @@
 		color: var(--color-primary);
 		@apply font-medium! mix-blend-plus-lighter;
 	}
-
-	ul {
-		/* Estilos generales para navegadores basados en Webkit (Chrome, Safari, Edge) */
-		&::-webkit-scrollbar {
-			@apply w-2;
-		}
-
-		&::-webkit-scrollbar-track {
-			@apply bg-transparent;
-		}
-
-		&::-webkit-scrollbar-thumb {
-			background: var(--color-muted-foreground);
-			@apply rounded-full border-2 border-transparent bg-clip-content;
-
-			&:hover {
-				background: var(--color-muted-foreground);
-			}
-		}
-
-		/* Soporte básico para Firefox */
-		scrollbar-color: var(--color-muted-foreground) transparent;
-	}
 </style>

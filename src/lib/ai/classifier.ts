@@ -5,7 +5,7 @@ import { trainModels } from './train';
 import { browser } from '$app/environment';
 import type { Ramo } from '$lib/types/horario'; // Asegúrate de que esta ruta sea correcta
 
-const CONFIDENCE_THRESHOLD = 0.65;
+const CONFIDENCE_THRESHOLD = 0.5;
 
 let distNN: NeuralNetwork;
 let rhythmNN: NeuralNetwork;

@@ -14,6 +14,7 @@
 		offset = 8,
 		wrapperClass,
 		forceVisible = false,
+		closeOnClick = true,
 		...props
 	}: {
 		wrapperClass?: ClassValue;
@@ -22,6 +23,7 @@
 		followCursor?: boolean;
 		disablePortal?: boolean;
 		offset?: number;
+		closeOnClick?: boolean;
 		forceVisible?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
@@ -46,7 +48,7 @@
 	class="relative inline-flex {wrapperClass}"
 	onpointerenter={() => (visible = true)}
 	onpointerleave={() => (visible = false)}
-	onclick={() => (visible = false)}
+	{...closeOnClick ? { onclick: () => (visible = false) } : {}}
 	bind:this={wrapperEl}
 >
 	{@render children?.()}

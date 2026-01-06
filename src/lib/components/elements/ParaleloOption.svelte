@@ -31,9 +31,7 @@
                 {!selected
 			? 'bg-background! hover:bg-accent! hover:border-accent-foreground/20 active:bg-accent/80'
 			: 'bg-primary! text-primary-foreground ring-primary/20 hover:bg-primary/90! shadow-md ring-1'} 
-                {colision && !selected
-			? 'border-destructive/40 bg-destructive/5 hover:bg-destructive/10'
-			: ''}"
+                {colision && !selected ? 'border-destructive! hover:bg-destructive/40!' : ''}"
 		{onclick}
 		type="button"
 	>
