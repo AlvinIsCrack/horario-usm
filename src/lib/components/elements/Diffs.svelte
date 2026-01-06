@@ -442,7 +442,9 @@
 				<div class={s.grupoWrapper()}>
 					<header class={s.header()}>
 						<Tooltip content="{grupo.fecha} a las {grupo.hora}">
-							<span class="cursor-help decoration-dotted hover:underline">{grupo.relativo}</span>
+							<span class="decoration-foreground/50 cursor-help underline decoration-dotted"
+								>{grupo.relativo}</span
+							>
 						</Tooltip>
 						<div class="bg-border/40 ml-2 h-px flex-1"></div>
 						<span class="ml-2 opacity-60">{grupo.items.length} eventos</span>
