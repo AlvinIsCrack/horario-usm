@@ -1,1 +1,24 @@
-{"files": {"horario_asignaturas.json": {"cambiosUltimaEjecucion": 2433, "hash": "3d14be68157b5002e275263868d54ab0", "updatedAt": 1767715865.0}}, "generatedAt": {"iso": "2026-01-06T13:11:05", "unix": 1767715865}, "stats": {"totalAsignaturas": 2172, "totalParalelos": 4583}, "status": "success", "system": {"environment": "Local", "executionTimeSeconds": 12.37, "scraperVersion": "710b3b2"}, "version": 3}
+{
+    "files": {
+        "horario_asignaturas.json": {
+            "cambiosUltimaEjecucion": 12,
+            "hash": "55a613610516bf7a2943d4f0dda23ebf",
+            "updatedAt": 1767714305.0
+        }
+    },
+    "generatedAt": {
+        "iso": "2026-01-06T15:45:05",
+        "unix": 1767714305
+    },
+    "stats": {
+        "totalAsignaturas": 2270,
+        "totalParalelos": 4783
+    },
+    "status": "success",
+    "system": {
+        "environment": "CI/CD",
+        "executionTimeSeconds": 22.89,
+        "scraperVersion": "d314b19"
+    },
+    "version": 3
+}
