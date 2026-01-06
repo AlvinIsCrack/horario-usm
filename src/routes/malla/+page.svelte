@@ -17,7 +17,7 @@
 		title: cardTitle,
 		sigla: cardSigla
 	} = tv({
-		base: 'relative flex hover:cursor-pointer min-h-24! hover:ring-2 hover:scale-110 ring-ring shadow-sm flex-col w-40 p-4 transition-all duration-200 select-none border-2 text-left h-full',
+		base: 'relative flex hover:cursor-pointer h-30! hover:ring-2 hover:scale-110 ring-ring shadow-sm flex-col w-40 p-4 transition-all duration-200 select-none border-2 text-left rounded-lg',
 		slots: {
 			title: 'my-1 z-10 line-clamp-2 text-wrap h-full truncate text-sm leading-4 font-bold',
 			credits: 'text-muted-foreground text-[9px] font-black',
@@ -93,17 +93,38 @@
 		currentMalla = $derived.by(() => {
 			if (!this.rawMalla.length) return [];
 
+			// Cacheamos todas las siglas reales para detectar requisitos "externos"
+			const existingSiglas = new Set(this.rawMalla.flat().map((r) => r.sigla));
+			
+			// Regex para identificar códigos estándar USM (ej: MAT021, IWI-131, FIS100)
+			// Detecta 3 letras mayúsculas al inicio seguidas de números.
+			const isSiglaCode = /^[A-Z]{1,4}\d{1,5}(?:[A-Z]|[-_][A-Z0-9]+)?/;
+
 			return this.rawMalla.map((semestre) => {
 				return semestre.map((ramo) => {
 					const isChecked = this.approvedSigs.has(ramo.sigla);
 
-					// Lógica de Bloqueo: Un ramo está bloqueado si tiene requisitos y
-					// al menos uno de los grupos de requisitos (AND) no tiene ninguna sigla aprobada (OR)
+					// Lógica de Bloqueo
 					let isLocked = false;
 					if (!isChecked && ramo.requisitos.length > 0) {
 						isLocked = !ramo.requisitos.every((grupoOr) => {
-							if (grupoOr.length === 0 || (grupoOr.length === 1 && grupoOr[0] === '')) return true;
-							return grupoOr.some((reqSigla) => this.approvedSigs.has(reqSigla));
+							const validReqs = grupoOr.filter((r) => r && r.trim() !== '');
+							if (validReqs.length === 0) return true;
+
+							return validReqs.some((reqSigla) => {
+								// 1. Si está aprobado, cumple.
+								if (this.approvedSigs.has(reqSigla)) return true;
+
+								// 2. Si NO está en la malla visible...
+								if (!existingSiglas.has(reqSigla)) {
+									// ...y NO parece ser un ramo estándar (ej: "Ingreso", "7310"), asumimos que se cumple.
+									// Si PARECE un ramo (tiene formato AAA111) y falta, asumimos que NO se cumple (bloqueo real).
+									return !isSiglaCode.test(reqSigla);
+								}
+								
+								// Si está en la malla pero no aprobado
+								return false;
+							});
 						});
 					}
 
@@ -167,15 +188,29 @@
 					// @ts-ignore
 					const planes = carrera['menciones/especialidades'][sedeKey]?.planes;
 					if (planes && planes[planId]) {
+						console.log(planes[planId].malla);
 						return (planes[planId].malla || []).map((sem: any) =>
-							Object.entries(sem).map(([sigla, d]: [string, any]) => ({
-								sigla,
-								nombre: d.nombre,
-								creditos: parseInt(d.creditos) || 0,
-								requisitos: d.requisitos || [],
-								esElectivo: d.nombre.includes('ELECTIVO') || d.nombre.includes('OPTATIVO'),
-								esHumanista: /HUMANIST|ANTROPOL|ETICA/.test(d.nombre)
-							}))
+							Object.entries(sem)
+								.map(([sigla, d]: [string, any]) => ({
+									sigla,
+									nombre: d.nombre,
+									creditos: parseInt(d.creditos) || 0,
+									requisitos: d.requisitos || [],
+									esElectivo: /ELECTIVO [IVXCMD]+|ELECTIVO DE|OPTATIVO|ASIGNATURA LIBRE/gi.test(d.nombre),
+									esHumanista: /HUMANIST|ANTROPOL|ETICA/gi.test(d.nombre)
+								}))
+								.sort((a, b) => {
+									// 1. Prioridad: Electivos y Humanistas siempre al final
+									const isSpecialA = a.esElectivo || a.esHumanista;
+									const isSpecialB = b.esElectivo || b.esHumanista;
+
+									if (isSpecialA !== isSpecialB) {
+										return isSpecialA ? 1 : -1;
+									}
+
+									// 2. Orden secundario: Por sigla (A-Z) para las obligatorias entre sí
+									return a.sigla.localeCompare(b.sigla);
+								})
 						);
 					}
 				}
@@ -318,11 +353,16 @@
 			</div>
 		</div>
 	</header>
+	<div
+		class="ring-b-4 ring-card relative bottom-0 mt-auto h-2 w-full transition-all duration-500"
+		style:background="linear-gradient(to right, var(--color-amber-500) {mallaState.stats.percent}%,
+		#000 {mallaState.stats.percent}%)"
+	></div>
 
 	<main class="flex-1 overflow-auto p-3.5">
 		{#if mallaState.currentMalla.length > 0}
 			<div class="flex gap-2 pb-10">
-				{#each mallaState.currentMalla as semestre, i}
+				{#each mallaState.currentMalla as semestre, i (semestre)}
 					<div class="flex flex-col gap-2">
 						<div class="flex items-center justify-between border-b border-white/50 px-1 pb-1">
 							<span class="text-foreground text-lg font-bold">{romanize(i + 1)}</span>
@@ -332,7 +372,7 @@
 						</div>
 
 						<div class="flex flex-col gap-2">
-							{#each semestre as ramo}
+							{#each semestre as ramo (ramo.sigla)}
 								{@const status = ramo.checked
 									? 'aprobado'
 									: ramo.locked

@@ -146,7 +146,7 @@ export const Data = {
     },
 
     get sedes(): string[] {
-        return _sedes.slice(0, -1);
+        return _sedes;
     },
 
     get jornadas(): { [sede: string]: string[] } {

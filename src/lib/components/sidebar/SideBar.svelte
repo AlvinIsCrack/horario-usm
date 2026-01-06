@@ -26,6 +26,7 @@
 	import { goto } from '$app/navigation';
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
+	import UserData from '../elements/UserData.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -71,13 +72,36 @@
 				</div> -->
 				<div class="h-min w-full">
 					{#if Calendario.sede}
-						<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
+						{#snippet sidebarButton(
+							text: string,
+							onclick: () => any,
+							Icon?: any,
+							variant?: string,
+							_class?: string
+						)}
 							<Button
-								class="flex-1 text-nowrap"
-								onclick={() => SideBar.setActiveWindow(RamoWindow, {})}
+								variant={(variant as any) ?? undefined}
+								class="block h-auto flex-1 justify-start py-2 text-left leading-tight whitespace-normal {_class ??
+									''}"
+								{onclick}
 							>
-								<Add class="inline scale-125" /> Añadir ramo
+								<p class="display-[inherit] text-[inherit]">
+									{#if Icon}
+										<Icon class="mr-1 inline-block scale-125 align-middle" />
+									{/if}
+									{text}
+								</p>
 							</Button>
+						{/snippet}
+
+						<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
+							{@render sidebarButton(
+								'Añadir ramo',
+								() => SideBar.setActiveWindow(RamoWindow, {}),
+								Add,
+								undefined,
+								'justify-center!'
+							)}
 							<Menu align="end">
 								{#snippet trigger()}
 									<Tooltip content="Opciones">
@@ -91,7 +115,10 @@
 									disabled={!Calendario.ramos.length}
 									onclick={() => {
 										const listado = Calendario.ramos
-											.map((r) => `${r.sigla} ${r.paralelo}`)
+											.map(
+												(r) =>
+													`${r.sigla}, PARALELO ${r.paralelo} (PROFESORES: ${r.profesor.join(', ')})`
+											)
 											.join('\n');
 										navigator.clipboard
 											.writeText(listado)
@@ -175,46 +202,30 @@
 
 							<Separator />
 							{#if !Calendario.visible}
-								<Button
-									variant="secondary"
-									class="w-full text-nowrap"
-									onclick={() => (activeWindow = SavedHorariosWindow)}
-								>
-									<p>
-										<Horario class="mr-2 inline scale-125" />
-										Horarios guardados
-									</p>
-								</Button>
-
-								<Tooltip wrapperClass="w-full" content="En desarrollo">
-									<Button
-										variant="secondary"
-										class="w-full text-nowrap"
-										onclick={() => goto('/malla')}
-										disabled={true}
-									>
-										<p>
-											<MaterialSymbolsGrid4x4 class="mr-2 inline scale-125" />
-											<s>Malla Curricular</s>
-										</p>
-									</Button>
-								</Tooltip>
-
-								<Button
-									variant="secondary"
-									class="w-full"
-									size="sm"
-									onclick={() =>
-										window.open(
-											'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
-											'_blank'
-										)}
-								>
-									<p>
-										<MaterialSymbolsFeedback class="mr-2 inline scale-125" />
-										Comentarios, reclamos y sugerencias
-									</p>
-								</Button>
+								<div class="flex flex-col gap-[inherit]">
+									{@render sidebarButton(
+										'Horarios guardados',
+										() => (activeWindow = SavedHorariosWindow),
+										Horario,
+										'secondary'
+									)}
+									<!-- {@render sidebarButton(
+										'Malla Curricular',
+										() => goto('/malla'),
+										MaterialSymbolsGrid4x4,
+										'secondary'
+									)} -->
+									{@render sidebarButton(
+										'Comentarios, reclamos y sugerencias',
+										() =>
+											window.open(
+												'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
+												'_blank'
+											),
+										MaterialSymbolsFeedback,
+										'secondary'
+									)}
+								</div>
 							{/if}
 						</div>
 					{/if}
@@ -226,6 +237,7 @@
 						<Statistics />
 					{:else if Calendario.inicializado}
 						<SedeSelector />
+						<UserData />
 					{/if}
 				</div>
 				<div class="w-full text-center text-sm">

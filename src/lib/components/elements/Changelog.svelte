@@ -9,11 +9,20 @@
 			description:
 				'Función EXPERIMENTAL de exportación de prompt para uso con IA (Gemini, ChatGPT, etc...). Este prompt consolida métricas de carga, logística y tiempos para facilitar una evaluación externa. <b>Los resultados son estrictamente referenciales y no sustituyen una planificación académica oficial.</b>'
 		},
-		'Correcciones ramos y salas': {
+		'Correcciones: Ramos, horarios y salas': {
 			icon: MaterialSymbolsToolsWrench,
 			description:
 				'Se corrigieron errores de salas mal registradas, y ramos no existentes. (Gracias por los avisos!!)'
+		},
+		'Correcciones: Sede Viña del Mar': {
+			icon: MaterialSymbolsToolsWrench,
+			description:
+				'Ahora la sede de Viña del Mar está disponible en el selector de sedes, gracias por avisar ;(, era solo una línea en código.'
 		}
+		// 'Malla Curricular': {
+		// 	icon: MaterialSymbolsGrid4x4,
+		// 	description: 'Volvió la malla curricular. Está aún en prueba, pero funciona lo básico.'
+		// }
 	};
 </script>
 
