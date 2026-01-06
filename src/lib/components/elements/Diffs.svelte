@@ -329,21 +329,21 @@
 	// --- Estilos ---
 	const diffs = tv({
 		slots: {
-			container: 'mx-auto flex w-full max-w-md max-h-60 overflow-hidden flex-col gap-4 pb-10',
+			container: 'mx-auto flex w-full max-w-fit max-h-60 overflow-hidden flex-col gap-4 pb-10',
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
 				'flex items-baseline gap-2 px-1 text-[10px] mb-1 font-bold uppercase tracking-wide text-muted-foreground',
 			// Cards
-			card: 'group flex items-center gap-3 border-b border-border/40 bg-background/20 rounded-md px-3 py-1.5',
+			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-1',
 			cardStructural: 'mx-1 rounded-md border border-dashed px-2 py-1 text-xs font-medium',
 
 			// Elementos internos
 			indicador: 'h-2 w-2 rounded-full shrink-0',
-			content: 'flex min-w-0 flex-1 flex-col gap-0.5', // Stack vertical para nombre y alertas
-			filaPrincipal: 'flex items-baseline gap-2 overflow-hidden whitespace-nowrap',
+			content: 'flex min-w-0 flex-1 flex-col', // Stack vertical para nombre y alertas
+			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
 
-			sigla: 'font-mono text-xs font-black tracking-tight text-foreground/80',
-			nombre: 'truncate text-xs text-foreground/70',
+			sigla: 'font-mono text-sm font-black tracking-wide text-foreground',
+			nombre: 'truncate text-xs font-medium text-foreground/70',
 
 			badgesRow: 'flex flex-wrap gap-1',
 			alertaTexto: 'truncate text-xs font-normal text-muted-foreground/80',
@@ -390,13 +390,13 @@
 
 {#if Calendario.sede && Calendario.jornada}
 	<section class={s.container()}>
-		<div class="-mb-2 px-1">
-			<h1 class="text-foreground text-sm font-bold tracking-wide uppercase">
-				Historial de Cambios de siga para {Calendario.sede}
+		<div class="-mb-4 px-1">
+			<h1 class="text-foreground text-sm font-bold uppercase">
+				Cambios de siga para {Calendario.sede}
 			</h1>
 		</div>
 
-		<div class="scroller h-full overflow-y-auto mask-b-from-80% mask-b-to-100%">
+		<div class="scroller h-full overflow-y-auto mask-b-from-90% mask-b-to-100%">
 			{#each historial as grupo (grupo.timestamp)}
 				<div class={s.grupoWrapper()}>
 					<header class={s.header()}>

@@ -1,52 +1,150 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { fade, fly } from 'svelte/transition';
+	import { Calendario } from '$lib/states/calendario.svelte';
+	import planesRaw from '$lib/data/planes_carreras.json';
 	import { tv } from 'tailwind-variants';
 
-	// Data & Logic
-	import planesRaw from '$lib/data/planes_carreras.json';
-
-	// Components
-	import Card from '$lib/components/ui/Card.svelte';
+	// Componentes UI del sistema
 	import Badge from '$lib/components/ui/Badge.svelte';
-	import Separator from '$lib/components/ui/Separator.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import PlanSearch from '$lib/components/elements/PlanSearch.svelte';
 
-	// --- Tipos y Helpers ---
+	// --- Definición de Estilos con tailwind-variants ---
 
-	type Requisito = string[]; // Lista de siglas (OR)
-	type Asignatura = {
+	const {
+		base: card,
+		credits: cardCredits,
+		title: cardTitle,
+		sigla: cardSigla
+	} = tv({
+		base: 'relative flex hover:cursor-pointer min-h-24! hover:ring-2 hover:scale-110 ring-ring shadow-sm flex-col w-40 p-4 transition-all duration-200 select-none border-2 text-left h-full',
+		slots: {
+			title: 'my-1 z-10 line-clamp-2 text-wrap h-full truncate text-sm leading-4 font-bold',
+			credits: 'text-muted-foreground text-[9px] font-black',
+			sigla: 'text-primary/80 mb-auto text-xs font-bold tracking-wider font-mono uppercase'
+		},
+		variants: {
+			status: {
+				disponible: 'bg-card border-border hover:border-primary/50',
+				aprobado: 'bg-lime-600 text-background border-primary',
+				bloqueado: 'bg-muted/50 border-transparent! opacity-60 grayscale-[0.6]'
+			},
+			relation: {
+				none: '',
+				self: 'ring-2 ring-primary ring-offset-2 ring-offset-background z-10 scale-105',
+				parent:
+					'border-yellow-500 bg-yellow-500/10 shadow-[0_0_10px_rgba(234,179,8,0.3)] scale-105 z-10',
+				child:
+					'border-green-500 bg-green-500/10 shadow-[0_0_10px_rgba(34,197,94,0.3)] scale-105 z-10'
+			}
+		},
+		defaultVariants: {
+			status: 'disponible',
+			relation: 'none'
+		},
+		compoundVariants: [
+			{
+				status: 'aprobado',
+				class: {
+					sigla: 'text-background/60',
+					credits: 'text-background/40'
+				}
+			},
+			{
+				status: 'bloqueado',
+				class: {
+					sigla: 'text-background/80'
+				}
+			}
+		]
+	})();
+
+	// --- Tipos Portados de MallaInteractiva.tsx ---
+	type Requisito = string[];
+
+	interface RamoMalla {
 		sigla: string;
 		nombre: string;
 		creditos: number;
-		requisitos: Requisito[]; // Lista de listas (AND de ORs)
+		requisitos: Requisito[]; // Formato: [[REQ1_A, REQ1_B], [REQ2]] -> (A o B) y (C)
 		esElectivo: boolean;
 		esHumanista: boolean;
-	};
-	type Semestre = Asignatura[];
+		// Estados derivados para UI
+		locked?: boolean;
+		checked?: boolean;
+		isDependency?: boolean; // Destacado porque el hover actual lo desbloquea
+		isPreRequisite?: boolean; // Destacado porque desbloquea al hover actual
+	}
+
+	type Semestre = RamoMalla[];
 	type Malla = Semestre[];
 
-	// --- Controlador de Lógica (Runes) ---
-
+	// --- Estado de la Malla (MallaState) ---
 	class MallaState {
-		// Estado base
 		selectedPlanId = $state<string>('');
 		approvedSigs = $state<Set<string>>(new Set());
-		customNames = $state<Record<string, string>>({}); // Para electivos renombrados
+		customNames = $state<Record<string, string>>({});
 		hoverSig = $state<string | null>(null);
-		// --- Dentro de class MallaState ---
-		selectedPlanLabel = $derived(
-			careerOptions.find((opt) => opt.value === this.selectedPlanId)?.label || ''
-		);
 
-		// Datos derivados
-		currentMalla = $derived(this.getMalla(this.selectedPlanId));
+		// Datos crudos de la malla seleccionada
+		rawMalla = $derived(this.fetchMallaData(this.selectedPlanId));
 
-		// Cache de dependencias para performance en hover
-		dependenciasMap = $derived(this.buildDependenciesMap(this.currentMalla));
+		// Lógica portada de updateSemestres de React: Calcula bloqueos y dependencias
+		currentMalla = $derived.by(() => {
+			if (!this.rawMalla.length) return [];
+
+			return this.rawMalla.map((semestre) => {
+				return semestre.map((ramo) => {
+					const isChecked = this.approvedSigs.has(ramo.sigla);
+
+					// Lógica de Bloqueo: Un ramo está bloqueado si tiene requisitos y
+					// al menos uno de los grupos de requisitos (AND) no tiene ninguna sigla aprobada (OR)
+					let isLocked = false;
+					if (!isChecked && ramo.requisitos.length > 0) {
+						isLocked = !ramo.requisitos.every((grupoOr) => {
+							if (grupoOr.length === 0 || (grupoOr.length === 1 && grupoOr[0] === '')) return true;
+							return grupoOr.some((reqSigla) => this.approvedSigs.has(reqSigla));
+						});
+					}
+
+					// Lógica de Relaciones (Hover)
+					let isDep = false;
+					let isPre = false;
+					if (this.hoverSig) {
+						// ¿Este ramo desbloquea al que tengo en hover? (Es Prerrequisito)
+						const hoverRamo = this.findRamo(this.hoverSig);
+						if (hoverRamo?.requisitos.flat().includes(ramo.sigla)) isPre = true;
+
+						// ¿Este ramo es desbloqueado por el que tengo en hover? (Es Dependencia)
+						if (ramo.requisitos.flat().includes(this.hoverSig)) isDep = true;
+					}
+
+					return {
+						...ramo,
+						checked: isChecked,
+						locked: isLocked,
+						isDependency: isDep,
+						isPreRequisite: isPre
+					};
+				});
+			});
+		});
+
+		// Estadísticas portadas de PercentCompletado
+		stats = $derived.by(() => {
+			const todos = this.currentMalla.flat();
+			if (todos.length === 0) return { percent: 0, total: 0, approved: 0, creditos: 0 };
+			const aprobados = todos.filter((r) => r.checked);
+			const creditosAprobados = aprobados.reduce((acc, r) => acc + r.creditos, 0);
+			return {
+				percent: Math.round((aprobados.length / todos.length) * 100),
+				total: todos.length,
+				approved: aprobados.length,
+				creditos: creditosAprobados
+			};
+		});
 
 		constructor() {
-			// Recuperar estado guardado
 			onMount(() => {
 				const saved = localStorage.getItem('malla_progress');
 				if (saved) {
@@ -62,6 +160,48 @@
 			});
 		}
 
+		private fetchMallaData(planId: string): Malla {
+			if (!planId) return [];
+			for (const carrera of planesRaw) {
+				for (const sedeKey in carrera['menciones/especialidades'] || {}) {
+					// @ts-ignore
+					const planes = carrera['menciones/especialidades'][sedeKey]?.planes;
+					if (planes && planes[planId]) {
+						return (planes[planId].malla || []).map((sem: any) =>
+							Object.entries(sem).map(([sigla, d]: [string, any]) => ({
+								sigla,
+								nombre: d.nombre,
+								creditos: parseInt(d.creditos) || 0,
+								requisitos: d.requisitos || [],
+								esElectivo: d.nombre.includes('ELECTIVO') || d.nombre.includes('OPTATIVO'),
+								esHumanista: /HUMANIST|ANTROPOL|ETICA/.test(d.nombre)
+							}))
+						);
+					}
+				}
+			}
+			return [];
+		}
+
+		private findRamo(sigla: string): RamoMalla | null {
+			return this.rawMalla.flat().find((r) => r.sigla === sigla) || null;
+		}
+
+		toggleRamo(sigla: string) {
+			if (this.approvedSigs.has(sigla)) {
+				this.approvedSigs.delete(sigla);
+			} else {
+				this.approvedSigs.add(sigla);
+			}
+			this.approvedSigs = new Set(this.approvedSigs);
+			this.save();
+		}
+
+		setCustomName(sigla: string, name: string) {
+			this.customNames[sigla] = name;
+			this.save();
+		}
+
 		save() {
 			localStorage.setItem(
 				'malla_progress',
@@ -72,131 +212,37 @@
 				})
 			);
 		}
-
-		toggleAsignatura(sigla: string) {
-			if (this.approvedSigs.has(sigla)) {
-				this.approvedSigs.delete(sigla);
-			} else {
-				// Si está bloqueado, no hacer nada (opcional, aquí permitimos forzar aprobación)
-				this.approvedSigs.add(sigla);
-			}
-			// Reasignar para reactividad profunda si fuera necesario en Svelte 4,
-			// pero en Svelte 5 el Set dentro de $state es reactivo si se usa correctamente o se reasigna.
-			this.approvedSigs = new Set(this.approvedSigs);
-			this.save();
-		}
-
-		setCustomName(sigla: string, name: string) {
-			this.customNames[sigla] = name;
-			this.save();
-		}
-
-		// Lógica de grafo
-		getStatus(asig: Asignatura) {
-			if (this.approvedSigs.has(asig.sigla)) return 'aprobado';
-
-			// Verificar requisitos
-			// La estructura es: [[REQ1_A, REQ1_B], [REQ2]] -> (REQ1_A O REQ1_B) Y (REQ2)
-			const cumpleRequisitos = asig.requisitos.every((grupoOr) => {
-				if (grupoOr.length === 0 || (grupoOr.length === 1 && grupoOr[0] === '')) return true; // Sin requisitos
-				return grupoOr.some((req) => this.approvedSigs.has(req));
-			});
-
-			return cumpleRequisitos ? 'disponible' : 'bloqueado';
-		}
-
-		// Utiles para Parsing
-		getMalla(planId: string): Malla {
-			if (!planId) return [];
-			// Busqueda ineficiente pero simple dada la estructura del JSON
-			for (const carrera of planesRaw) {
-				for (const sedeKey in carrera['menciones/especialidades'] || {}) {
-					// @ts-ignore
-					const planes = carrera['menciones/especialidades'][sedeKey]?.planes;
-					if (planes && planes[planId]) {
-						const rawMalla = planes[planId].malla;
-						return this.parseMalla(rawMalla);
-					}
-				}
-			}
-			return [];
-		}
-
-		private parseMalla(rawMalla: any[]): Malla {
-			return rawMalla.map((semestre: any) => {
-				return Object.entries(semestre).map(([sigla, datos]: [string, any]) => ({
-					sigla,
-					nombre: datos.nombre,
-					creditos: parseInt(datos.creditos) || 0,
-					requisitos: datos.requisitos || [],
-					esElectivo: datos.nombre.includes('ELECTIVO') || datos.nombre.includes('OPTATIVO'),
-					esHumanista:
-						datos.nombre.includes('HUMANIST') ||
-						datos.nombre.includes('ANTROPOL') ||
-						datos.nombre.includes('ETICA')
-				}));
-			});
-		}
-
-		// Mapa inverso: Sigla -> Quienes la requieren (Hijos)
-		private buildDependenciesMap(malla: Malla) {
-			const map = new Map<string, string[]>(); // Padre -> Hijos
-			const parents = new Map<string, string[]>(); // Hijo -> Padres
-
-			malla.flat().forEach((asig) => {
-				// Registrar Padres
-				const misRequisitos = asig.requisitos.flat().filter((r) => r && r !== '');
-				parents.set(asig.sigla, misRequisitos);
-
-				// Registrar Hijos
-				misRequisitos.forEach((req) => {
-					if (!map.has(req)) map.set(req, []);
-					map.get(req)?.push(asig.sigla);
-				});
-			});
-			return { children: map, parents };
-		}
-
-		getRelation(targetSigla: string): 'none' | 'parent' | 'child' | 'self' {
-			if (!this.hoverSig) return 'none';
-			if (this.hoverSig === targetSigla) return 'self';
-
-			// Es un prerrequisito del hover (Padre)?
-			if (this.dependenciasMap.parents.get(this.hoverSig)?.includes(targetSigla)) return 'parent';
-
-			// Es desbloqueado por el hover (Hijo)?
-			if (this.dependenciasMap.children.get(this.hoverSig)?.includes(targetSigla)) return 'child';
-
-			return 'none';
-		}
 	}
 
 	const mallaState = new MallaState();
 
-	// --- Preparación de Datos para el Select ---
+	// --- Opciones de Carrera filtradas por Sede (Calendario) ---
 	let careerOptions = $state<{ label: string; value: string }[]>([]);
-	// --- Mapeo de nombres personalizados (Hardcoded) ---
+
+	// --- Mapeo de nombres personalizados ---
 	const PLAN_CUSTOM_NAMES: Record<string, string> = {
-		'7310': 'Ing. Civil Informática (Antigua)',
-		'7313': 'Ing. Civil Informática (Nueva)'
+		'7313': 'Ing. Civil Informática (Antigua)',
+		'7310': 'Ing. Civil Informática (Nueva)'
 	};
 
-	onMount(() => {
+	$effect(() => {
+		const sedeActual = Calendario.sede;
 		const opts: { label: string; value: string }[] = [];
 		const seenIds = new Set<string>();
 
-		// @ts-ignore
 		planesRaw.forEach((carrera) => {
-			// @ts-ignore
-			Object.values(carrera['menciones/especialidades']).forEach((mencion: any) => {
+			const menciones = carrera['menciones/especialidades'] || {};
+			Object.keys(menciones).forEach((sedeKey) => {
+				if (carrera.sede !== sedeActual) return;
+
+				//@ts-ignore
+				const mencion = menciones[sedeKey];
 				if (mencion.planes) {
 					Object.entries(mencion.planes).forEach(([id, plan]: [string, any]) => {
-						// --- MODIFICACIÓN: Ignorar planes sin malla ---
-						if (!plan.malla || plan.malla.length === 0) return;
-
-						if (seenIds.has(id)) return;
+						if (!plan.malla || seenIds.has(id)) return;
 						seenIds.add(id);
 
+						// Lógica de reemplazo de nombre:
 						const planCode = plan.plan?.toString();
 						const customLabel = PLAN_CUSTOM_NAMES[planCode];
 
@@ -213,76 +259,139 @@
 		careerOptions = opts.sort((a, b) => a.label.localeCompare(b.label));
 	});
 
-	// --- Manejadores ---
-	function handleCardClick(asig: Asignatura) {
-		if (asig.esElectivo || asig.esHumanista) {
-			// Lógica especial para electivos: Asignar nombre
-			if (!mallaState.approvedSigs.has(asig.sigla)) {
-				// Si no está aprobado, al aprobar pedimos nombre (opcional)
-				// Simulación de "Popover" con prompt por ahora para no sobrecargar el código
-				// Idealmente esto sería un modal con buscador de `horario_asignaturas.json`
-				const realName = prompt(
-					`Ingresa el nombre del ramo cursado para ${asig.nombre}:`,
-					asig.nombre
-				);
-				if (realName) mallaState.setCustomName(asig.sigla, realName);
+	function handleRamoClick(ramo: RamoMalla) {
+		if (ramo.esElectivo || ramo.esHumanista) {
+			if (!mallaState.approvedSigs.has(ramo.sigla)) {
+				const name = prompt(`Nombre para el electivo ${ramo.sigla}:`, ramo.nombre);
+				if (name) mallaState.setCustomName(ramo.sigla, name);
 			}
 		}
-		mallaState.toggleAsignatura(asig.sigla);
+		mallaState.toggleRamo(ramo.sigla);
+	}
+
+	// Helper para romanizar portado de React
+	function romanize(num: number) {
+		const lookup: any = {
+			M: 1000,
+			CM: 900,
+			D: 500,
+			CD: 400,
+			C: 100,
+			XC: 90,
+			L: 50,
+			XL: 40,
+			X: 10,
+			IX: 9,
+			V: 5,
+			IV: 4,
+			I: 1
+		};
+		let roman = '',
+			i;
+		for (i in lookup) {
+			while (num >= lookup[i]) {
+				roman += i;
+				num -= lookup[i];
+			}
+		}
+		return roman;
 	}
 </script>
 
-<div class="bg-background text-foreground flex h-full w-full flex-col overflow-hidden">
-	<div class="bg-card z-20 flex flex-col shadow-sm">
-		<div class="flex flex-col items-end justify-between gap-6 p-6 md:flex-row">
-			<div class="flex w-full flex-col md:w-1/2">
-				<h1 class="text-primary text-4xl leading-none font-black tracking-wide uppercase">
-					Malla {mallaState.selectedPlanLabel || 'Interactiva'}
-				</h1>
-				<p class="text-muted-foreground text-sm font-medium">
-					Planifica tu trayectoria académica visualmente.
-				</p>
+<div class="flex h-screen w-full flex-col overflow-hidden">
+	<header class="bg-card z-20 border-b p-6 shadow-sm">
+		<div class="flex flex-col items-center justify-between gap-6 md:flex-row">
+			<div class="space-y-1">
+				<h1 class="text-primary text-3xl font-black tracking-tight uppercase">Malla Interactiva</h1>
+				<div class="flex items-center gap-2">
+					<Badge variant="outline">{Calendario.sede}</Badge>
+					{#if mallaState.selectedPlanId}
+						<span class="text-muted-foreground text-sm">
+							{mallaState.stats.percent}% completado • {mallaState.stats.creditos} SCT
+						</span>
+					{/if}
+				</div>
 			</div>
 
-			<div class="w-full md:w-1/3">
-				<PlanSearch
-					items={careerOptions}
-					bind:value={mallaState.selectedPlanId}
-					placeholder="Buscar Carrera o Plan (ej: 7310)..."
-					class="w-full"
-				/>
+			<div class="w-full max-w-md">
+				<PlanSearch items={careerOptions} bind:value={mallaState.selectedPlanId} />
 			</div>
 		</div>
-		<Separator />
-	</div>
+	</header>
 
-	<div class="flex-1 overflow-x-auto overflow-y-auto bg-[#0a0a0c] p-10">
+	<main class="flex-1 overflow-auto p-3.5">
 		{#if mallaState.currentMalla.length > 0}
-			<div class="flex min-w-max gap-8 pb-12">
+			<div class="flex gap-2 pb-10">
 				{#each mallaState.currentMalla as semestre, i}
-					<div></div>
+					<div class="flex flex-col gap-2">
+						<div class="flex items-center justify-between border-b border-white/50 px-1 pb-1">
+							<span class="text-foreground text-lg font-bold">{romanize(i + 1)}</span>
+							<span class="text-xs font-medium text-white/40 uppercase">
+								{semestre.reduce((acc, r) => acc + r.creditos, 0)} SCT
+							</span>
+						</div>
+
+						<div class="flex flex-col gap-2">
+							{#each semestre as ramo}
+								{@const status = ramo.checked
+									? 'aprobado'
+									: ramo.locked
+										? 'bloqueado'
+										: 'disponible'}
+								<button
+									onclick={() => mallaState.toggleRamo(ramo.sigla)}
+									onmouseenter={() => (mallaState.hoverSig = ramo.sigla)}
+									onmouseleave={() => (mallaState.hoverSig = null)}
+									class={card({
+										status
+										// relation: ramo.relation
+									})}
+								>
+									<Tooltip content={ramo.sigla}>
+										<span
+											class={cardSigla({
+												status
+												// relation: ramo.relation
+											})}
+										>
+											{ramo.sigla}
+										</span>
+									</Tooltip>
+									<span
+										class={cardTitle({
+											status
+											// relation: ramo.relation
+										})}
+									>
+										{mallaState.customNames[ramo.sigla] || ramo.nombre}
+									</span>
+									<div class="mt-1 flex items-center justify-between">
+										<span
+											class={cardCredits({
+												status
+												// relation: ramo.relation
+											})}
+										>
+											{ramo.creditos} SCT
+										</span>
+									</div>
+								</button>
+							{/each}
+						</div>
+					</div>
+					<!-- {#if i < mallaState.currentMalla.length - 1}
+						<Separator orientation="vertical" class="opacity-10" />
+					{/if} -->
 				{/each}
 			</div>
+		{:else}
+			<div class="flex h-full items-center justify-center text-center">
+				<div class="max-w-sm space-y-4">
+					<p class="text-muted-foreground text-lg">
+						Selecciona una carrera para visualizar tu avance académico en {Calendario.sede}.
+					</p>
+				</div>
+			</div>
 		{/if}
-	</div>
+	</main>
 </div>
-
-<style>
-	::-webkit-scrollbar {
-		height: 6px;
-		width: 6px;
-	}
-
-	::-webkit-scrollbar-track {
-		background: #0a0a0c;
-	}
-
-	::-webkit-scrollbar-thumb {
-		background: #1e293b;
-		border-radius: 10px;
-	}
-
-	::-webkit-scrollbar-thumb:hover {
-		background: #334155;
-	}
-</style>

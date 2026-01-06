@@ -22,6 +22,10 @@
 	import Statistics from '../elements/Statistics.svelte';
 	import RamosList from '../elements/RamosList.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
+	import MaterialSymbolsGrid4x4 from '$lib/icons/MaterialSymbolsGrid4x4.svelte';
+	import { goto } from '$app/navigation';
+	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
+	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -98,6 +102,37 @@
 									Copiar selección
 								</MenuItem>
 
+								<MenuItem
+									disabled={!Calendario.ramos.length}
+									onclick={async () => {
+										// 1. Preparar Contexto
+										const tiempoNoInformado = Calendario.tiempoTraslado === -1;
+										const tiempoTraslado = tiempoNoInformado ? 60 : Calendario.tiempoTraslado;
+
+										const context = {
+											ramos: Calendario.ramos,
+											sede: Calendario.sede,
+											jornada: Calendario.jornada,
+											semestre: Calendario.semestre,
+											tiempoTraslado: tiempoTraslado,
+											esTiempoEstimado: tiempoNoInformado,
+											ventanas: Calendario.ventanas
+										};
+
+										// 2. Generar Prompt (Lógica extraída)
+										const prompt = await generateAIAnalysisPrompt(context);
+
+										// 3. Acción de UI
+										await navigator.clipboard.writeText(prompt);
+										alert(
+											'¡Diagnóstico copiado al portapapeles!\n\nPégalo en tu IA favorita (ChatGPT, Claude, Gemini) para recibir un análisis detallado.\n\nPara que la IA analice la materia específica, te recomendamos adjuntar los archivos de los programas (syllabus) de tus ramos directamente en el chat.'
+										);
+									}}
+								>
+									<MaterialSymbolsMagicButton class="mr-2 h-4 w-4" />
+									Prompt diagnóstico IA
+								</MenuItem>
+
 								<MenuItem onclick={exportScheduleAsImage} disabled={!Calendario.ramos.length}>
 									<Image class="mr-2 h-4 w-4" />
 									Exportar imagen
@@ -150,6 +185,20 @@
 										Horarios guardados
 									</p>
 								</Button>
+
+								<Tooltip wrapperClass="w-full" content="En desarrollo">
+									<Button
+										variant="secondary"
+										class="w-full text-nowrap"
+										onclick={() => goto('/malla')}
+										disabled={true}
+									>
+										<p>
+											<MaterialSymbolsGrid4x4 class="mr-2 inline scale-125" />
+											<s>Malla Curricular</s>
+										</p>
+									</Button>
+								</Tooltip>
 
 								<Button
 									variant="secondary"

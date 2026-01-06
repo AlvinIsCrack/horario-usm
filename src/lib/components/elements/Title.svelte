@@ -2,6 +2,7 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import Diffs from './Diffs.svelte';
+	import Changelog from './Changelog.svelte';
 
 	let visible = $state(false);
 	$effect(() => {
@@ -42,6 +43,9 @@
 			</div>
 			<div class="w-full text-center italic opacity-50">
 				Actualizado el {Data.updateDate?.format('dddd D [de] MMM/YYYY[, a las] HH:mm')}
+			</div>
+			<div class="mt-4">
+				<Changelog />
 			</div>
 		</div>
 

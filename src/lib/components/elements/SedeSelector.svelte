@@ -189,12 +189,9 @@
 </div>
 
 {#if selectedSede && selectedJornada && selectedSemestre}
-	<div class="mb-1" transition:fade>
-		<div class="mb-1 flex flex-row items-center gap-1 text-sm">
-			<MaterialSymbolsNestClockFarsightAnalogOutline
-				class="mr-1 inline h-3 w-3 scale-150 opacity-70"
-			/>
-			<p>Tiempo de Traslado (Ida)</p>
+	<div class="mb-2" transition:fade>
+		<div class="flex flex-row items-center gap-1 text-sm">
+			<p>Tiempo de Viaje</p>
 		</div>
 		<Select
 			class="w-full text-sm"
