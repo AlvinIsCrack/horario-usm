@@ -50,7 +50,7 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
         const minutosLibresPorHora = Math.round((minutesPermanencia - minutesAula) / (minutesAula / 60));
 
         out.push({
-            icon: icons.Timeline,
+            icon: icons.Brain,
             label: STAT_LABELS.EFICIENCIA,
             value: `${eficiencia}%`,
             tooltip: `Por cada 1 hora de clase, tienes <b>${minutosLibresPorHora} min</b> de espera/ventana.<br/><span class="opacity-70 text-xs">${mensaje}</span>`,
