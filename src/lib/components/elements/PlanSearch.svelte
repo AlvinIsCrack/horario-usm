@@ -37,7 +37,7 @@
 		...props
 	}: {
 		value?: string;
-		items: Array<{ label: string; value: string }>;
+		items: Array<{ label: string; value: string; plan: string; }>;
 		placeholder?: string;
 		disabled?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
