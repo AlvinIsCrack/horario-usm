@@ -55,6 +55,27 @@
 >
 	<div in:fade={{ delay: 500, duration: 500 }} class="h-full w-full">
 		{#if !activeWindow}
+			{#snippet sidebarButton(
+				text: string,
+				onclick: () => any,
+				Icon?: any,
+				variant?: string,
+				_class?: string
+			)}
+				<Button
+					variant={(variant as any) ?? undefined}
+					class="block h-auto flex-1 justify-start py-2 text-left leading-tight whitespace-normal {_class ??
+						''}"
+					{onclick}
+				>
+					<p class="display-[inherit] text-[inherit]">
+						{#if Icon}
+							<Icon class="mr-1 inline-block scale-125 align-middle" />
+						{/if}
+						{text}
+					</p>
+				</Button>
+			{/snippet}
 			<div
 				out:fade={{ delay: 400, duration: 50 }}
 				class="flex h-full w-full flex-col gap-2 {activeWindow ? 'pointer-events-none' : ''}"
@@ -73,28 +94,6 @@
 				</div> -->
 				<div class="h-min w-full">
 					{#if Calendario.sede}
-						{#snippet sidebarButton(
-							text: string,
-							onclick: () => any,
-							Icon?: any,
-							variant?: string,
-							_class?: string
-						)}
-							<Button
-								variant={(variant as any) ?? undefined}
-								class="block h-auto flex-1 justify-start py-2 text-left leading-tight whitespace-normal {_class ??
-									''}"
-								{onclick}
-							>
-								<p class="display-[inherit] text-[inherit]">
-									{#if Icon}
-										<Icon class="mr-1 inline-block scale-125 align-middle" />
-									{/if}
-									{text}
-								</p>
-							</Button>
-						{/snippet}
-
 						<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
 							{@render sidebarButton(
 								'Añadir ramo',
@@ -203,7 +202,7 @@
 
 							<Separator />
 							{#if !Calendario.visible}
-								<div class="flex flex-col gap-[inherit]">
+								<div class="flex flex-1 flex-col gap-[inherit]">
 									{@render sidebarButton(
 										'Horarios guardados',
 										() => (activeWindow = SavedHorariosWindow),
@@ -214,16 +213,6 @@
 										'Malla Interactiva',
 										() => goto(`${base}/malla`),
 										MaterialSymbolsGrid4x4,
-										'secondary'
-									)}
-									{@render sidebarButton(
-										'Comentarios, reclamos y sugerencias',
-										() =>
-											window.open(
-												'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
-												'_blank'
-											),
-										MaterialSymbolsFeedback,
 										'secondary'
 									)}
 								</div>
@@ -245,6 +234,17 @@
 					<Separator />
 					{#await import("$lib/components/elements/Me.svelte") then { default: Me }}
 						<Me />
+						<p
+							class="decoration-foreground/50 mt-1 cursor-pointer underline decoration-dashed opacity-50 hover:decoration-solid hover:opacity-100"
+							onclick={() =>
+								window.open(
+									'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
+									'_blank'
+								)}
+						>
+							<MaterialSymbolsFeedback class="mr-1 inline" />
+							Comentarios, reclamos y sugerencias
+						</p>
 					{/await}
 				</div>
 			</div>
