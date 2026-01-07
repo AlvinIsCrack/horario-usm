@@ -142,13 +142,13 @@
 				<div class="flex items-center gap-2">
 					{#if mallaState.selectedPlanId}
 						<span class="text-muted-foreground text-sm">
-							{mallaState.stats.percent}% completado • {mallaState.stats.creditos} SCT
+							<span class="text-foreground">{mallaState.stats.percent}% completado</span> • {mallaState.stats.creditos} SCT
 						</span>
 					{/if}
 				</div>
 
 				<div
-					class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-[10px] font-bold md:text-xs"
+					class="text-muted-foreground select-none flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-[10px] font-bold md:text-xs"
 				>
 					<div class="flex items-center gap-1.5">
 						<span class="size-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
@@ -305,11 +305,9 @@
 									onmouseleave={() => (mallaState.hoverSig = null)}
 									class={card({
 										status,
-										relation
+										relation,
 									})}
-									{...!['self', 'none'].includes(relation)
-										? { style: `transition-delay: ${delay}ms;` }
-										: {}}
+									style:transition-delay={!['self', 'none'].includes(relation) ? `${delay}ms` : '0ms'}
 								>
 									<span class={cardSigla({ status })}>{ramo.sigla}</span>
 									<Tooltip content={mallaState.customNames[ramo.sigla] || ramo.nombre}>
