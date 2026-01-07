@@ -27,6 +27,7 @@
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
 	import UserData from '../elements/UserData.svelte';
+	import { base } from '$app/paths';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -211,7 +212,7 @@
 									)}
 									{@render sidebarButton(
 										'Malla Curricular',
-										() => goto('/malla'),
+										() => goto(`${base}/malla`),
 										MaterialSymbolsGrid4x4,
 										'secondary'
 									)}

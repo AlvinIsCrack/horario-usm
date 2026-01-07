@@ -108,7 +108,7 @@
 	});
 
 	const contentStyle = tv({
-		base: 'fixed left-[50%] top-[50%] pointer-events-auto z-101 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border-2 bg-popover p-6 shadow-lg duration-200 sm:rounded-lg md:w-full'
+		base: 'fixed left-[50%] top-[50%] pointer-events-auto z-101 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border-2 bg-popover p-6 shadow-lg duration-200 rounded-lg overflow-hidden md:w-full'
 	});
 
 	const titleStyle = tv({
