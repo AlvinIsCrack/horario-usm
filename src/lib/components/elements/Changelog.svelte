@@ -16,9 +16,10 @@
 			description:
 				'Ahora la sede de Viña del Mar está disponible en el selector de sedes, gracias por avisar ;(, era solo una línea en código.'
 		},
-		'Malla Curricular': {
+		'Malla Interactiva': {
 			icon: MaterialSymbolsGrid4x4,
-			description: 'Volvió la malla curricular. Está aún en prueba, pero funciona lo básico.'
+			description:
+				'Volvió la malla interactiva. Ofrece mejor visualización de relaciones entre ramos. Está aún en prueba, pero funciona lo básico.'
 		},
 		'Prompt para IA': {
 			icon: MaterialSymbolsMagicButton,

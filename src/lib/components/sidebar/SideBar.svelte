@@ -211,7 +211,7 @@
 										'secondary'
 									)}
 									{@render sidebarButton(
-										'Malla Curricular',
+										'Malla Interactiva',
 										() => goto(`${base}/malla`),
 										MaterialSymbolsGrid4x4,
 										'secondary'
