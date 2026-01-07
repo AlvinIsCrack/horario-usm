@@ -1,8 +1,31 @@
 import { onMount } from 'svelte';
 import { fetchMallaData } from './data';
 import type { Malla, RamoMalla } from './types';
+import { Calendario } from '$lib/states/calendario.svelte';
+import { Data } from '$lib/data/data.svelte';
 
 export class MallaState {
+    _selectedSede = $state<string>('');
+    _selectedJornada = $state<string>('');
+
+    // Getters y Setters para Sede y Jornada
+    get selectedSede() { return this._selectedSede; }
+    set selectedSede(value: string) {
+        if (this._selectedSede === value) return;
+        this._selectedSede = value;
+        // Al cambiar sede, reseteamos plan y validamos jornada
+        this.selectedPlanId = '';
+        this.validateJornada();
+    }
+
+    get selectedJornada() { return this._selectedJornada; }
+    set selectedJornada(value: string) {
+        if (this._selectedJornada === value) return;
+        this._selectedJornada = value;
+        // Al cambiar jornada, reseteamos plan
+        this.selectedPlanId = '';
+    }
+
     selectedPlanId = $state<string>('');
     approvedSigs = $state<Set<string>>(new Set());
     customNames = $state<Record<string, string>>({});
@@ -111,19 +134,50 @@ export class MallaState {
     });
 
     constructor() {
-        onMount(() => {
+        // 1. Cargar Estado (Síncrono si es posible, o en onMount)
+        // Usamos variables privadas (_) para NO activar los setters y borrar el planId
+        if (typeof localStorage !== 'undefined') {
             const saved = localStorage.getItem('malla_progress');
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
+                    this._selectedSede = data.sede || Calendario.sede;
+                    this._selectedJornada = data.jornada || Calendario.jornada;
                     this.selectedPlanId = data.planId || '';
                     this.approvedSigs = new Set(data.approved || []);
                     this.customNames = data.customNames || {};
                 } catch (e) {
                     console.error('Error loading state', e);
+                    this._selectedSede = Calendario.sede;
+                    this._selectedJornada = Calendario.jornada;
                 }
+            } else {
+                this._selectedSede = Calendario.sede;
+                this._selectedJornada = Calendario.jornada;
             }
+        }
+
+        // 2. Auto-guardado Reactivo (Svelte 5 Effect en constructor vincula al componente)
+        $effect(() => {
+            const data = {
+                planId: this.selectedPlanId,
+                approved: Array.from(this.approvedSigs),
+                customNames: this.customNames,
+                sede: this._selectedSede,
+                jornada: this._selectedJornada
+            };
+            localStorage.setItem('malla_progress', JSON.stringify(data));
         });
+    }
+
+    validateJornada() {
+        if (
+            this._selectedSede &&
+            Data.jornadasCarreras[this._selectedSede] &&
+            !Data.jornadasCarreras[this._selectedSede].includes(this._selectedJornada)
+        ) {
+            this._selectedJornada = Data.jornadasCarreras[this._selectedSede][0] || '';
+        }
     }
 
     findRamo(sigla: string): RamoMalla | null {

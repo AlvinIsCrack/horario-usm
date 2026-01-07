@@ -1,11 +1,11 @@
-import { tv } from 'tailwind-variants';
+import { tv } from "tailwind-variants";
 
 export const cardStyles = tv({
-    base: 'relative flex hover:cursor-pointer h-30 hover:ring-2 ring-0 ring-ring shadow-sm flex-col w-40 p-4 transition-[background-color,border-color,color,box-shadow,filter] duration-200 ease-out select-none border-2 text-left rounded-lg',
+    base: 'relative flex hover:cursor-pointer h-26 xl:h-28 2xl:h-30 w-36 xl:w-38 2xl:w-40 p-2 xl:p-3 2xl:p-4 transition-[background-color,border-color,color,box-shadow,filter] duration-500 ease-out select-none border-2 text-left rounded-lg hover:ring-2 ring-0 ring-ring shadow-sm flex-col',
     slots: {
-        title: 'my-1 z-10 line-clamp-2 w-full text-wrap text-sm leading-4 font-bold',
-        credits: 'text-muted-foreground text-xs font-black',
-        sigla: 'text-primary/80 mb-auto text-xs font-bold tracking-wider font-mono uppercase'
+        title: 'my-1 z-10 line-clamp-2 w-full text-wrap text-xs 2xl:text-sm leading-3 xl:leading-4 font-bold',
+        credits: 'font-mono text-[10px] xl:text-xs 2xl:text-sm font-semibold opacity-80',
+        sigla: 'absolute bottom-1 right-2 xl:bottom-2 xl:right-3 text-[9px] xl:text-[10px] 2xl:text-xs font-black opacity-50 tracking-wider',
     },
     variants: {
         status: {

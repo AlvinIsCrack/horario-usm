@@ -17,11 +17,10 @@
 	import Lock from '$lib/icons/lock.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 
-	// Instanciar Estado
+	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
-	let selectedSede: string = $state(Calendario.sede);
-	let selectedJornada: string = $state(Calendario.jornada);
-	let careerOptions = $derived(getCareerOptions(Calendario.sede, selectedJornada));
+	// Usamos el estado derivado de mallaState directamente
+	let careerOptions = $derived(getCareerOptions(mallaState.selectedSede, mallaState.selectedJornada));
 
 	// --- Lógica de Interacción (Visual + Eventos) ---
 	function handleRamoClick(ramo: RamoMalla) {
@@ -97,22 +96,6 @@
 
 	// Desestructurar estilos para el template
 	const { base: card, credits: cardCredits, title: cardTitle, sigla: cardSigla } = cardStyles();
-
-	// Actualiza la jornada cuando cambia la sede
-	$effect(() => {
-		if (
-			selectedSede &&
-			Data.jornadasCarreras[selectedSede] &&
-			!Data.jornadasCarreras[selectedSede].includes(selectedJornada)
-		)
-			selectedJornada = Data.jornadasCarreras[selectedSede][0] || '';
-	});
-
-	// Actualiza la carrera cuando cambia la jornada
-	$effect(() => {
-		const _ = [selectedJornada, selectedSede];
-		mallaState.selectedPlanId = '';
-	});
 </script>
 
 <div class="flex h-screen w-full flex-col overflow-hidden">
@@ -184,7 +167,7 @@
 						placeholder="Selecciona una sede..."
 						class="w-full"
 						items={Data.sedes.map((s) => ({ value: s }))}
-						bind:value={selectedSede}
+						bind:value={mallaState.selectedSede}
 					/>
 				</div>
 
@@ -192,8 +175,8 @@
 					<p class="text-muted-foreground text-xs font-bold uppercase">Jornada</p>
 					<Select
 						class="w-full"
-						items={Data.jornadasCarreras[selectedSede].map((j) => ({ value: j }))}
-						bind:value={selectedJornada}
+						items={Data.jornadasCarreras[mallaState.selectedSede]?.map((j) => ({ value: j })) || []}
+						bind:value={mallaState.selectedJornada}
 					/>
 				</div>
 
@@ -222,7 +205,7 @@
 		></div>
 
 		{#if mallaState.currentMalla.length > 0}
-			<div class="relative flex gap-2 pb-2" bind:this={containerRef}>
+			<div class="relative flex flex-row justify-center gap-2 pb-2" bind:this={containerRef}>
 				<svg class="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
 					{#each connections as conn, i (conn.path + conn.type)}
 						{@const color =
