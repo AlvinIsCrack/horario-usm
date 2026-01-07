@@ -212,7 +212,7 @@
 		class="relative flex-1 overflow-auto p-3.5"
 	>
 		<div
-			class="pointer-events-none fixed inset-0 top-0 left-0 z-[5] bg-black/30 transition-opacity duration-300"
+			class="pointer-events-none fixed inset-0 top-0 left-0 z-[5] bg-black/30 transition-opacity duration-500"
 			class:opacity-0={!mallaState.hoverSig}
 			class:opacity-100={!!mallaState.hoverSig}
 		></div>

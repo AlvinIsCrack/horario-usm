@@ -2,7 +2,7 @@
 	import jsonlContent from '$lib/data/historial_cambios.jsonl?raw';
 	import dayjs from 'dayjs';
 	import relativeTime from 'dayjs/plugin/relativeTime';
-	import 'dayjs/locale/es'; // Asegúrate de tener esto o configura tu locale
+	import 'dayjs/locale/es';
 	import { tv } from 'tailwind-variants';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import Badge from '../ui/Badge.svelte';
@@ -11,7 +11,7 @@
 	dayjs.extend(relativeTime);
 	dayjs.locale('es');
 
-	// --- Definición de Tipos del Reporte (Mismos que definimos) ---
+	// --- Definición de Tipos del Reporte ---
 
 	interface ReporteCambios {
 		metadata: {
@@ -29,7 +29,8 @@
 		| EventoParaleloEstado
 		| EventoCambioCupo
 		| EventoCambioProfesor
-		| EventoCambioHorario;
+		| EventoCambioHorario
+		| EventoCambioMetadata; // [NUEVO] Para Nombre y Departamento
 
 	// 1. Estructurales
 	type EventoEstructural = EventoSede | EventoJornada | EventoPeriodo;
@@ -110,9 +111,21 @@
 		asignatura: string;
 		timestamp: number;
 		detalle: {
-			logistica: string[];
+			logistica: string[]; // Ahora incluye cambios de Campus, Sala, Tipo, Profe
 			bloques_nuevos: number;
 			bloques_eliminados: number;
+		};
+	}
+	// [NUEVO] Interfaz para cambios de metadatos (Nombre, Depto)
+	interface EventoCambioMetadata {
+		tipo: 'CAMBIO_NOMBRE' | 'CAMBIO_DEPARTAMENTO';
+		entidad: 'PARALELO';
+		ruta: ContextoParalelo;
+		asignatura: string;
+		timestamp: number;
+		detalle: {
+			anterior: string;
+			nuevo: string;
 		};
 	}
 
@@ -121,11 +134,11 @@
 	interface ResumenAsignatura {
 		sigla: string;
 		nombre: string;
-		tipos: Set<string>; // 'CUPO', 'HORARIO', 'PROFESOR', 'ESTADO'
+		tipos: Set<string>; // 'CUPO', 'HORARIO', 'PROFESOR', 'ESTADO', 'METADATA'
 		cupoDelta: number;
 		cupoAperturas: number;
-		alertas: string[]; // Mensajes legibles (ej: "Profesor cambiado en P-1")
-		esCritico: boolean; // Si hubo cierre, eliminación o cambio horario
+		alertas: string[];
+		esCritico: boolean;
 		conteoEventos: number;
 	}
 
@@ -147,7 +160,6 @@
 
 	// --- Lógica de Procesamiento ---
 
-	// 2. Parseo inicial único (Estático, no depende de la Sede/Jornada)
 	const rawData: ReporteCambios[] = (() => {
 		try {
 			return jsonlContent
@@ -161,53 +173,38 @@
 		}
 	})();
 
-	// 3. Helper para filtrar eventos según el contexto actual
 	function esEventoRelevante(ev: EventoDiff, sedeActual: string, jornadaActual: string): boolean {
-		// A. Eventos de Sede (Nivel Alto)
 		if (ev.tipo === 'NUEVA_SEDE' || (ev.tipo === 'ELIMINACION_MASIVA' && ev.nivel === 'SEDE')) {
 			return ev.nombre === sedeActual;
 		}
-
-		// B. Eventos de Jornada (Nivel Medio)
 		if (
 			ev.tipo === 'NUEVA_JORNADA' ||
 			(ev.tipo === 'ELIMINACION_MASIVA' && ev.nivel === 'JORNADA')
 		) {
 			return ev.ruta.sede === sedeActual && ev.nombre === jornadaActual;
 		}
-
-		// C. Eventos Específicos (Periodo, Asignatura, Paralelo)
-		// Todos estos tienen `ruta` con `sede` y `jornada`
 		if ('ruta' in ev && 'sede' in ev.ruta && 'jornada' in ev.ruta) {
 			return ev.ruta.sede === sedeActual && ev.ruta.jornada === jornadaActual;
 		}
-
 		return false;
 	}
 
-	// 4. Estado Derivado Reactivo: Recalcula cuando cambia Calendario.sede o Calendario.jornada
 	let historial = $derived.by(() => {
 		const sede = Calendario.sede;
 		const jornada = Calendario.jornada;
 
-		// Si no hay contexto seleccionado, ¿mostramos todo o nada?
-		// Asumiremos que si no hay selección, no hay historial relevante para "tu" horario.
 		if (!sede || !jornada) return [];
 
 		return rawData
 			.map((data) => {
-				// Filtramos los eventos crudos antes de procesarlos
 				const eventosFiltrados = data.eventos.filter((ev) => esEventoRelevante(ev, sede, jornada));
 
-				// Si no queda ningún evento tras filtrar, descartamos este grupo temporal
 				if (eventosFiltrados.length === 0) return null;
 
 				const mapAsignaturas = new Map<string, ResumenAsignatura>();
 				const itemsEstructurales: ItemEstructural[] = [];
 
 				for (const ev of eventosFiltrados) {
-					// --- Lógica de Agrupación (Idéntica a la anterior, pero sobre filtrados) ---
-
 					// 1. Manejo Estructural
 					if (
 						ev.tipo === 'ELIMINACION_MASIVA' ||
@@ -232,7 +229,6 @@
 					let sigla = '';
 					let nombreAsig = '';
 
-					// TypeScript guard para acceder a propiedades específicas
 					//@ts-ignore
 					if (ev.entidad === 'ASIGNATURA') {
 						//@ts-ignore
@@ -294,6 +290,7 @@
 						case 'CAMBIO_HORARIO':
 							r.tipos.add('HORARIO');
 							r.esCritico = true;
+							// La logística ahora puede incluir cambios de Campus
 							if (ev.detalle.logistica.length > 0) {
 								r.alertas.push(
 									`P${ev.ruta.paralelo}: ${ev.detalle.logistica[0]}` +
@@ -308,6 +305,15 @@
 							const entra = ev.detalle.entrantes.join(', ');
 							const sale = ev.detalle.salientes.join(', ');
 							r.alertas.push(`P${ev.ruta.paralelo}: ${sale || '?'} -> ${entra || '?'}`);
+							break;
+						// [NUEVO] Casos para Metadatos
+						case 'CAMBIO_NOMBRE':
+							r.tipos.add('METADATA');
+							r.alertas.push(`Nombre actualizado: ${ev.detalle.anterior} -> ${ev.detalle.nuevo}`);
+							break;
+						case 'CAMBIO_DEPARTAMENTO':
+							r.tipos.add('METADATA');
+							r.alertas.push(`Depto. actualizado: ${ev.detalle.anterior} -> ${ev.detalle.nuevo}`);
 							break;
 					}
 				}
@@ -326,11 +332,9 @@
 			.reverse();
 	});
 
-	// --- Lógica de Estado de Expansión Mejorada ---
 	let isExpanded = $state(true);
 	let leaveTimer: ReturnType<typeof setTimeout>;
 
-	// Auto-colapso inicial
 	$effect(() => {
 		const timer = setTimeout(() => {
 			isExpanded = false;
@@ -344,7 +348,6 @@
 	}
 
 	function handleMouseLeave() {
-		// Delay para evitar cierres accidentales (flicker)
 		leaveTimer = setTimeout(() => {
 			isExpanded = false;
 		}, 450);
@@ -358,21 +361,15 @@
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
 				'flex items-baseline gap-2 px-1 text-[10px] -mb-1 font-bold uppercase tracking-wide text-muted-foreground',
-			// Cards
 			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-1',
 			cardStructural: 'mx-1 rounded-md border border-dashed px-2 py-1 text-xs font-medium',
-
-			// Elementos internos
 			indicador: 'h-2 w-2 rounded-full shrink-0',
-			content: 'flex min-w-0 flex-1 flex-col', // Stack vertical para nombre y alertas
+			content: 'flex min-w-0 flex-1 flex-col',
 			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
-
 			sigla: 'font-mono text-sm font-black tracking-wide text-foreground',
 			nombre: 'truncate text-xs font-medium text-foreground/70',
-
 			badgesRow: 'flex flex-wrap gap-1',
 			alertaTexto: 'truncate text-xs font-normal text-muted-foreground/80',
-
 			stats: 'ml-auto flex shrink-0 items-center gap-2 text-xs'
 		},
 		variants: {
@@ -387,27 +384,23 @@
 				INFO: { cardStructural: 'border-blue-500/50 bg-blue-500/10 text-blue-600' }
 			},
 			expanded: {
-				true: {
-					container: 'max-h-100 opacity-100'
-				},
-				false: {
-					container: 'max-h-30 opacity-60! scale-90'
-				}
+				true: { container: 'max-h-100 opacity-100' },
+				false: { container: 'max-h-30 opacity-60! scale-90' }
 			}
 		}
 	});
 
 	const s = diffs();
 
-	// Helper para determinar color del indicador
 	function getStatus(r: ResumenAsignatura) {
 		if (r.tipos.has('RETIRO') || r.tipos.has('ELIMINADO_PARALELO')) return 'neg';
 		if (r.cupoAperturas > 0 || r.tipos.has('NUEVA') || r.cupoDelta > 0) return 'pos';
 		if (r.esCritico || r.tipos.has('HORARIO')) return 'warn';
+		// Los cambios de Metadata los tratamos como neutrales/info
+		if (r.tipos.has('METADATA')) return 'neu';
 		return 'neu';
 	}
 
-	// Helper para texto del tooltip del estado (el punto de color)
 	function getStatusTooltip(r: ResumenAsignatura): string {
 		if (r.tipos.has('RETIRO')) return 'Asignatura Retirada';
 		if (r.tipos.has('ELIMINADO_PARALELO')) return 'Paralelo Eliminado';
@@ -415,8 +408,9 @@
 		if (r.cupoAperturas > 0) return 'Apertura de Cupos (Nuevo)';
 		if (r.cupoDelta > 0) return 'Aumento de Cupos';
 		if (r.cupoDelta < 0) return 'Disminución de Cupos';
-		if (r.tipos.has('HORARIO')) return 'Cambio de Horario Logístico';
+		if (r.tipos.has('HORARIO')) return 'Cambio de Horario/Campus';
 		if (r.tipos.has('PROFESOR')) return 'Cambio de Profesor';
+		if (r.tipos.has('METADATA')) return 'Actualización de Datos (Nombre/Depto)';
 		return 'Evento registrado';
 	}
 </script>
@@ -524,22 +518,22 @@
 <style>
 	/* Estilo para Chrome, Edge, Safari */
 	.scroller::-webkit-scrollbar {
-		width: 6px; /* Ancho delgado */
+		width: 6px;
 	}
 
 	.scroller::-webkit-scrollbar-track {
-		background: transparent; /* Fondo invisible */
+		background: transparent;
 	}
 
 	.scroller::-webkit-scrollbar-thumb {
-		background-color: rgba(156, 163, 175, 0.3); /* Color gris sutil y translúcido */
-		border-radius: 20px; /* Bordes totalmente redondeados */
-		border: 2px solid transparent; /* Truco para 'encoger' visualmente el thumb si se quiere más fino, o quitar si se quiere sólido */
+		background-color: rgba(156, 163, 175, 0.3);
+		border-radius: 20px;
+		border: 2px solid transparent;
 		background-clip: content-box;
 	}
 
 	.scroller::-webkit-scrollbar-thumb:hover {
-		background-color: rgba(156, 163, 175, 0.6); /* Un poco más oscuro al pasar el mouse */
+		background-color: rgba(156, 163, 175, 0.6);
 	}
 
 	/* Estilo para Firefox */

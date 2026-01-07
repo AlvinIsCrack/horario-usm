@@ -2,12 +2,15 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { tv } from 'tailwind-variants';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import Button from '$lib/components/ui/Button.svelte';
 	import Search from '$lib/icons/search.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { debounce } from 'lodash';
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
+
+	import { MallaState } from '$lib/logic/malla/malla.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import { tick, untrack } from 'svelte';
 
 	const inputStyle = tv({
 		base: 'border border-input bg-input rounded-md p-2 w-full transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none flex items-center gap-2 shadow-sm'
@@ -51,6 +54,68 @@
 	let itemNodes: Array<HTMLLIElement> = $state([]);
 	let containerEl: HTMLDivElement | undefined = $state();
 
+	// --- Lógica de Malla Interactiva ---
+	const mallaState = new MallaState();
+
+	// Estado del filtro: 'none' | 'malla' | 'available'
+	let filterMode = $state<'none' | 'malla' | 'available'>('none');
+
+	// Opciones del Select con redacción formal
+	const filterOptions = [
+		{ value: 'none', label: 'Mostrar todos los ramos' },
+		{ value: 'malla', label: 'Solo asignaturas de tu carrera' },
+		{ value: 'available', label: 'Solo asignaturas matriculables' }
+	];
+
+	// Compatibilidad: plan seleccionado y coincidencia de Sede/Jornada
+	const isMallaCompatible = $derived(
+		!!mallaState.selectedPlanId &&
+			mallaState.selectedSede === Calendario.sede &&
+			mallaState.selectedJornada === Calendario.jornada
+	);
+
+	// Resetear filtro si deja de ser compatible
+	$effect(() => {
+		if (!isMallaCompatible) filterMode = 'none';
+	});
+
+	$effect(() => {
+		// Dependencia: se ejecuta cuando cambia el modo de filtro
+		const _ = [filterMode];
+
+		untrack(() => {
+			// Si cambió el filtro, asumimos interacción del usuario.
+			// Cancelamos el timeout de cierre (si el click en la opción robó el foco)
+			clearTimeout(blurTimeout);
+
+			// Aseguramos que el estado sea 'abierto'
+			if (!isFocused) isFocused = true;
+
+			// Devolvemos el foco al input amablemente
+			tick().then(() => {
+				_this?.focus();
+			});
+		});
+	});
+
+	// Derivados para optimizar la búsqueda
+	const allowedSiglas = $derived.by(() => {
+		if (!isMallaCompatible) return new Set<string>();
+		const s = new Set<string>();
+		mallaState.rawMalla.flat().forEach((r) => s.add(r.sigla));
+		return s;
+	});
+
+	const availableSiglas = $derived.by(() => {
+		if (!isMallaCompatible) return new Set<string>();
+		const s = new Set<string>();
+		// 'available' = ni aprobado (checked) ni bloqueado (locked)
+		mallaState.currentMalla.flat().forEach((r) => {
+			if (!r.checked && !r.locked) s.add(r.sigla);
+		});
+		return s;
+	});
+
 	const updateDebouncedQuery = debounce((query: string) => {
 		debouncedQuery = query;
 	}, 200);
@@ -71,12 +136,17 @@
 			.split(/\s+|\*+/g)
 			.filter(Boolean);
 
-		// Limitamos resultados a 20 para mejorar rendimiento de renderizado
 		let count = 0;
 		const results = [];
 		const entries = cachedRamos;
 
 		for (const [k, paralelos] of entries) {
+			// --- Lógica de Filtro ---
+			if (isMallaCompatible && filterMode !== 'none') {
+				if (filterMode === 'malla' && !allowedSiglas.has(k)) continue;
+				if (filterMode === 'available' && !availableSiglas.has(k)) continue;
+			}
+
 			const ramo = Object.values(paralelos).at(0);
 			if (!ramo) continue;
 
@@ -94,6 +164,8 @@
 				results.push([k, paralelos] as const);
 				count++;
 			}
+			// Aumentamos el límite si hay filtro activo para mostrar más opciones relevantes
+			if (count >= (filterMode !== 'none' ? 100 : 20)) break;
 		}
 		return results;
 	});
@@ -130,14 +202,13 @@
 		}
 	}
 
+	let blurTimeout: any;
 	function onItemClicked(sigla: string) {
+		clearTimeout(blurTimeout);
 		value = sigla;
 		query = '';
 		isFocused = false;
 		_this?.blur();
-
-		// Opcional: Añadir lógica directa para agregar si el componente lo manejara,
-		// pero por ahora solo emitimos/seleccionamos el valor.
 	}
 </script>
 
@@ -161,7 +232,7 @@
 			aria-controls="listbox-ramo-search"
 			aria-expanded={isFocused}
 			onfocus={() => !disabled && (isFocused = true)}
-			onblur={() => setTimeout(() => (isFocused = false), 100)}
+			onblur={() => (blurTimeout = setTimeout(() => (isFocused = false), 100))}
 			onkeydown={handleKeydown}
 		/>
 	</div>
@@ -180,20 +251,53 @@
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-ramo-search"
+			onmousedown={(e) => {
+				// Evita que clicks en la lista (scroll, items vacíos) roben foco
+				if (e.target instanceof HTMLElement && ['INPUT', 'TEXTAREA'].includes(e.target.tagName))
+					return;
+				e.preventDefault();
+			}}
 		>
 			<div class="relative p-3 px-4 text-sm">
 				<p>
 					Para el semestre <span class="highlight">{Calendario.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
 				</p>
-				{#if query.length}
-					{#await filteredItems then items}
-						{#if cachedRamos.length !== items.length}
-							<p transition:slide={{ axis: 'y' }}>
+
+				{#await filteredItems then items}
+					<div transition:slide={{ axis: 'y' }} class="mt-1 flex flex-col gap-0.5">
+						{#if query.length && cachedRamos.length !== items.length}
+							<p>
 								Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
 							</p>
 						{/if}
-					{/await}
+
+						{#if filterMode === 'malla'}
+							<p>
+								Mostrando <span class="highlight tertiary">{items.length}</span> ramos de tu carrera.
+							</p>
+						{:else if filterMode === 'available'}
+							<p>
+								Mostrando <span class="highlight tertiary">{items.length}</span> ramos matriculables
+								de tu carrera.
+							</p>
+						{/if}
+					</div>
+				{/await}
+
+				{#if isMallaCompatible}
+					<div
+						transition:slide={{ axis: 'y' }}
+						class="w-full py-2"
+						onmousedown={(e) => e.preventDefault()}
+					>
+						<Select
+							items={filterOptions}
+							bind:value={filterMode}
+							class="w-full"
+							placeholder="Filtrar búsqueda..."
+						/>
+					</div>
 				{/if}
 				<div
 					class="border-border relative bottom-0 mt-auto w-full translate-y-2 scale-x-200 border-b"
@@ -273,6 +377,10 @@
 	.highlight {
 		&.secondary {
 			color: var(--color-amber-500);
+		}
+
+		&.tertiary {
+			color: oklch(0.5 0.2 25);
 		}
 
 		color: var(--color-primary);

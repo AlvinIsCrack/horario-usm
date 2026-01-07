@@ -65,42 +65,29 @@ def get_git_revision_short_hash():
 
 def _canonicalizar_horario(lista_horario):
     """
-    Convierte la lista de horarios en un formato comparable e inmune al orden de la lista original.
-    Retorna un set de tuplas (hashables).
-    Clave de identidad: (dia, bloque) -> Lo demás son atributos cambiantes.
+    Convierte la lista de horarios en un formato comparable.
+    Ahora incluye CAMPUS para evitar colisiones de sedes o cambios de ubicación mayor.
+    Estructura tupla: (dia, bloque, sala, tipo, profesor_bloque, campus)
     """
     if not lista_horario:
         return set()
     
-    # Estructura normalizada: (dia, bloque, sala, tipo, profesor_bloque)
     return set(
         (
             h.get('dia'), 
             h.get('bloque'), 
             h.get('sala', '').strip(), 
             h.get('tipo', '').strip(), 
-            h.get('profesor', '').strip()
+            h.get('profesor', '').strip(),
+            h.get('campus', '').strip() # ¡CRÍTICO! Faltaba esto.
         ) 
         for h in lista_horario
     )
 
-def _detectar_cambios_profesores(profes_old, profes_new):
-    """Compara listas de profesores titulares (ignorando orden)."""
-    set_old = set(p.strip() for p in profes_old)
-    set_new = set(p.strip() for p in profes_new)
-    
-    if set_old == set_new:
-        return None
-        
-    return {
-        "entrantes": list(set_new - set_old),
-        "salientes": list(set_old - set_new)
-    }
-
 def _comparar_paralelo(ctx, sigla, par_cod, data_old, data_new):
     """
-    Analiza un paralelo específico en busca de cambios granulares.
-    ctx: Diccionario con {sede, jornada, periodo}
+    Analiza un paralelo específico buscando CUALQUIER discrepancia.
+    Cubre: Cupos, Profesores, Horario (Sala, Tipo, Profe, Campus) y Metadatos (Nombre, Depto).
     """
     cambios = []
     base_event = {
@@ -110,10 +97,25 @@ def _comparar_paralelo(ctx, sigla, par_cod, data_old, data_new):
         "timestamp": int(time.time())
     }
 
-    # 1. Cambio de Cupos
+    # 1. Integridad de Metadatos (Nombre y Departamento)
+    # A veces corrigen typos o cambian la unidad académica.
+    for field in ['nombre', 'departamento']:
+        val_old = data_old.get(field, '').strip()
+        val_new = data_new.get(field, '').strip()
+        if val_old != val_new:
+            cambios.append({
+                **base_event,
+                "tipo": f"CAMBIO_{field.upper()}",
+                "detalle": {
+                    "anterior": val_old,
+                    "nuevo": val_new
+                }
+            })
+
+    # 2. Cambio de Cupos
     if data_old['cupo'] != data_new['cupo']:
         diff = data_new['cupo'] - data_old['cupo']
-        es_oportunidad = diff > 0 and data_old['cupo'] == 0 # Estaba cerrado y se abrió
+        es_oportunidad = diff > 0 and data_old['cupo'] == 0
         
         cambios.append({
             **base_event,
@@ -127,7 +129,7 @@ def _comparar_paralelo(ctx, sigla, par_cod, data_old, data_new):
             }
         })
 
-    # 2. Cambio de Profesores (Cátedra)
+    # 3. Cambio de Profesores (Cátedra Principal)
     diff_profes = _detectar_cambios_profesores(data_old.get('profesor', []), data_new.get('profesor', []))
     if diff_profes:
         cambios.append({
@@ -136,44 +138,70 @@ def _comparar_paralelo(ctx, sigla, par_cod, data_old, data_new):
             "detalle": diff_profes
         })
 
-    # 3. Cambio de Horario (Complejo)
-    # Usamos sets para detectar si el CONTENIDO real cambió, ignorando el orden de la lista
+    # 4. Cambio de Horario (Análisis Profundo)
     sched_old = _canonicalizar_horario(data_old.get('horario', []))
     sched_new = _canonicalizar_horario(data_new.get('horario', []))
 
     if sched_old != sched_new:
-        # Analizar qué cambió
         bloques_agregados = sched_new - sched_old
         bloques_quitados = sched_old - sched_new
         
-        # Intentar correlacionar cambios (mismo dia/bloque, diferente sala/profe)
-        map_old = {(x[0], x[1]): x for x in bloques_quitados} # Key: Dia, Bloque
+        # Mapeamos lo antiguo por (Dia, Bloque) para detectar modificaciones in-situ
+        # Tupla índices: 0:Dia, 1:Bloque, 2:Sala, 3:Tipo, 4:Profesor, 5:Campus
+        map_old = {(x[0], x[1]): x for x in bloques_quitados}
+        
         cambios_logistica = []
         nuevos_bloques_reales = []
         
         for bloque in bloques_agregados:
-            key = (bloque[0], bloque[1])
+            key = (bloque[0], bloque[1]) # (Dia, Bloque)
+            
             if key in map_old:
-                # Es una MODIFICACIÓN de un bloque existente
+                # Es el mismo bloque horario, pero algo cambió dentro
                 b_old = map_old[key]
                 modificaciones = []
-                if b_old[2] != bloque[2]: modificacion = f"Sala {b_old[2]} -> {bloque[2]}"
-                if b_old[4] != bloque[4]: modificacion = f"Prof. {b_old[4]} -> {bloque[4]}"
-                cambios_logistica.append(f"{DIAS_INV.get(key[0], key[0])} {key[1]}: {', '.join(modificaciones)}")
+                
+                # Comparación campo a campo
+                if b_old[2] != bloque[2]: modificaciones.append(f"Sala {b_old[2]} -> {bloque[2]}")
+                if b_old[3] != bloque[3]: modificaciones.append(f"Tipo {b_old[3]} -> {bloque[3]}")
+                if b_old[4] != bloque[4]: modificaciones.append(f"Prof. {b_old[4]} -> {bloque[4]}")
+                if b_old[5] != bloque[5]: modificaciones.append(f"Campus {b_old[5]} -> {bloque[5]}")
+                
+                if modificaciones:
+                    dia_nom = DIAS_INV.get(key[0], key[0])
+                    cambios_logistica.append(f"{dia_nom} {key[1]}: {', '.join(modificaciones)}")
             else:
                 nuevos_bloques_reales.append(bloque)
+
+        # Calculamos eliminados puros (los que no eran modificaciones)
+        # Si un bloque viejo fue usado para matchear una modificación, no cuenta como eliminado puro.
+        count_modificados = len(cambios_logistica)
+        count_eliminados_reales = len(bloques_quitados) - count_modificados
 
         cambios.append({
             **base_event,
             "tipo": "CAMBIO_HORARIO",
             "detalle": {
-                "logistica": cambios_logistica, # Cambios de sala/profe en mismo bloque
+                "logistica": cambios_logistica,
                 "bloques_nuevos": len(nuevos_bloques_reales),
-                "bloques_eliminados": len(bloques_quitados) - len(cambios_logistica)
+                "bloques_eliminados": count_eliminados_reales
             }
         })
 
     return cambios
+
+def _detectar_cambios_profesores(profes_old, profes_new):
+    """Compara listas de profesores titulares (ignorando orden)."""
+    set_old = set(p.strip() for p in profes_old)
+    set_new = set(p.strip() for p in profes_new)
+    
+    if set_old == set_new:
+        return None
+        
+    return {
+        "entrantes": list(set_new - set_old),
+        "salientes": list(set_old - set_new)
+    }
 
 # --- Lógica de Diff Principal ---
 # Necesitamos invertir el mapa de días para logs legibles
