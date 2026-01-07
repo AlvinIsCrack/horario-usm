@@ -26,10 +26,20 @@ if __name__ == "__main__":
 
     # Flag para ignorar ejecución
     parser.add_argument("--ignore", action="store_true", help="Salir exitosamente sin hacer nada")
+    # Flag para modo prueba/depuración
+    parser.add_argument("--dry-run", action="store_true", help="Ejecuta el proceso completo sin escribir resultados a disco")
     
     args = parser.parse_args()
     if args.ignore:
         sys.exit(0)
+    
+    if args.dry_run:
+        print("!!! MODO DRY-RUN ACTIVADO: No se guardarán cambios en el disco. !!!")
+        # Sobrescribimos temporalmente las funciones de escritura del módulo utils
+        utils.atomic_write = lambda *args, **kwargs: print(f"Bloqueada escritura atómica en: {args[0]}")
+        utils.write_if_modified = lambda path, data, **kwargs: (hashlib.md5(str(data).encode()).hexdigest(), False)
+        # También evitamos que el log de cambios se ensucie
+        def mock_append_log(*args, **kwargs): pass
 
     # Lógica de Default: Si no se pasa ningún flag, se asume el comportamiento por defecto (Solo Ramos)
     if not (args.ramos or args.carreras or args.programas):
@@ -118,7 +128,13 @@ if __name__ == "__main__":
                         tasks.append([cookies, cid, cnom, s, j, sedes[s], jornadas[j]])
             
             with Pool(20) as pool:
-                carreras_result = pool.map(workers.worker_process_carrera, tasks)
+                try:
+                    carreras_result = pool.map(workers.worker_process_carrera, tasks)
+                except KeyboardInterrupt:
+                    pool.terminate()
+                    pool.join()
+                    print("\n[ABORT] Interrupción por teclado (CTRL+C).")
+                    sys.exit(1)
 
     except Exception as e:
         # ABORTAR MISIÓN: Cualquier error en scraping impide la escritura de archivos

@@ -4,6 +4,110 @@ import urllib
 import datetime
 from bs4 import BeautifulSoup
 from .utils import DIAS
+from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# --- FUNCIONES AUXILIARES DE PARSING (Extradas para eficiencia) ---
+
+def _parse_siga_table(rows, has_type):
+    """Convierte filas de tabla SIGA en estructura DNF (Lista de listas)."""
+    dnf_list = []
+    current_group = []
+    
+    for r in rows:
+        cols = r.find_all("td")
+        vals = [" ".join(c.stripped_strings).strip() for c in cols]
+        
+        if not vals or len(vals) < 2: continue
+        
+        # Estructura: Op(0), Sigla(1), Nombre(2), [Tipo(3), Estado(4)]
+        op = vals[0]
+        sigla_ref = vals[1]
+        
+        entry = {"sigla": sigla_ref}
+        if has_type and len(vals) >= 4:
+            entry["tipo"] = vals[3] # PRE o CO
+
+        # Lógica: 'ó' inicia nuevo grupo (OR), '+' o vacío continua grupo (AND)
+        if 'ó' in op:
+            if current_group: dnf_list.append(current_group)
+            current_group = [entry]
+        else:
+            current_group.append(entry)
+    
+    if current_group:
+        dnf_list.append(current_group)
+    return dnf_list
+
+# --- CACHÉ DE REQUISITOS ---
+# Al usar lru_cache, Python memoriza el resultado basado en los argumentos.
+# Si el mismo plan y código se piden de nuevo, retorna instantáneamente sin ir a la red.
+@lru_cache(maxsize=None)
+def _fetch_requisitos_asignatura(cookies, plan, cod_asign):
+    """
+    Descarga y parsea los requisitos de una asignatura específica.
+    Retorna tupla: (requisitos, equivalencias, corequisitos)
+    """
+    params = f"plan={plan}&cod_asign={cod_asign}"
+    soup_req = _get_soup(f"https://siga.usm.cl/pag/sistinsc/insc_plan_requisito.jsp?{params}", cookies)
+
+    req_dnf = []
+    eq_norm_dnf = []
+    eq_libre_list = []
+
+    # Identificar tablas por sus encabezados
+    headers_list = soup_req.find_all("td", class_="Encabezado03")
+    processed_tables = set()
+
+    for h in headers_list:
+        # Navegar hacia arriba para encontrar la tabla contenedora
+        tr_header = h.parent
+        table_container = tr_header.parent
+        if table_container in processed_tables: continue
+        processed_tables.add(table_container)
+
+        # Analizar encabezados
+        header_texts = [" ".join(td.stripped_strings).strip() for td in tr_header.find_all("td")]
+        
+        is_req_table = "Tipo" in header_texts and "Operación" in header_texts
+        is_eqn_table = "Operación" in header_texts and "Asignatura" in header_texts and "Tipo" not in header_texts
+        is_eql_table = "Sigla" in header_texts and "Asignatura" in header_texts and "Operación" not in header_texts
+
+        # Extraer filas de datos
+        tr_data = tr_header.find_next_sibling("tr")
+        if not tr_data: continue
+        td_data = tr_data.find("td", class_="Celda02")
+        if not td_data: continue
+        table_data = td_data.find("table")
+        if not table_data: continue
+        
+        rows_data = table_data.find_all("tr")
+
+        if is_req_table:
+            req_dnf = _parse_siga_table(rows_data, has_type=True)
+        elif is_eqn_table:
+            eq_norm_dnf = _parse_siga_table(rows_data, has_type=False)
+        elif is_eql_table:
+            for r in rows_data:
+                cols = r.find_all("td")
+                vals = [" ".join(c.stripped_strings).strip() for c in cols]
+                if not vals: continue
+                
+                txt_row = " ".join(vals).lower()
+                if "equivalente a" in txt_row or "cualquier asignatura" in txt_row:
+                    eq_libre_list.append("CUALQUIERA")
+                elif len(vals) >= 1:
+                        # Asumimos que la primera columna es la sigla
+                        eq_libre_list.append(vals[0])
+
+    # Construcción de respuesta
+    requisitos = req_dnf
+    
+    # Combinar Equivalencias
+    equivalencias = eq_norm_dnf
+    for s in eq_libre_list:
+        equivalencias.append([{"sigla": s}])
+    return requisitos, equivalencias
 
 # Headers genéricos para reutilizar si se quiere
 def _get_soup(url, cookies):
@@ -48,47 +152,93 @@ def get_info_carrera(cookies, plan, sede, carrera, mencion):
     html = _get_soup(url, cookies)
     return {inp["name"]: inp["value"].strip() or "1" for inp in html.find_all("input")}
 
-def get_malla_carrera(cookies, sede, carrera, mencion, plan, duracion, creditos):
+def get_malla_carrera(cookies, sede, carrera, mencion, plan, duracion, creditos, memo_ramos=None):
+    """
+    Obtiene la malla curricular.
+    memo_ramos: Diccionario opcional para caché de objetos asignatura (sigla -> objeto).
+    """
     params = f"sede={sede}&carrera={carrera}&mencion={mencion}&plan={plan}&duracion={duracion}&creditos={creditos}"
-    html = _get_soup(f"https://siga.usm.cl/pag/sistinsc/listados/insc_ListPlanAsignatura.jsp?{params}", cookies)
+    url_list = f"https://siga.usm.cl/pag/sistinsc/listados/insc_ListPlanAsignatura.jsp?{params}"
+    url_frame = f"https://siga.usm.cl/pag/sistinsc/insc_plan_frame6.jsp?{params}"
     
-    tablas = html.find_all("table")[2::2]
-    
-    dicc_equivalencias = {}
-    tablas_raw = html.find_all("table")
-    if tablas_raw:
-        for row in tablas_raw[-1].find_all("tr")[1:]:
-            td = row.find_all("td")
-            if len(td) == 2:
-                n, eq = [" ".join(d.stripped_strings).strip() for d in td]
-                dicc_equivalencias[n] = eq
+    if memo_ramos is None:
+        memo_ramos = {}
 
-    semestre = []
-    for tabla_semestre in tablas:
-        ramos = {}
-        for row in tabla_semestre.find_all("tr")[2:]:
-            td = row.find_all("td")
-            if len(td) != 11: continue
-            
-            [sigla, asig, lic, ht, hp, hl, ha, sct, depto, reqs, equivs] = [" ".join(d.stripped_strings).strip() for d in td]
-            
-            requisitos = [[op.strip() for op in r.strip().split("ó")] for r in reqs.split("+")]
-            
-            if equivs == "Cualquier asignatura que se dicte": equivs = "*"
-            equivs = dicc_equivalencias.get(equivs, equivs).replace("-", "ó")
-            if equivs.endswith("-"): equivs = equivs[:-1]
-            equivalencias = [[op.strip() for op in e.strip().split("ó")] for e in equivs.split("+")]
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        # Descarga paralela de estructuras base
+        future_html = executor.submit(_get_soup, url_list, cookies)
+        future_frame = executor.submit(_get_soup, url_frame, cookies)
 
-            ramos[sigla] = {
-                "nombre": asig.upper(),
-                "requisito_licenciatura": bool(lic),
-                "horas": {"teoricas": int(ht or 0), "practicas": int(hp or 0), "laboratorios": int(hl or 0), "ayudantias": int(ha or 0)},
-                "creditos": int(sct or 0),
-                "departamento": depto,
-                "requisitos": requisitos,
-                "equivalencias": equivalencias,
+        html = future_html.result()
+        html_all = future_frame.result()
+
+        tablas = html.find_all("table")[2::2]
+        semestre = []
+        
+        # Cola de tareas solo para ramos NUEVOS (no cacheados)
+        tasks_requirements = []
+        # Mapa para referencia inversa durante la actualización asíncrona
+        ramos_pending_map = {} # Key: (semestre_idx, sigla) -> Ramo Object
+
+        for i, tabla_semestre in enumerate(tablas):
+            ramos_semestre = {}
+            
+            for row in tabla_semestre.find_all("tr")[2:]:
+                td = row.find_all("td")
+                if len(td) != 11: continue
+                
+                [sigla, asig, lic, ht, hp, hl, ha, sct, depto, _, __] = [" ".join(d.stripped_strings).strip() for d in td]
+
+                # [CACHE LOGIC] Verificar si ya tenemos este objeto procesado
+                if sigla in memo_ramos:
+                    # Cache Hit: Usamos la referencia existente (con requisitos ya cargados o en proceso)
+                    # Esto evita re-crear el objeto y re-pedir los requisitos.
+                    ramos_semestre[sigla] = memo_ramos[sigla]
+                    continue
+
+                # Cache Miss: Creamos el objeto nuevo
+                ramo_data = {
+                    "nombre": asig.upper(),
+                    "requisito_licenciatura": bool(lic),
+                    "horas": {"teoricas": int(ht or 0), "practicas": int(hp or 0), "laboratorios": int(hl or 0), "ayudantias": int(ha or 0)},
+                    "creditos": int(sct or 0),
+                    "departamento": depto,
+                    "requisitos": [],
+                    "equivalencias": [],
+                }
+
+                ramos_semestre[sigla] = ramo_data
+                
+                # Guardamos en caché INMEDIATAMENTE para futuras referencias
+                memo_ramos[sigla] = ramo_data
+                
+                # Preparar descarga de requisitos
+                input_tag = html_all.find('td', string=sigla)
+                if input_tag:
+                    cod_asign = input_tag.find_next_sibling("input", attrs={"name": "cod_asign"})['value']
+                    tasks_requirements.append((i, sigla, cod_asign))
+                    ramos_pending_map[(i, sigla)] = ramo_data
+            
+            semestre.append(ramos_semestre)
+
+        # Disparamos las descargas SOLO para los que no estaban en caché
+        if tasks_requirements:
+            future_to_ramo = {
+                executor.submit(_fetch_requisitos_asignatura, cookies, plan, cod_asign): (sem_idx, sigla)
+                for (sem_idx, sigla, cod_asign) in tasks_requirements
             }
-        semestre.append(ramos)
+
+            for future in as_completed(future_to_ramo):
+                sem_idx, sigla = future_to_ramo[future]
+                try:
+                    reqs, eqs = future.result()
+                    # Actualizamos el objeto (que también actualiza la ref en memo_ramos)
+                    target_ramo = ramos_pending_map[(sem_idx, sigla)]
+                    target_ramo["requisitos"] = reqs
+                    target_ramo["equivalencias"] = eqs
+                except Exception:
+                    pass
+
     return semestre
 
 def get_programacion_asignaturas(cookies, sede, jornada, nombre_sede, nombre_jornada):

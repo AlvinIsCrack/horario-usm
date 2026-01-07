@@ -18,7 +18,7 @@
 	let selectedJornada: string = $state(Calendario.jornada);
 	let selectedSemestre: string = $state(Calendario.semestre);
 
-	// Actualiza la jornada y el semestre cuando cambia la sede
+	// Actualiza la jornada cuando cambia la sede
 	$effect(() => {
 		if (lockedLocation) return;
 		if (

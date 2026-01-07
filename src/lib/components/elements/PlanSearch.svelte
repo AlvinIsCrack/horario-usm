@@ -188,6 +188,8 @@
 				</li>
 			{:else}
 				{#each filteredItems as item, i (item.value)}
+					{@const planCode = item.plan ?? item.label.match(/\(Plan\s(\d+)\)$/)?.[1]}
+
 					<li
 						bind:this={itemNodes[i]}
 						role="option"
@@ -205,12 +207,16 @@
 								selectItem(item);
 							}}
 						>
-							<div class="leading-2!">
-								<p>
-									<span class="text-muted-foreground text-sm font-bold">
-										{item.label}
-									</span>
+							<div class="flex flex-col gap-0.5 text-left">
+								<p class="text-sm leading-tight">
+									{item.label.replace(/\s\(Plan\s\d+\)$/, '')}
 								</p>
+
+								{#if planCode}
+									<p class="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+										Plan de estudios: {planCode}
+									</p>
+								{/if}
 							</div>
 						</button>
 					</li>

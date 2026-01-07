@@ -209,12 +209,12 @@
 										Horario,
 										'secondary'
 									)}
-									<!-- {@render sidebarButton(
+									{@render sidebarButton(
 										'Malla Curricular',
 										() => goto('/malla'),
 										MaterialSymbolsGrid4x4,
 										'secondary'
-									)} -->
+									)}
 									{@render sidebarButton(
 										'Comentarios, reclamos y sugerencias',
 										() =>

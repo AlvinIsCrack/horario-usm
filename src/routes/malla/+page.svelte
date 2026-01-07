@@ -1,437 +1,336 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import planesRaw from '$lib/data/planes_carreras.json';
-	import { tv } from 'tailwind-variants';
+	import { Data } from '$lib/data/data.svelte';
 
-	// Componentes UI del sistema
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	// Importaciones de lógica modularizada
+	import { MallaState } from '$lib/logic/malla/malla.svelte';
+	import { getCareerOptions } from '$lib/logic/malla/data';
+	import { getCenter, generatePath, romanize } from '$lib/logic/malla/visuals';
+	import { cardStyles } from '$lib/logic/malla/styles';
+	import type { Connection, RamoMalla } from '$lib/logic/malla/types';
+
+	// UI Components
 	import PlanSearch from '$lib/components/elements/PlanSearch.svelte';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import { draw, fade } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+	import Lock from '$lib/icons/lock.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
 
-	// --- Definición de Estilos con tailwind-variants ---
-
-	const {
-		base: card,
-		credits: cardCredits,
-		title: cardTitle,
-		sigla: cardSigla
-	} = tv({
-		base: 'relative flex hover:cursor-pointer h-30! hover:ring-2 hover:scale-110 ring-ring shadow-sm flex-col w-40 p-4 transition-all duration-200 select-none border-2 text-left rounded-lg',
-		slots: {
-			title: 'my-1 z-10 line-clamp-2 text-wrap h-full truncate text-sm leading-4 font-bold',
-			credits: 'text-muted-foreground text-[9px] font-black',
-			sigla: 'text-primary/80 mb-auto text-xs font-bold tracking-wider font-mono uppercase'
-		},
-		variants: {
-			status: {
-				disponible: 'bg-card border-border hover:border-primary/50',
-				aprobado: 'bg-lime-600 text-background border-primary',
-				bloqueado: 'bg-muted/50 border-transparent! opacity-60 grayscale-[0.6]'
-			},
-			relation: {
-				none: '',
-				self: 'ring-2 ring-primary ring-offset-2 ring-offset-background z-10 scale-105',
-				parent:
-					'border-yellow-500 bg-yellow-500/10 shadow-[0_0_10px_rgba(234,179,8,0.3)] scale-105 z-10',
-				child:
-					'border-green-500 bg-green-500/10 shadow-[0_0_10px_rgba(34,197,94,0.3)] scale-105 z-10'
-			}
-		},
-		defaultVariants: {
-			status: 'disponible',
-			relation: 'none'
-		},
-		compoundVariants: [
-			{
-				status: 'aprobado',
-				class: {
-					sigla: 'text-background/60',
-					credits: 'text-background/40'
-				}
-			},
-			{
-				status: 'bloqueado',
-				class: {
-					sigla: 'text-background/80'
-				}
-			}
-		]
-	})();
-
-	// --- Tipos Portados de MallaInteractiva.tsx ---
-	type Requisito = string[];
-
-	interface RamoMalla {
-		sigla: string;
-		nombre: string;
-		creditos: number;
-		requisitos: Requisito[]; // Formato: [[REQ1_A, REQ1_B], [REQ2]] -> (A o B) y (C)
-		esElectivo: boolean;
-		esHumanista: boolean;
-		// Estados derivados para UI
-		locked?: boolean;
-		checked?: boolean;
-		isDependency?: boolean; // Destacado porque el hover actual lo desbloquea
-		isPreRequisite?: boolean; // Destacado porque desbloquea al hover actual
-	}
-
-	type Semestre = RamoMalla[];
-	type Malla = Semestre[];
-
-	// --- Estado de la Malla (MallaState) ---
-	class MallaState {
-		selectedPlanId = $state<string>('');
-		approvedSigs = $state<Set<string>>(new Set());
-		customNames = $state<Record<string, string>>({});
-		hoverSig = $state<string | null>(null);
-
-		// Datos crudos de la malla seleccionada
-		rawMalla = $derived(this.fetchMallaData(this.selectedPlanId));
-
-		// Lógica portada de updateSemestres de React: Calcula bloqueos y dependencias
-		currentMalla = $derived.by(() => {
-			if (!this.rawMalla.length) return [];
-
-			// Cacheamos todas las siglas reales para detectar requisitos "externos"
-			const existingSiglas = new Set(this.rawMalla.flat().map((r) => r.sigla));
-			
-			// Regex para identificar códigos estándar USM (ej: MAT021, IWI-131, FIS100)
-			// Detecta 3 letras mayúsculas al inicio seguidas de números.
-			const isSiglaCode = /^[A-Z]{1,4}\d{1,5}(?:[A-Z]|[-_][A-Z0-9]+)?/;
-
-			return this.rawMalla.map((semestre) => {
-				return semestre.map((ramo) => {
-					const isChecked = this.approvedSigs.has(ramo.sigla);
-
-					// Lógica de Bloqueo
-					let isLocked = false;
-					if (!isChecked && ramo.requisitos.length > 0) {
-						isLocked = !ramo.requisitos.every((grupoOr) => {
-							const validReqs = grupoOr.filter((r) => r && r.trim() !== '');
-							if (validReqs.length === 0) return true;
-
-							return validReqs.some((reqSigla) => {
-								// 1. Si está aprobado, cumple.
-								if (this.approvedSigs.has(reqSigla)) return true;
-
-								// 2. Si NO está en la malla visible...
-								if (!existingSiglas.has(reqSigla)) {
-									// ...y NO parece ser un ramo estándar (ej: "Ingreso", "7310"), asumimos que se cumple.
-									// Si PARECE un ramo (tiene formato AAA111) y falta, asumimos que NO se cumple (bloqueo real).
-									return !isSiglaCode.test(reqSigla);
-								}
-								
-								// Si está en la malla pero no aprobado
-								return false;
-							});
-						});
-					}
-
-					// Lógica de Relaciones (Hover)
-					let isDep = false;
-					let isPre = false;
-					if (this.hoverSig) {
-						// ¿Este ramo desbloquea al que tengo en hover? (Es Prerrequisito)
-						const hoverRamo = this.findRamo(this.hoverSig);
-						if (hoverRamo?.requisitos.flat().includes(ramo.sigla)) isPre = true;
-
-						// ¿Este ramo es desbloqueado por el que tengo en hover? (Es Dependencia)
-						if (ramo.requisitos.flat().includes(this.hoverSig)) isDep = true;
-					}
-
-					return {
-						...ramo,
-						checked: isChecked,
-						locked: isLocked,
-						isDependency: isDep,
-						isPreRequisite: isPre
-					};
-				});
-			});
-		});
-
-		// Estadísticas portadas de PercentCompletado
-		stats = $derived.by(() => {
-			const todos = this.currentMalla.flat();
-			if (todos.length === 0) return { percent: 0, total: 0, approved: 0, creditos: 0 };
-			const aprobados = todos.filter((r) => r.checked);
-			const creditosAprobados = aprobados.reduce((acc, r) => acc + r.creditos, 0);
-			return {
-				percent: Math.round((aprobados.length / todos.length) * 100),
-				total: todos.length,
-				approved: aprobados.length,
-				creditos: creditosAprobados
-			};
-		});
-
-		constructor() {
-			onMount(() => {
-				const saved = localStorage.getItem('malla_progress');
-				if (saved) {
-					try {
-						const data = JSON.parse(saved);
-						this.selectedPlanId = data.planId || '';
-						this.approvedSigs = new Set(data.approved || []);
-						this.customNames = data.customNames || {};
-					} catch (e) {
-						console.error('Error loading state', e);
-					}
-				}
-			});
-		}
-
-		private fetchMallaData(planId: string): Malla {
-			if (!planId) return [];
-			for (const carrera of planesRaw) {
-				for (const sedeKey in carrera['menciones/especialidades'] || {}) {
-					// @ts-ignore
-					const planes = carrera['menciones/especialidades'][sedeKey]?.planes;
-					if (planes && planes[planId]) {
-						console.log(planes[planId].malla);
-						return (planes[planId].malla || []).map((sem: any) =>
-							Object.entries(sem)
-								.map(([sigla, d]: [string, any]) => ({
-									sigla,
-									nombre: d.nombre,
-									creditos: parseInt(d.creditos) || 0,
-									requisitos: d.requisitos || [],
-									esElectivo: /ELECTIVO [IVXCMD]+|ELECTIVO DE|OPTATIVO|ASIGNATURA LIBRE/gi.test(d.nombre),
-									esHumanista: /HUMANIST|ANTROPOL|ETICA/gi.test(d.nombre)
-								}))
-								.sort((a, b) => {
-									// 1. Prioridad: Electivos y Humanistas siempre al final
-									const isSpecialA = a.esElectivo || a.esHumanista;
-									const isSpecialB = b.esElectivo || b.esHumanista;
-
-									if (isSpecialA !== isSpecialB) {
-										return isSpecialA ? 1 : -1;
-									}
-
-									// 2. Orden secundario: Por sigla (A-Z) para las obligatorias entre sí
-									return a.sigla.localeCompare(b.sigla);
-								})
-						);
-					}
-				}
-			}
-			return [];
-		}
-
-		private findRamo(sigla: string): RamoMalla | null {
-			return this.rawMalla.flat().find((r) => r.sigla === sigla) || null;
-		}
-
-		toggleRamo(sigla: string) {
-			if (this.approvedSigs.has(sigla)) {
-				this.approvedSigs.delete(sigla);
-			} else {
-				this.approvedSigs.add(sigla);
-			}
-			this.approvedSigs = new Set(this.approvedSigs);
-			this.save();
-		}
-
-		setCustomName(sigla: string, name: string) {
-			this.customNames[sigla] = name;
-			this.save();
-		}
-
-		save() {
-			localStorage.setItem(
-				'malla_progress',
-				JSON.stringify({
-					planId: this.selectedPlanId,
-					approved: Array.from(this.approvedSigs),
-					customNames: this.customNames
-				})
-			);
-		}
-	}
-
+	// Instanciar Estado
 	const mallaState = new MallaState();
+	let selectedSede: string = $state(Calendario.sede);
+	let selectedJornada: string = $state(Calendario.jornada);
+	let careerOptions = $derived(getCareerOptions(Calendario.sede, selectedJornada));
 
-	// --- Opciones de Carrera filtradas por Sede (Calendario) ---
-	let careerOptions = $state<{ label: string; value: string }[]>([]);
-
-	// --- Mapeo de nombres personalizados ---
-	const PLAN_CUSTOM_NAMES: Record<string, string> = {
-		'7313': 'Ing. Civil Informática (Antigua)',
-		'7310': 'Ing. Civil Informática (Nueva)'
-	};
-
-	$effect(() => {
-		const sedeActual = Calendario.sede;
-		const opts: { label: string; value: string }[] = [];
-		const seenIds = new Set<string>();
-
-		planesRaw.forEach((carrera) => {
-			const menciones = carrera['menciones/especialidades'] || {};
-			Object.keys(menciones).forEach((sedeKey) => {
-				if (carrera.sede !== sedeActual) return;
-
-				//@ts-ignore
-				const mencion = menciones[sedeKey];
-				if (mencion.planes) {
-					Object.entries(mencion.planes).forEach(([id, plan]: [string, any]) => {
-						if (!plan.malla || seenIds.has(id)) return;
-						seenIds.add(id);
-
-						// Lógica de reemplazo de nombre:
-						const planCode = plan.plan?.toString();
-						const customLabel = PLAN_CUSTOM_NAMES[planCode];
-
-						opts.push({
-							label:
-								customLabel ||
-								`${carrera.nombre}${mencion.nombre === 'Sin mención' ? '' : ' - ' + mencion.nombre} (Plan ${plan.plan})`,
-							value: id
-						});
-					});
-				}
-			});
-		});
-		careerOptions = opts.sort((a, b) => a.label.localeCompare(b.label));
-	});
-
+	// --- Lógica de Interacción (Visual + Eventos) ---
 	function handleRamoClick(ramo: RamoMalla) {
-		if (ramo.esElectivo || ramo.esHumanista) {
-			if (!mallaState.approvedSigs.has(ramo.sigla)) {
+		mallaState.hoverSig = ramo.sigla;
+		if ((ramo.esElectivo || ramo.esHumanista) && !mallaState.approvedSigs.has(ramo.sigla)) {
+			setTimeout(() => {
 				const name = prompt(`Nombre para el electivo ${ramo.sigla}:`, ramo.nombre);
 				if (name) mallaState.setCustomName(ramo.sigla, name);
-			}
+			}, 10);
 		}
 		mallaState.toggleRamo(ramo.sigla);
 	}
 
-	// Helper para romanizar portado de React
-	function romanize(num: number) {
-		const lookup: any = {
-			M: 1000,
-			CM: 900,
-			D: 500,
-			CD: 400,
-			C: 100,
-			XC: 90,
-			L: 50,
-			XL: 40,
-			X: 10,
-			IX: 9,
-			V: 5,
-			IV: 4,
-			I: 1
-		};
-		let roman = '',
-			i;
-		for (i in lookup) {
-			while (num >= lookup[i]) {
-				roman += i;
-				num -= lookup[i];
-			}
+	// 2. Cálculo de Líneas ($effect se queda aquí porque necesita el DOM)
+	let connections = $state<Connection[]>([]);
+	let containerRef = $state<HTMLDivElement>();
+
+	$effect(() => {
+		if (!mallaState.hoverSig || !containerRef) {
+			connections = [];
+			return;
 		}
-		return roman;
-	}
+
+		const sourceEl = document.getElementById(`ramo-${mallaState.hoverSig}`);
+		if (!sourceEl) {
+			connections = [];
+			return;
+		}
+
+		const { x: x1, y: y1 } = getCenter(sourceEl, containerRef);
+		const newConnections: Connection[] = [];
+		const seen = new Set<string>();
+
+		// Helpers para buscar elementos y conectar
+		const addConn = (sigla: string, type: 'pre' | 'dep' | 'co') => {
+			const targetEl = document.getElementById(`ramo-${sigla}`);
+			if (targetEl) {
+				const { x: tx, y: ty } = getCenter(targetEl, containerRef!);
+
+				const path = generatePath(x1, y1, tx, ty);
+
+				// CAMBIO: Si esta combinación de camino y tipo ya existe, no la agregamos
+				const key = path + type;
+				if (seen.has(key)) return;
+				seen.add(key);
+
+				newConnections.push({ path, type });
+			}
+		};
+
+		const hoverRamoData = mallaState.findRamo(mallaState.hoverSig);
+
+		// Prerrequisitos y Co-requisitos (Target -> Hover)
+		if (hoverRamoData) {
+			hoverRamoData.requisitos.flat().forEach((req) => {
+				if (req.sigla) addConn(req.sigla, req.tipo === 'CO' ? 'co' : 'pre');
+			});
+		}
+
+		// Dependencias (Hover -> Target)
+		mallaState.currentMalla.flat().forEach((ramo) => {
+			// Buscamos si el hover es requisito de este ramo
+			const req = ramo.requisitos.flat().find((r) => r.sigla === mallaState.hoverSig);
+
+			if (req) {
+				// Si es CO, usamos tipo 'co' (Cyan), si no 'dep' (Verde)
+				addConn(ramo.sigla, req.tipo === 'CO' ? 'co' : 'dep');
+			}
+		});
+
+		connections = newConnections;
+	});
+
+	// Desestructurar estilos para el template
+	const { base: card, credits: cardCredits, title: cardTitle, sigla: cardSigla } = cardStyles();
+
+	// Actualiza la jornada cuando cambia la sede
+	$effect(() => {
+		if (
+			selectedSede &&
+			Data.jornadasCarreras[selectedSede] &&
+			!Data.jornadasCarreras[selectedSede].includes(selectedJornada)
+		)
+			selectedJornada = Data.jornadasCarreras[selectedSede][0] || '';
+	});
+
+	// Actualiza la carrera cuando cambia la jornada
+	$effect(() => {
+		const _ = [selectedJornada, selectedSede];
+		mallaState.selectedPlanId = '';
+	});
 </script>
 
 <div class="flex h-screen w-full flex-col overflow-hidden">
-	<header class="bg-card z-20 border-b p-6 shadow-sm">
+	<header class="bg-card z-20 border-b p-5 px-8 shadow-sm">
 		<div class="flex flex-col items-center justify-between gap-6 md:flex-row">
 			<div class="space-y-1">
-				<h1 class="text-primary text-3xl font-black tracking-tight uppercase">Malla Interactiva</h1>
 				<div class="flex items-center gap-2">
-					<Badge variant="outline">{Calendario.sede}</Badge>
+					<a
+						href="/"
+						class="text-muted-foreground hover:text-primary hover:bg-primary/10 -ml-2 flex items-center justify-center rounded-full p-1.5 transition-colors"
+						aria-label="Volver al inicio"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="24"
+							height="24"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="size-6"
+						>
+							<path d="m15 18-6-6 6-6" />
+						</svg>
+					</a>
+					<h1 class="text-primary text-3xl font-black tracking-tight uppercase">Malla Interactiva</h1>
+				</div>
+
+				<div class="flex items-center gap-2">
 					{#if mallaState.selectedPlanId}
 						<span class="text-muted-foreground text-sm">
 							{mallaState.stats.percent}% completado • {mallaState.stats.creditos} SCT
 						</span>
 					{/if}
 				</div>
+
+				<div
+					class="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-[10px] font-bold md:text-xs"
+				>
+					<div class="flex items-center gap-1.5">
+						<span class="size-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
+						></span>
+						<span>Pre-requisito</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<span class="size-2 rounded-full bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.6)]"
+						></span>
+						<span>Co-requisito</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<span class="size-2 rounded-full bg-lime-500 shadow-[0_0_6px_rgba(132,204,22,0.6)]"
+						></span>
+						<span>Desbloqueo Parcial</span>
+					</div>
+					<div class="flex items-center gap-1.5">
+						<span class="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]"
+						></span>
+						<span>Desbloqueo Directo</span>
+					</div>
+				</div>
 			</div>
 
-			<div class="w-full max-w-md">
-				<PlanSearch items={careerOptions} bind:value={mallaState.selectedPlanId} />
+			<div class="flex w-full flex-row items-end gap-4">
+				<div class="flex min-w-[120px] flex-1 flex-col gap-1">
+					<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
+					<Select
+						placeholder="Selecciona una sede..."
+						class="w-full"
+						items={Data.sedes.map((s) => ({ value: s }))}
+						bind:value={selectedSede}
+					/>
+				</div>
+
+				<div class="flex min-w-[120px] flex-1 flex-col gap-1">
+					<p class="text-muted-foreground text-xs font-bold uppercase">Jornada</p>
+					<Select
+						class="w-full"
+						items={Data.jornadasCarreras[selectedSede].map((j) => ({ value: j }))}
+						bind:value={selectedJornada}
+					/>
+				</div>
+
+				<div class="flex flex-[3] flex-col gap-1">
+					<p class="text-muted-foreground text-xs font-bold uppercase">Carrera</p>
+					<PlanSearch items={careerOptions} bind:value={mallaState.selectedPlanId} />
+				</div>
 			</div>
 		</div>
 	</header>
-	<div
-		class="ring-b-4 ring-card relative bottom-0 mt-auto h-2 w-full transition-all duration-500"
-		style:background="linear-gradient(to right, var(--color-amber-500) {mallaState.stats.percent}%,
-		#000 {mallaState.stats.percent}%)"
-	></div>
+	<div class="ring-b-4 ring-card relative z-10 mt-auto h-2 w-full overflow-hidden bg-black">
+		<div
+			class="h-full bg-amber-500 transition-all ease-out"
+			style:width="{mallaState.stats.percent}%"
+		></div>
+	</div>
 
-	<main class="flex-1 overflow-auto p-3.5">
+	<main
+		onmouseleave={() => (mallaState.hoverSig = null)}
+		class="relative flex-1 overflow-auto p-3.5"
+	>
+		<div
+			class="pointer-events-none fixed inset-0 top-0 left-0 z-[5] bg-black/30 transition-opacity duration-300"
+			class:opacity-0={!mallaState.hoverSig}
+			class:opacity-100={!!mallaState.hoverSig}
+		></div>
+
 		{#if mallaState.currentMalla.length > 0}
-			<div class="flex gap-2 pb-10">
-				{#each mallaState.currentMalla as semestre, i (semestre)}
+			<div class="relative flex gap-2 pb-2" bind:this={containerRef}>
+				<svg class="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
+					{#each connections as conn, i (conn.path + conn.type)}
+						{@const color =
+							conn.type === 'pre'
+								? 'var(--color-amber-500)'
+								: conn.type === 'co'
+									? 'var(--color-cyan-500)'
+									: 'var(--color-green-500)'}
+						{@const maskId = `mask-${i}-${conn.type}`}
+
+						<mask id={maskId} maskUnits="userSpaceOnUse">
+							<path
+								in:draw={{ duration: 500, easing: cubicOut }}
+								d={conn.path}
+								stroke="white"
+								stroke-width="4"
+								fill="none"
+							/>
+						</mask>
+
+						<path
+							d={conn.path}
+							stroke={color}
+							stroke-width="4"
+							fill="none"
+							mask="url(#{maskId})"
+							stroke-dasharray={conn.type === 'pre' || conn.type === 'co' ? '8,6' : '0'}
+							class="drop-shadow-sm/50 {conn.type === 'dep' ? 'anim-dep' : 'anim-pre'}"
+						/>
+					{/each}
+				</svg>
+
+				{#each mallaState.currentMalla as semestre, i (i)}
 					<div class="flex flex-col gap-2">
-						<div class="flex items-center justify-between border-b border-white/50 px-1 pb-1">
+						<div
+							class="relative z-10 flex items-center justify-between border-b border-white/50 px-1"
+						>
 							<span class="text-foreground text-lg font-bold">{romanize(i + 1)}</span>
 							<span class="text-xs font-medium text-white/40 uppercase">
 								{semestre.reduce((acc, r) => acc + r.creditos, 0)} SCT
 							</span>
 						</div>
 
-						<div class="flex flex-col gap-2">
+						<div
+							class="flex max-h-[calc(100vh-14rem)] w-max flex-col flex-wrap content-start gap-2"
+						>
 							{#each semestre as ramo (ramo.sigla)}
 								{@const status = ramo.checked
 									? 'aprobado'
 									: ramo.locked
 										? 'bloqueado'
 										: 'disponible'}
+
 								<button
-									onclick={() => mallaState.toggleRamo(ramo.sigla)}
+									id="ramo-{ramo.sigla}"
+									onclick={() => handleRamoClick(ramo)}
 									onmouseenter={() => (mallaState.hoverSig = ramo.sigla)}
 									onmouseleave={() => (mallaState.hoverSig = null)}
 									class={card({
-										status
-										// relation: ramo.relation
+										status,
+										relation: ramo.isCoRequisite
+											? 'coreq'
+											: ramo.isPreRequisite
+												? 'parent'
+												: ramo.isUnlock // <--- Prioridad Alta
+													? 'unlock'
+													: ramo.isDependency // <--- Prioridad Baja
+														? 'child'
+														: mallaState.hoverSig === ramo.sigla
+															? 'self'
+															: 'none'
 									})}
 								>
-									<Tooltip content={ramo.sigla}>
-										<span
-											class={cardSigla({
-												status
-												// relation: ramo.relation
-											})}
-										>
-											{ramo.sigla}
+									<span class={cardSigla({ status })}>{ramo.sigla}</span>
+									<Tooltip content={mallaState.customNames[ramo.sigla] || ramo.nombre}>
+										<span class={cardTitle({ status })}>
+											{mallaState.customNames[ramo.sigla] || ramo.nombre}
 										</span>
 									</Tooltip>
-									<span
-										class={cardTitle({
-											status
-											// relation: ramo.relation
-										})}
-									>
-										{mallaState.customNames[ramo.sigla] || ramo.nombre}
-									</span>
 									<div class="mt-1 flex items-center justify-between">
-										<span
-											class={cardCredits({
-												status
-												// relation: ramo.relation
-											})}
-										>
-											{ramo.creditos} SCT
-										</span>
+										<span class={cardCredits({ status })}>{ramo.creditos} SCT</span>
 									</div>
 								</button>
 							{/each}
 						</div>
 					</div>
-					<!-- {#if i < mallaState.currentMalla.length - 1}
-						<Separator orientation="vertical" class="opacity-10" />
-					{/if} -->
 				{/each}
 			</div>
-		{:else}
-			<div class="flex h-full items-center justify-center text-center">
-				<div class="max-w-sm space-y-4">
-					<p class="text-muted-foreground text-lg">
-						Selecciona una carrera para visualizar tu avance académico en {Calendario.sede}.
-					</p>
-				</div>
-			</div>
-		{/if}
+		{:else}{/if}
 	</main>
 </div>
+
+<style>
+	/* Animación para Prerrequisitos y Co-requisitos */
+	@keyframes march {
+		from {
+			/* CAMBIO: Usamos 56 (LCM de 14 y 8) para que ambos patrones ciclen perfectamente */
+			stroke-dashoffset: 56;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+
+	.anim-pre {
+		/* 'will-change' avisa al navegador que prepare la GPU */
+		will-change: stroke-dashoffset;
+		/* CAMBIO: Aumentamos a 2s para mantener la velocidad visual original (56px / 2s = 28px/s) */
+		animation: march 2s linear infinite;
+	}
+</style>

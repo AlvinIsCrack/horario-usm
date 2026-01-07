@@ -9,5 +9,5 @@ dayjs.extend(localeData);
 
 import "$lib/helpers/extensions";
 
-export const prerender = true;
-export const trailingSlash = 'always';
+// export const prerender = true;
+// export const trailingSlash = 'always';

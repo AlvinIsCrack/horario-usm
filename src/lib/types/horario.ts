@@ -60,6 +60,11 @@ export interface RamoPrograma {
     programa: string;
 }
 
+export interface RequisitoFicha {
+    sigla: string;
+    tipo?: "PRE" | "CO"; // Opcional porque equivalencias podría no tenerlo o el backend variar
+}
+
 export interface RamoCarrera {
     nombre: string;
     horas: {
@@ -70,8 +75,8 @@ export interface RamoCarrera {
     };
     creditos: number;
     departamento: string;
-    requisitos: string[][];
-    equivalencias: string[][];
+    requisitos: RequisitoFicha[][];
+    equivalencias: RequisitoFicha[][];
 }
 
 export interface Ramo {
