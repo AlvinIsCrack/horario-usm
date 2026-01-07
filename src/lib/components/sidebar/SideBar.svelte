@@ -278,7 +278,7 @@
 </div>
 
 <style lang="postcss">
-	@import 'tailwindcss';
+	@reference 'tailwindcss';
 
 	#main-sidebar {
 		animation: main-sidebar-in 1.2s cubic-bezier(0.23, 1, 0.32, 1);

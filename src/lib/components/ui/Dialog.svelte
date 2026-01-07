@@ -138,6 +138,10 @@
 			closeDialog(true);
 		}
 	}
+
+	function focusInput(el: HTMLInputElement) {
+		el.focus();
+	}
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -178,7 +182,7 @@
 					type="text"
 					placeholder={dialogState.options.placeholder}
 					bind:value={dialogState.inputValue}
-					autofocus
+					use:focusInput
 				/>
 			</div>
 		{/if}

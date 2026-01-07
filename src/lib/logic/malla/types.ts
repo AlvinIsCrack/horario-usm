@@ -22,4 +22,5 @@ export type Malla = Semestre[];
 export interface Connection {
     path: string;
     type: 'pre' | 'dep' | 'co';
+    semesterDiff?: number;
 }

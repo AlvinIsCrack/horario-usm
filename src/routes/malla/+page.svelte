@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Calendario } from '$lib/states/calendario.svelte';
+	import { base } from '$app/paths';
 	import { Data } from '$lib/data/data.svelte';
 
 	// Importaciones de lógica modularizada
@@ -20,7 +20,9 @@
 	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
 	// Usamos el estado derivado de mallaState directamente
-	let careerOptions = $derived(getCareerOptions(mallaState.selectedSede, mallaState.selectedJornada));
+	let careerOptions = $derived(
+		getCareerOptions(mallaState.selectedSede, mallaState.selectedJornada)
+	);
 
 	// --- Lógica de Interacción (Visual + Eventos) ---
 	function handleRamoClick(ramo: RamoMalla) {
@@ -50,6 +52,10 @@
 			return;
 		}
 
+		const sourceSemester = mallaState.currentMalla.findIndex((s) =>
+			s.some((r) => r.sigla === mallaState.hoverSig)
+		);
+
 		const { x: x1, y: y1 } = getCenter(sourceEl, containerRef);
 		const newConnections: Connection[] = [];
 		const seen = new Set<string>();
@@ -67,7 +73,12 @@
 				if (seen.has(key)) return;
 				seen.add(key);
 
-				newConnections.push({ path, type });
+				const targetSemester = mallaState.currentMalla.findIndex((s) =>
+					s.some((r) => r.sigla === sigla)
+				);
+				const semesterDiff = Math.abs(sourceSemester - targetSemester);
+
+				newConnections.push({ path, type, semesterDiff } as any);
 			}
 		};
 
@@ -104,7 +115,7 @@
 			<div class="space-y-1">
 				<div class="flex items-center gap-2">
 					<a
-						href="/"
+						href="{base}/"
 						class="text-muted-foreground hover:text-primary hover:bg-primary/10 -ml-2 flex items-center justify-center rounded-full p-1.5 transition-colors"
 						aria-label="Volver al inicio"
 					>
@@ -123,7 +134,9 @@
 							<path d="m15 18-6-6 6-6" />
 						</svg>
 					</a>
-					<h1 class="text-primary text-3xl font-black tracking-tight uppercase">Malla Interactiva</h1>
+					<h1 class="text-primary text-3xl font-black tracking-tight uppercase">
+						Malla Interactiva
+					</h1>
 				</div>
 
 				<div class="flex items-center gap-2">
@@ -218,7 +231,10 @@
 
 						<mask id={maskId} maskUnits="userSpaceOnUse">
 							<path
-								in:draw={{ duration: 500, easing: cubicOut }}
+								in:draw={{ 
+									duration: 400 + (conn.semesterDiff ?? 0) * 100,
+									easing: cubicOut 
+								}}
 								d={conn.path}
 								stroke="white"
 								stroke-width="4"
@@ -252,12 +268,35 @@
 						<div
 							class="flex max-h-[calc(100vh-14rem)] w-max flex-col flex-wrap content-start gap-2"
 						>
-							{#each semestre as ramo (ramo.sigla)}
+							{#each semestre as ramo, j (ramo.sigla)}
 								{@const status = ramo.checked
 									? 'aprobado'
 									: ramo.locked
 										? 'bloqueado'
 										: 'disponible'}
+								{@const relation = ramo.isCoRequisite
+									? 'coreq'
+									: ramo.isPreRequisite
+										? 'parent'
+										: ramo.isUnlock // <--- Prioridad Alta
+											? 'unlock'
+											: ramo.isDependency // <--- Prioridad Baja
+												? 'child'
+												: mallaState.hoverSig === ramo.sigla
+													? 'self'
+													: 'none'}
+								{@const hoverRamo = mallaState.hoverSig
+									? mallaState.findRamo(mallaState.hoverSig)
+									: null}
+								{@const semesterDiff = hoverRamo
+									? Math.abs(
+											i -
+												mallaState.currentMalla.findIndex((s) =>
+													s.some((r) => r.sigla === mallaState.hoverSig)
+												)
+										)
+									: i}
+								{@const delay = semesterDiff * 100}
 
 								<button
 									id="ramo-{ramo.sigla}"
@@ -266,18 +305,11 @@
 									onmouseleave={() => (mallaState.hoverSig = null)}
 									class={card({
 										status,
-										relation: ramo.isCoRequisite
-											? 'coreq'
-											: ramo.isPreRequisite
-												? 'parent'
-												: ramo.isUnlock // <--- Prioridad Alta
-													? 'unlock'
-													: ramo.isDependency // <--- Prioridad Baja
-														? 'child'
-														: mallaState.hoverSig === ramo.sigla
-															? 'self'
-															: 'none'
+										relation
 									})}
+									{...!['self', 'none'].includes(relation)
+										? { style: `transition-delay: ${delay}ms;` }
+										: {}}
 								>
 									<span class={cardSigla({ status })}>{ramo.sigla}</span>
 									<Tooltip content={mallaState.customNames[ramo.sigla] || ramo.nombre}>

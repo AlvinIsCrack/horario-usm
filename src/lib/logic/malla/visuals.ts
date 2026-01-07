@@ -9,18 +9,25 @@ export function getCenter(el: HTMLElement, container: HTMLElement) {
 
 export function generatePath(startX: number, startY: number, endX: number, endY: number): string {
     const distX = endX - startX;
-    // Si la distancia es negativa (dibujando de Derecha a Izquierda), invertimos la lógica del offset
-    // para que la curva no haga un bucle hacia afuera.
-    const isRightToLeft = distX < 0;
+    const distY = endY - startY;
 
-    // Calculamos un offset proporcional, pero limitado
-    const rawOffset = Math.max(Math.abs(distX) * 0.5, 80);
+    // Calculamos la distancia euclidiana real entre los puntos
+    const distance = Math.sqrt(distX * distX + distY * distY);
 
-    // Si vamos de derecha a izquierda, el punto de control 1 debe ir a la izquierda (-), y el 2 a la derecha (+)
-    // Si vamos de izquierda a derecha, el punto de control 1 debe ir a la derecha (+), y el 2 a la izquierda (-)
-    const controlOffset = isRightToLeft ? -rawOffset : rawOffset;
+    // Definimos una tensión que no dependa solo de X, para que en cambios 
+    // verticales grandes la curva sea amplia y no abrupta.
+    // Usamos el 45% de la distancia total con un mínimo de 140px.
+    const tension = Math.max(distance * 0.45, 140);
 
-    return `M ${startX},${startY} C ${startX + controlOffset},${startY} ${endX - controlOffset},${endY} ${endX},${endY}`;
+    // Forzamos la salida horizontal pura manteniendo cpY = startY/endY
+    // El cpX se aleja lo suficiente para suavizar la transición hacia el centro
+    const cp1x = startX + (distX > 0 ? tension : -tension);
+    const cp1y = startY;
+
+    const cp2x = endX - (distX > 0 ? tension : -tension);
+    const cp2y = endY;
+
+    return `M ${startX},${startY} C ${cp1x},${cp1y} ${cp2x},${cp2y} ${endX},${endY}`;
 }
 
 export function romanize(num: number): string {

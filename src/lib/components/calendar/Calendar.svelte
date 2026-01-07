@@ -103,7 +103,7 @@
 </div>
 
 <style lang="postcss">
-	@import 'tailwindcss';
+	@reference 'tailwindcss';
 
 	@keyframes -global-bloque-animation {
 		0% {
