@@ -2,6 +2,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import ProfessorSnippet from '$lib/logic/professors/components/ProfessorSnippet.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { Ramo } from '$lib/types/horario';
 	// import HorarioMiniRender from './HorarioMiniRender.svelte';
@@ -52,8 +53,20 @@
 
 		<div class="flex flex-1 flex-col overflow-hidden text-left leading-snug">
 			{#each paralelo.profesor as profesor (profesor)}
-				<div class="truncate text-sm font-medium" title={profesor}>
-					{@html profesor.replace('NN', 'NN (Profesor aún no asignado)')}
+				{#snippet tooltipContent()}
+					<div class="p-1">
+						<ProfessorSnippet id={profesor} />
+					</div>
+				{/snippet}
+
+				<div class="truncate text-sm font-medium">
+					{#if profesor.includes('NN')}
+						NN (Profesor aún no asignado)
+					{:else}
+						<Tooltip offset={50} position="right" content={tooltipContent}>
+							{profesor}
+						</Tooltip>
+					{/if}
 				</div>
 			{/each}
 		</div>

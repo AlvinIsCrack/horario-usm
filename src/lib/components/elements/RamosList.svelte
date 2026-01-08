@@ -10,6 +10,7 @@
 	import Badge from '../ui/Badge.svelte';
 	import { SideBar } from '../sidebar/SideBar.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
+	import ProfessorSnippet from '$lib/logic/professors/components/ProfessorSnippet.svelte';
 
 	const ramosCarrera: (RamoCarrera | undefined)[] = $derived(
 		Calendario.ramos.map((r) =>
@@ -75,23 +76,19 @@
 				{@const { creditos } = ramosCarrera[i] ?? {}}
 
 				{#snippet ramoTooltip()}
-					<ul class="space-y-1">
+					<div class="space-y-1 p-1">
+						<h1 class="w-full text-left text-base font-medium">Profesores</h1>
+						<div class="my-2 w-full scale-200 border-b-1"></div>
 						{#each ramo.profesor as profesor (profesor)}
-							<li class="flex items-center gap-2 leading-tight font-normal">
-								<p class="text-left">
-									{@html profesor.replace(
-										'NN',
-										'<b>NN:</b> El profesor aún no ha sido asignado oficialmente por el departamento.'
-									)}
-								</p>
-							</li>
+							<ProfessorSnippet id={profesor} />
 						{/each}
-					</ul>
+					</div>
 				{/snippet}
+
 				<Tooltip
 					position="right"
 					content={ramoTooltip}
-					class="overflow-hidden"
+					class="max-w-md! overflow-hidden 2xl:max-w-lg!"
 					forceVisible={Boolean(ramo.profesor.length) && highlighted}
 				>
 					<div

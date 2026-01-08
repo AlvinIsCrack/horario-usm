@@ -118,7 +118,7 @@ export async function generateScheduleStatistics(
     const fullList = [...rawStats, ...aiStats];
     const groupedList = groupStatItems(fullList);
 
-    // 5. Ordenamiento por Prioridad UX
+    // 5. Ordenamiento por Prioridad UX (Severidad y luego Alfabético)
     const priorityMap: Record<string, number> = {
         danger: 0,
         warning: 1,
@@ -126,7 +126,16 @@ export async function generateScheduleStatistics(
         success: 3
     };
 
-    return groupedList.sort(
-        (a, b) => (priorityMap[a.status || 'null'] ?? 2) - (priorityMap[b.status || 'null'] ?? 2)
-    );
+    return groupedList.sort((a, b) => {
+        // 1. Ordenar por severidad (priorityMap)
+        const aPriority = priorityMap[a.status || 'null'] ?? 2;
+        const bPriority = priorityMap[b.status || 'null'] ?? 2;
+
+        if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+        }
+
+        // 2. Si tienen la misma prioridad, ordenar alfabéticamente por label
+        return a.label.localeCompare(b.label);
+    });
 }

@@ -112,7 +112,7 @@
 		position="bottom"
 		anchor="start"
 		offset={5}
-		class="z-[60]"
+		class="z-[inherit]"
 	>
 		<div
 			bind:this={menuRef}

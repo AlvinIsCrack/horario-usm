@@ -4,7 +4,8 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Search from '$lib/icons/search.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { debounce } from 'lodash';
+	import pkg from 'lodash';
+	const { debounce } = pkg;
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
 
@@ -12,9 +13,7 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { tick, untrack } from 'svelte';
 
-	const inputStyle = tv({
-		base: 'border border-input bg-input rounded-md p-2 w-full transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none flex items-center gap-2 shadow-sm'
-	});
+	// SE ELIMINÓ inputStyle porque ahora usamos clases directas
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
@@ -164,8 +163,6 @@
 				results.push([k, paralelos] as const);
 				count++;
 			}
-			// Aumentamos el límite si hay filtro activo para mostrar más opciones relevantes
-			if (count >= (filterMode !== 'none' ? 100 : 20)) break;
 		}
 		return results;
 	});
@@ -190,7 +187,8 @@
 		if (key === 'ArrowDown' || key === 'ArrowUp') {
 			event.preventDefault();
 			const nextIndex = key === 'ArrowDown' ? highlightedIndex + 1 : highlightedIndex - 1;
-			highlightedIndex = (nextIndex + (itemNodes.length || 1)) % (itemNodes.length || 1);
+			const len = itemNodes.length || 1; // Corrección menor: usar length de nodos o items
+			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
 			if (highlightedIndex > -1) {
@@ -219,11 +217,13 @@
 	class:opacity-50={disabled}
 	{...props}
 >
-	<div class={inputStyle()}>
-		<Search class="text-muted-foreground h-5 w-5 shrink-0" />
+	<div class="relative">
+		<Search
+			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+		/>
 		<input
 			bind:this={_this}
-			class="placeholder:text-muted-foreground/70 w-full bg-transparent outline-none"
+			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
 			bind:value={query}
 			{placeholder}
 			{disabled}
@@ -323,8 +323,6 @@
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
-						<!-- {@const programa = Data.getProgramaRamo(Calendario.sede, ramo.sigla)} -->
-
 						<li
 							bind:this={itemNodes[i]}
 							data-sigla={sigla}
@@ -341,24 +339,13 @@
 									onItemClicked(sigla);
 								}}
 							>
-								<div class="leading-2!">
+								<div class="leading-2">
 									<p>
 										<span class="mr-1 font-mono text-xl font-black tracking-wide drop-shadow-sm/50"
 											>{sigla}</span
 										>
-										<span class="text-muted-foreground text-sm font-bold">{ramo.nombre}</span>
+										<span class="text-muted-foreground text-sm font-medium tracking-tight leading-3">{ramo.nombre}</span>
 									</p>
-									<!-- <div class="mt-0.5 flex flex-row-reverse gap-2 text-xs opacity-75">
-										<p>
-											DEPTO. DE {ramo.departamento}
-										</p>
-										{#if programa?.tipo}
-											<p>•</p>
-											<p>
-												{programa.tipo}
-											</p>
-										{/if}
-									</div> -->
 								</div>
 							</button>
 						</li>

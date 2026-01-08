@@ -61,7 +61,7 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
 
         if (pctBack > 0.55) {
             out.push({
-                icon: icons.TrendingUp,
+                icon: icons.Weight,
                 label: STAT_LABELS.PERFIL_CARGA,
                 value: 'Viernes Pesado',
                 tooltip: `El <b>${(pctBack * 100).toFixed(0)}%</b> de tu carga ponderada está en Jueves/Viernes.<br/><span class="opacity-70 text-xs">Llegarás con fatiga acumulada. Requiere resistencia.</span>`,
@@ -69,7 +69,7 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
             });
         } else if (pctFront > 0.60) {
             out.push({
-                icon: icons.TrendingDown,
+                icon: icons.Weight,
                 label: STAT_LABELS.PERFIL_CARGA,
                 value: 'Front-loaded',
                 tooltip: `El <b>${(pctFront * 100).toFixed(0)}%</b> de tu carga está en Lunes/Martes.<br/><span class="opacity-70 text-xs">Ideal para usar la energía del fin de semana, pero exige disciplina inmediata.</span>`,

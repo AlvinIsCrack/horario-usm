@@ -21,6 +21,7 @@ import Asterisk from "$lib/icons/asterisk.svelte";
 import MaterialSymbolsMagicButton from "$lib/icons/MaterialSymbolsMagicButton.svelte";
 import MingcuteBrainLine from "$lib/icons/MingcuteBrainLine.svelte";
 import MajesticonsTicket from "$lib/icons/MajesticonsTicket.svelte";
+import MaterialSymbolsWeight from "$lib/icons/MaterialSymbolsWeight.svelte";
 
 export const ICONS = {
     Leaf: MaterialSymbolsNestEcoLeaf,
@@ -40,7 +41,8 @@ export const ICONS = {
     Asterisk: Asterisk,
     Magic: MaterialSymbolsMagicButton,
     Brain: MingcuteBrainLine,
-    Ticket: MajesticonsTicket
+    Ticket: MajesticonsTicket,
+    Weight: MaterialSymbolsWeight
 } as const;
 
 export const STAT_LABELS = {

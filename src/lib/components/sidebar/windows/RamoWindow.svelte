@@ -61,7 +61,10 @@
 			</p>
 		</div>
 		{#await import('../../elements/RamoSearch.svelte') then { default: RamoSearch }}
-			<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
+			<div class="flex flex-col gap-1 mt-1">
+				<p class="text-muted-foreground text-xs font-bold uppercase">Ramo</p>
+				<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
+			</div>
 		{/await}
 	{/if}
 

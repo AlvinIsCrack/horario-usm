@@ -28,6 +28,7 @@
 	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
 	import UserData from '../elements/UserData.svelte';
 	import { base } from '$app/paths';
+	import Teachers from '$lib/icons/teachers.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -213,6 +214,12 @@
 										'Malla Interactiva',
 										() => goto(`${base}/malla`),
 										MaterialSymbolsGrid4x4,
+										'secondary'
+									)}
+									{@render sidebarButton(
+										'Profesores',
+										() => goto(`${base}/profesores`),
+										Teachers,
 										'secondary'
 									)}
 								</div>

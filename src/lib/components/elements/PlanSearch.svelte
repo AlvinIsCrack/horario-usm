@@ -7,15 +7,10 @@
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
 
-	// --- Estilos idénticos a RamoSearch ---
-	const inputStyle = tv({
-		base: 'border border-input bg-input rounded-md p-2 w-full transition-all duration-200 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none flex items-center gap-2 shadow-sm'
-	});
-
+	// Eliminamos 'inputStyle' antiguo ya que usaremos clases directas en el input
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
 	});
-
 	const itemStyle = tv({
 		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all duration-150 border border-transparent group overflow-hidden hover:cursor-pointer',
 		variants: {
@@ -30,14 +25,14 @@
 
 	let {
 		value = $bindable(''),
-		items = [], // { label: string, value: string }[]
+		items = [],
 		placeholder = 'Buscar carrera o plan...',
 		disabled = false,
 		class: _class,
 		...props
 	}: {
 		value?: string;
-		items: Array<{ label: string; value: string; plan: string; }>;
+		items: Array<{ label: string; value: string; plan: string }>;
 		placeholder?: string;
 		disabled?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
@@ -58,35 +53,25 @@
 		updateDebouncedQuery(query);
 	});
 
-	// Filtrado de planes avanzado (Lógica RamoSearch)
+	// Filtrado de planes avanzado
 	const filteredItems = $derived.by(() => {
 		if (disabled) return [];
 		const q = debouncedQuery.trim();
-
 		if (!q) return items;
-
-		// Separamos la búsqueda en términos, normalizamos acentos y minúsculas
 		const splittedQuery = q
 			.deaccent()
 			.toLowerCase()
 			.split(/\s+|\*+/g)
 			.filter(Boolean);
-
 		return items.filter((item) => {
-			// Normalizamos los datos del item para comparar
 			const normalizedLabel = item.label.deaccent().toLowerCase();
 			const normalizedValue = item.value.deaccent().toLowerCase();
-
-			// "AND" Lógico: Todos los términos escritos deben coincidir
-			// ya sea en el nombre (label) o en el ID (value)
 			return splittedQuery.every((s) => normalizedLabel.includes(s) || normalizedValue.includes(s));
 		});
 	});
-	// Reset de scroll y highlight
+
 	$effect(() => {
-		// Al cambiar el filtrado, reseteamos el índice
 		highlightedIndex = 0;
-		// Scroll al inicio
 		if (itemNodes[0]) itemNodes[0].scrollIntoView({ block: 'nearest' });
 	});
 
@@ -98,7 +83,6 @@
 
 	function handleKeydown(event: KeyboardEvent) {
 		const { key } = event;
-
 		if (key === 'ArrowDown' || key === 'ArrowUp') {
 			event.preventDefault();
 			const nextIndex = key === 'ArrowDown' ? highlightedIndex + 1 : highlightedIndex - 1;
@@ -106,9 +90,7 @@
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
-			if (filteredItems[highlightedIndex]) {
-				selectItem(filteredItems[highlightedIndex]);
-			}
+			if (filteredItems[highlightedIndex]) selectItem(filteredItems[highlightedIndex]);
 		} else if (key === 'Escape') {
 			isFocused = false;
 			(event.target as HTMLElement).blur();
@@ -117,12 +99,11 @@
 
 	function selectItem(item: { label: string; value: string }) {
 		value = item.value;
-		query = ''; // Limpiar búsqueda al seleccionar, o dejar item.label si prefieres
+		query = '';
 		isFocused = false;
 		inputEl?.blur();
 	}
 
-	// Etiqueta del plan seleccionado para mostrar placeholder dinámico
 	const currentLabel = $derived(items.find((i) => i.value === value)?.label || '');
 </script>
 
@@ -133,11 +114,13 @@
 	class:opacity-50={disabled}
 	{...props}
 >
-	<div class={inputStyle()}>
-		<Search class="text-muted-foreground h-5 w-5 shrink-0" />
+	<div class="relative">
+		<Search
+			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+		/>
 		<input
 			bind:this={inputEl}
-			class="placeholder:text-muted-foreground/70 w-full bg-transparent outline-none"
+			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
 			bind:value={query}
 			placeholder={currentLabel || placeholder}
 			{disabled}
@@ -161,15 +144,13 @@
 	>
 		<ul
 			transition:fade={{ duration: 200 }}
-			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-lg overflow-y-auto"
+			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-[300px] overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-plan-search"
 		>
 			<div class="relative p-3 px-4 text-sm">
-				<p>
-					Hay <span class="highlight">{items.length}</span> planes de estudio disponibles.
-				</p>
+				<p>Hay <span class="highlight">{items.length}</span> planes de estudio disponibles.</p>
 				{#if query.length}
 					{#if items.length !== filteredItems.length}
 						<p transition:slide={{ axis: 'y' }}>
@@ -189,7 +170,6 @@
 			{:else}
 				{#each filteredItems as item, i (item.value)}
 					{@const planCode = item.plan ?? item.label.match(/\(Plan\s(\d+)\)$/)?.[1]}
-
 					<li
 						bind:this={itemNodes[i]}
 						role="option"
@@ -211,7 +191,6 @@
 								<p class="text-sm leading-tight">
 									{item.label.replace(/\s\(Plan\s\d+\)$/, '')}
 								</p>
-
 								{#if planCode}
 									<p class="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
 										Plan de estudios: {planCode}
@@ -228,36 +207,28 @@
 
 <style lang="postcss">
 	@reference "tailwindcss";
-
 	.highlight {
 		&.secondary {
 			color: var(--color-amber-500);
 		}
-
 		color: var(--color-primary);
 		@apply font-medium! mix-blend-plus-lighter;
 	}
-
+	/* ... estilos de scrollbar se mantienen igual ... */
 	ul {
-		/* Estilos generales para navegadores basados en Webkit (Chrome, Safari, Edge) */
 		&::-webkit-scrollbar {
 			@apply w-2;
 		}
-
 		&::-webkit-scrollbar-track {
 			@apply bg-transparent;
 		}
-
 		&::-webkit-scrollbar-thumb {
 			background: var(--color-muted-foreground);
 			@apply rounded-full border-2 border-transparent bg-clip-content;
-
 			&:hover {
 				background: var(--color-muted-foreground);
 			}
 		}
-
-		/* Soporte básico para Firefox */
 		scrollbar-color: var(--color-muted-foreground) transparent;
 	}
 </style>

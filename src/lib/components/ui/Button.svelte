@@ -4,7 +4,7 @@
 	import { tv } from 'tailwind-variants';
 
 	const button = tv({
-		base: 'border border-input cursor-pointer transition-colors disabled:opacity-50 disabled:pointer-events-none flex justify-center gap-2 items-center rounded-md',
+		base: 'border border-input cursor-pointer transition-colors disabled:opacity-50 disabled:pointer-events-none flex justify-center gap-2 items-center rounded-md tracking-tight font-medium',
 		variants: {
 			variant: {
 				primary: 'bg-primary hover:bg-primary/50 text-primary-foreground',
@@ -16,7 +16,7 @@
 			size: {
 				icon: 'p-2 w-min h-auto aspect-square',
 				sm: 'px-0.5 py-1',
-				default: 'px-3 py-1.5'
+				default: 'px-4 py-1.5'
 			}
 		}
 	});

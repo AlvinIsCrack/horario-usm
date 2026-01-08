@@ -8,10 +8,10 @@
 		variants: {
 			variant: {
 				default: 'bg-accent text-accent-foreground',
-				danger: 'bg-destructive/50 text-destructive-foreground',
+				danger: 'bg-red-500/20 text-red-50',
 				primary: 'bg-primary text-white shadow-sm/50 ring-transparent',
-				success: 'bg-emerald-500/15 text-emerald-700 border-emerald-500/20 dark:text-emerald-400',
-				warning: 'bg-amber-500/15 text-amber-700 border-amber-500/20 dark:text-amber-400',
+				success: 'bg-green-400/20 text-lime-50',
+				warning: 'bg-amber-400/20 text-amber-50',
 				outline: ''
 			}
 		}
