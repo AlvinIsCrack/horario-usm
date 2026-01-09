@@ -143,8 +143,8 @@
 					Planifica tu trayectoria académica de forma visual e interactiva.
 				</p>
 			</div>
-			
-			<div class="flex flex-[0.5] justify-center items-center gap-2">
+
+			<div class="flex flex-[0.5] items-center justify-center gap-2">
 				{#if mallaState.selectedPlanId}
 					<span class="text-muted-foreground text-sm">
 						<span class="text-foreground">{mallaState.stats.percent}% completado</span> • {mallaState
@@ -221,7 +221,7 @@
 		></div>
 
 		{#if mallaState.currentMalla.length > 0}
-			<div class="relative flex flex-row justify-center gap-2 pb-2" bind:this={containerRef}>
+			<div class="relative mx-auto flex w-fit flex-row" bind:this={containerRef}>
 				<svg class="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
 					{#each connections as conn, i (conn.path + conn.type)}
 						{@const color =
@@ -258,9 +258,11 @@
 				</svg>
 
 				{#each mallaState.currentMalla as semestre, i (i)}
-					<div class="flex flex-col gap-2">
+					<div
+						class="-my-3.5 flex flex-col gap-2 px-2 py-4 md:px-3 {i % 2 === 0 ? 'bg-gradient-to-b from-75% from-black/40 to-transparent' : ''}"
+					>
 						<div
-							class="relative z-10 flex items-center justify-between border-b border-white/50 px-1"
+							class="relative z-10 mb-2 flex items-center justify-between border-b border-white/50 px-1"
 						>
 							<span class="text-foreground text-lg font-bold">{romanize(i + 1)}</span>
 							<span class="text-xs font-medium text-white/40 uppercase">
