@@ -1,5 +1,5 @@
-import type { ProfessorProfile } from './types';
 import { REGISTRY } from './index';
+import type { ProfessorView } from './types';
 
 /**
  * Normaliza nombres para comparación insensible a formato.
@@ -49,11 +49,11 @@ function getSimilarity(s1: string, s2: string): number {
  * Encuentra el perfil más cercano dado un nombre sucio.
  * Prioriza match exacto de ID, luego similitud de nombre.
  */
-export function findBestMatch(rawName: string, threshold = 0.85): ProfessorProfile | null {
+export function findBestMatch(rawName: string, threshold = 0.85): ProfessorView | null {
     if (!rawName) return null;
     const target = normalizeString(rawName);
 
-    let bestMatch: ProfessorProfile | null = null;
+    let bestMatch: ProfessorView | null = null;
     let maxScore = 0;
 
     for (const [id, profile] of Object.entries(REGISTRY)) {

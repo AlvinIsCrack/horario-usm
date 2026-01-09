@@ -2,8 +2,8 @@
 	import '../app.css';
 
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import Dialog from '$lib/components/ui/Dialog.svelte';
-	
+	import DialogRenderer from '$lib/components/ui/helpers/DialogRenderer.svelte';
+
 	$effect(() => {
 		Calendario.init(localStorage);
 	});
@@ -19,7 +19,7 @@
 	{@render children()}
 </div>
 
-<Dialog />
+<DialogRenderer />
 <div
 	id="tooltip-portal"
 	class="pointer-events-none fixed top-0 left-0 z-[1000] h-full w-full"

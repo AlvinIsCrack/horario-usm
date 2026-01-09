@@ -100,12 +100,13 @@ export const EVALUATION_DIMENSIONS = {
                 id: 'accesibilidad',
                 label: 'Disposición',
                 description: 'Calidad del apoyo y contacto fuera del horario de clases.',
-                type: 'DISCRETE',
-                options: {
-                    ghost: { label: 'Inubicable', description: 'No responde correos ni consultas digitales.' },
-                    burocrata: { label: 'Formal', description: 'Respuesta lenta, deriva a ayudantes o syllabus.' },
-                    disponible: { label: 'Accesible', description: 'Responde dudas con prontitud y disposición.' },
-                    mentor: { label: 'Cercano', description: 'Preocupación activa por el progreso del alumno.' }
+                type: 'BARS',
+                levels: {
+                    1: { label: 'Inubicable', description: 'No responde correos ni consultas digitales.' },
+                    2: { label: 'Burocrático', description: 'Respuesta lenta, deriva a ayudantes o syllabus.' },
+                    3: { label: 'Disponible', description: 'Responde dudas con tiempos razonables.' },
+                    4: { label: 'Accesible', description: 'Responde dudas con prontitud y buena disposición.' },
+                    5: { label: 'Mentor', description: 'Preocupación activa por el progreso del alumno.' }
                 }
             }
         }
@@ -174,19 +175,42 @@ export const USM_TAGS = {
 export type TagId = keyof typeof USM_TAGS;
 
 // ==========================================
-// 3. ESTRUCTURA DE DATOS
+// 3. ESTRUCTURA DE DATOS 
 // ==========================================
-export interface ProfessorProfile {
+
+export interface Distribution {
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+}
+
+export interface MetricStats {
+    avg: number;       // Promedio ponderado
+    stdev: number;     // Desviación estándar
+    safe_score: number; // Límite inferior Wilson (para ranking)
+    distribution: Distribution; // Histograma crudo
+}
+
+export interface ProfessorMeta {
+    reviewCount: number;
+    effectiveCount: number; // N ponderado por tiempo
+    lastUpdated: string;
+}
+
+export interface ProfessorView {
+    id: string;
     name: string;
-    email?: string;
-    website?: string;
-    stats?: Record<string, number | string>;
-    activeTags?: TagId[];
-    summary?: string;
+    email: string;
+    // Ahora las stats son objetos complejos, no solo números
+    stats: Record<string, MetricStats | null>;
+    tags: TagId[]; // Tags ordenados por relevancia
+    meta: ProfessorMeta;
 }
 
 export interface ProfessorRegistry {
-    [id: string]: ProfessorProfile;
+    [id: string]: ProfessorView;
 }
 
 // ============================================================================

@@ -10,6 +10,11 @@
 	const MS_IN_DAY = 24 * 60 * 60 * 1000;
 
 	const UPDATES = {
+		'Encuesta Docente Funcional': {
+			icon: Teachers,
+			description:
+				'¡Los aportes de comentarios y evaluaciones a los profesores funciona! La actualización de los datos es cada 30 minutos aprox.'
+		},
 		'Repositorio y Reviews de Profesores': {
 			icon: Teachers,
 			description:
@@ -19,11 +24,6 @@
 			icon: MaterialSymbolsGrid4x4,
 			description:
 				'Volvió la malla interactiva. Ofrece mejor visualización de relaciones entre ramos. Está aún en prueba, pero funciona lo básico.'
-		},
-		'Prompt para IA': {
-			icon: MaterialSymbolsMagicButton,
-			description:
-				'Función EXPERIMENTAL de exportación de prompt para uso con IA (Gemini, ChatGPT, etc...). Este prompt consolida métricas de carga, logística y tiempos para facilitar una evaluación externa. <b>Los resultados son estrictamente referenciales y no sustituyen una planificación académica oficial.</b>'
 		}
 	};
 
@@ -95,7 +95,7 @@
 					</span>
 					{#if isNew}
 						<span
-							class="animate-in fade-in zoom-in bg-amber-500 text-primary-foreground inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase duration-300"
+							class="animate-in fade-in zoom-in text-primary-foreground inline-flex items-center rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase duration-300"
 						>
 							Nuevo
 						</span>

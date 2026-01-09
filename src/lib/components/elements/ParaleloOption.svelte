@@ -2,7 +2,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import ProfessorSnippet from '$lib/logic/professors/components/ProfessorSnippet.svelte';
+	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { Ramo } from '$lib/types/horario';
 	// import HorarioMiniRender from './HorarioMiniRender.svelte';
@@ -55,7 +55,7 @@
 			{#each paralelo.profesor as profesor (profesor)}
 				{#snippet tooltipContent()}
 					<div class="p-1">
-						<ProfessorSnippet id={profesor} />
+						<ProfessorCard id={profesor} />
 					</div>
 				{/snippet}
 
@@ -64,7 +64,10 @@
 						NN (Profesor aún no asignado)
 					{:else}
 						<Tooltip offset={50} position="right" content={tooltipContent}>
-							{profesor}
+							<span
+								class="decoration-foreground/50 cursor-help underline decoration-dotted hover:decoration-solid"
+								>{profesor}</span
+							>
 						</Tooltip>
 					{/if}
 				</div>

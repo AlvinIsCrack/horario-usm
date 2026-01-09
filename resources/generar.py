@@ -10,23 +10,31 @@ from multiprocessing import Pool
 # Importación de Módulos Locales
 from modules import auth, utils, scrapers, workers
 
+# Importación de módulos de Reviews (Opcionales/Dinámicos)
+try:
+    from modules.reviews import fetch_profesores, aggregate
+    REVIEWS_MODULE_AVAILABLE = True
+except ImportError:
+    REVIEWS_MODULE_AVAILABLE = False
+
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 if __name__ == "__main__":
     # 0. Parsing de Argumentos
-    parser = argparse.ArgumentParser(description="Generador de datos SIGA (Ramos, Carreras, Programas)")
+    parser = argparse.ArgumentParser(description="Generador de datos SIGA (Ramos, Carreras, Programas, Profesores)")
     
-    # Argumento posicional opcional para la cookie (mantiene compatibilidad con scripts antiguos)
+    # Argumento posicional opcional para la cookie
     parser.add_argument("cookie", nargs="?", help="String de la cookie JSESSIONID")
     
     # Flags opcionales
     parser.add_argument("--ramos", action="store_true", help="Actualizar horario de asignaturas")
     parser.add_argument("--carrera", "--carreras", dest="carreras", action="store_true", help="Actualizar planes y mallas de carrera")
     parser.add_argument("--programas", action="store_true", help="Actualizar programas académicos")
+    parser.add_argument("--profesores", action="store_true", help="Sincronizar reseñas de profesores (Google Sheets -> Local)")
+    parser.add_argument("--reviews", action="store_true", help="Generar vistas agregadas de profesores (Local -> View JSON)")
 
-    # Flag para ignorar ejecución
+    # Flags de sistema
     parser.add_argument("--ignore", action="store_true", help="Salir exitosamente sin hacer nada")
-    # Flag para modo prueba/depuración
     parser.add_argument("--dry-run", action="store_true", help="Ejecuta el proceso completo sin escribir resultados a disco")
     
     args = parser.parse_args()
@@ -35,46 +43,47 @@ if __name__ == "__main__":
     
     if args.dry_run:
         print("!!! MODO DRY-RUN ACTIVADO: No se guardarán cambios en el disco. !!!")
-        # Sobrescribimos temporalmente las funciones de escritura del módulo utils
         utils.atomic_write = lambda *args, **kwargs: print(f"Bloqueada escritura atómica en: {args[0]}")
         utils.write_if_modified = lambda path, data, **kwargs: (hashlib.md5(str(data).encode()).hexdigest(), False)
-        # También evitamos que el log de cambios se ensucie
         def mock_append_log(*args, **kwargs): pass
 
-    # Lógica de Default: Si no se pasa ningún flag, se asume el comportamiento por defecto (Solo Ramos)
-    if not (args.ramos or args.carreras or args.programas):
+    # Lógica de Default: Si no se pasa ningún flag, se asume el comportamiento antiguo (Solo Ramos)
+    # Si se pasa CUALQUIER flag, solo se ejecuta lo solicitado.
+    if not (args.ramos or args.carreras or args.programas or args.profesores or args.reviews):
         UPDATE_RAMOS = True
         UPDATE_CARRERAS = False
         UPDATE_PROGRAMAS = False
+        UPDATE_PROFESORES = True
+        UPDATE_REVIEWS = True
     else:
         UPDATE_RAMOS = args.ramos
         UPDATE_CARRERAS = args.carreras
         UPDATE_PROGRAMAS = args.programas
+        UPDATE_PROFESORES = args.profesores
+        UPDATE_REVIEWS = args.reviews
 
     # 1. Configuración de Entorno y Rutas
     DATA_PATH = utils.ensure_directories(BASE_DIR)
     
-    # 2. Obtención de Cookies (Auth)
+    # 2. Obtención de Cookies (Auth) - Solo si es necesario para scraping de SIGA
     cookies = args.cookie
+    if UPDATE_RAMOS or UPDATE_CARRERAS:
+        if not cookies and not sys.stdin.isatty():
+            cookies = sys.stdin.read().strip()
+        
+        if not cookies:
+            print("Obteniendo cookie mediante autenticación interna...")
+            try:
+                cookies = auth.get_session_cookie()
+                print(f"Login exitoso. {cookies}")
+            except Exception as e:
+                print(f"Error crítico de autenticación: {e}")
+                sys.exit(1)
 
-    # Opción B: Pipe (Stdin) - Si no vino por argumento
-    if not cookies and not sys.stdin.isatty():
-        cookies = sys.stdin.read().strip()
-    
-    # Opción C: Autenticación nativa (Módulo Auth)
-    if not cookies:
-        print("Obteniendo cookie mediante autenticación interna...")
-        try:
-            cookies = auth.get_session_cookie()
-            print(f"Login exitoso. {cookies}")
-        except Exception as e:
-            print(f"Error crítico de autenticación: {e}")
+        cookies = cookies.strip()
+        if not cookies.startswith("JSESSIONID"):
+            print("COOKIE inválida o no aceptada")
             sys.exit(1)
-
-    cookies = cookies.strip()
-    if not cookies.startswith("JSESSIONID"):
-        print("COOKIE inválida o no aceptada")
-        sys.exit(1)
 
     # 3. Preparación de Timestamps
     d = datetime.datetime.now()
@@ -82,7 +91,7 @@ if __name__ == "__main__":
 
     # 4. Orquestación del Scraping
     
-    # A. Obtener Sedes y Jornadas (Solo si es necesario para Ramos o Carreras)
+    # A. Obtener Sedes y Jornadas
     sedes, jornadas = {}, {}
     if UPDATE_RAMOS or UPDATE_CARRERAS:
         data_sj = scrapers.get_sedes_and_jornadas(cookies)
@@ -91,7 +100,6 @@ if __name__ == "__main__":
             print("Sesión expirada al intentar obtener sedes.")
             sys.exit(0)
 
-    # Bloque de Seguridad: Si algo falla dentro de los workers, matamos el proceso.
     try:
         # B. Procesar RAMOS
         ramos_result = {}
@@ -99,12 +107,8 @@ if __name__ == "__main__":
             print("Iniciando actualización de RAMOS...")
             tasks = [[cookies, s, j, sedes[s], jornadas[j]] for j in jornadas for s in sedes]
             
-            # Usamos el Pool dentro del try para capturar explosiones de workers
             with Pool(len(sedes)) as pool:
-                # Si un worker lanza excepción (ej. ValueError por HTML roto), 
-                # pool.map la relanzará aquí inmediatamente.
                 results = pool.map(workers.worker_process_ramos, tasks)
-                
                 for res in results:
                     sede_nom, jornada_nom, periodos = res
                     target_sede = ramos_result.setdefault(sede_nom, {})
@@ -137,13 +141,11 @@ if __name__ == "__main__":
                     sys.exit(1)
 
     except Exception as e:
-        # ABORTAR MISIÓN: Cualquier error en scraping impide la escritura de archivos
         print(f"\n[ERROR FATAL] Se detectó una inconsistencia en el scraping: {e}")
         print(">>> Abortando ejecución para proteger la integridad de los datos.")
-        print(">>> NO se han guardado cambios.")
         sys.exit(1)
 
-    # D. Procesar PROGRAMAS (Serial)
+    # D. Procesar PROGRAMAS
     if UPDATE_PROGRAMAS:
         print("Iniciando actualización de PROGRAMAS...")
         progs = scrapers.get_programas_academicos()
@@ -152,10 +154,31 @@ if __name__ == "__main__":
             utils.atomic_write(dest, progs)
             print(f"Programas actualizados en: {dest}")
 
-    # 5. Escritura y Gestión de Metadata
+    # E. Procesar PROFESORES (Google Sheets -> Processed JSON)
+    if UPDATE_PROFESORES:
+        if REVIEWS_MODULE_AVAILABLE:
+            print("Iniciando sincronización de PROFESORES (Reviews)...")
+            try:
+                fetch_profesores.trigger_gas_analysis() # type: ignore
+            except Exception as e:
+                print(f"Error al sincronizar profesores: {e}")
+        else:
+            print("⚠️ El módulo 'reviews' no está disponible. Revisa la instalación.")
+
+    # F. Procesar VISTAS AGREGADAS (Processed JSON -> Views JSON)
+    if UPDATE_REVIEWS:
+        if REVIEWS_MODULE_AVAILABLE:
+            print("Generando vistas de REVIEWS (Agregación)...")
+            try:
+                aggregate.main() # type: ignore
+            except Exception as e:
+                print(f"Error al generar vistas: {e}")
+        else:
+            print("⚠️ El módulo 'reviews' no está disponible.")
+
+    # 5. Escritura y Gestión de Metadata (Solo para Ramos/Carreras)
     metadata_path = os.path.join(DATA_PATH, "metadata.json")
     old_metadata = {}
-    
     if os.path.exists(metadata_path):
         try:
             with open(metadata_path, "r", encoding="utf-8") as f:
@@ -164,7 +187,7 @@ if __name__ == "__main__":
     
     files_registry = old_metadata.get("files", {})
 
-    # A. Escritura CARRERAS (Forzando UTF-8 implícitamente por el cambio en utils)
+    # A. Escritura CARRERAS
     if UPDATE_CARRERAS and carreras_result:
         fname = "planes_carreras.json"
         old_hash = files_registry.get(fname, {}).get("hash")
@@ -192,7 +215,6 @@ if __name__ == "__main__":
         fname_ramos = "horario_asignaturas.json"
         ramos_path = os.path.join(DATA_PATH, fname_ramos)
         
-        # 1. Lectura Inteligente (Try UTF-8 -> Fallback ISO-8859-1)
         ramos_antiguos = {}
         if os.path.exists(ramos_path):
             try:
@@ -207,22 +229,15 @@ if __name__ == "__main__":
         cambios_detectados = 0
         if ramos_antiguos:
             if "date" in ramos_antiguos: del ramos_antiguos["date"]
-            
             diff = utils.calcular_diff_ramos(ramos_antiguos, ramos_result)
             
-            # --- CORRECCIÓN AQUÍ ---
             if diff:
-                # La nueva estructura agrupa los contadores dentro de 'metadata'
-                # y renombramos 'total_cambios' a 'total_eventos' para ser consistentes
                 cambios_detectados = diff["metadata"]["total_eventos"]
-                
                 log_path = os.path.join(DATA_PATH, "historial_cambios.jsonl")
                 with open(log_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(diff, ensure_ascii=False) + "\n")
                 print(f"Historial guardado en: {log_path}")
-            # -----------------------
 
-            # Merge conservador
             ramos_final = ramos_antiguos.copy()
             for s, js in ramos_result.items():
                 if s not in ramos_final: ramos_final[s] = {}
@@ -232,7 +247,6 @@ if __name__ == "__main__":
                         ramos_final[s][j][p] = data
             ramos_result = ramos_final
 
-        # 2. Escritura Ramos (UTF-8)
         old_hash_ramos = files_registry.get(fname_ramos, {}).get("hash")
         
         r_hash, r_written = utils.write_if_modified(
@@ -253,8 +267,7 @@ if __name__ == "__main__":
             "cambiosUltimaEjecucion": cambios_detectados
         }
 
-        # 3. Metadata (UTF-8)
-        # Recálculo de estadísticas sobre el objeto final
+        # 3. Metadata
         total_asignaturas = 0
         total_paralelos = 0
         for s_data in ramos_result.values():

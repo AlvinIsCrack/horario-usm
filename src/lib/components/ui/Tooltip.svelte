@@ -50,6 +50,7 @@
 	onpointerleave={() => (visible = false)}
 	{...closeOnClick ? { onclick: () => (visible = false) } : {}}
 	bind:this={wrapperEl}
+	{...props}
 >
 	{@render children?.()}
 
@@ -58,7 +59,10 @@
 		{visible}
 		{position}
 		{offset}
-		class='z-[inherit] {tooltip({ position: followCursor ? undefined : position, class: _class as string })}'
+		class="z-[inherit] {tooltip({
+			position: followCursor ? undefined : position,
+			class: _class as string
+		})}"
 	>
 		{#if typeof content === 'string'}
 			{content}

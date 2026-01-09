@@ -17,7 +17,6 @@
 	import Image from '$lib/icons/image.svelte';
 	import { exportScheduleAsImage } from '$lib/helpers/screenshot';
 	import Copy from '$lib/icons/copy.svelte';
-	import { Dialog } from '../ui/Dialog.svelte';
 	import SedeSelector from '../elements/SedeSelector.svelte';
 	import Statistics from '../elements/Statistics.svelte';
 	import RamosList from '../elements/RamosList.svelte';
@@ -29,6 +28,7 @@
 	import UserData from '../elements/UserData.svelte';
 	import { base } from '$app/paths';
 	import Teachers from '$lib/icons/teachers.svelte';
+	import { Dialog } from '../ui/helpers/DialogRenderer.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);

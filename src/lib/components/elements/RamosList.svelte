@@ -10,7 +10,7 @@
 	import Badge from '../ui/Badge.svelte';
 	import { SideBar } from '../sidebar/SideBar.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
-	import ProfessorSnippet from '$lib/logic/professors/components/ProfessorSnippet.svelte';
+	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
 
 	const ramosCarrera: (RamoCarrera | undefined)[] = $derived(
 		Calendario.ramos.map((r) =>
@@ -78,9 +78,13 @@
 				{#snippet ramoTooltip()}
 					<div class="space-y-1 p-1">
 						<h1 class="w-full text-left text-base font-medium">Profesores</h1>
-						<div class="my-2 w-full scale-200 border-b-1"></div>
-						{#each ramo.profesor as profesor (profesor)}
-							<ProfessorSnippet id={profesor} />
+						<div class="my-2 mb-4 w-full scale-200 border-b-1"></div>
+						{#each ramo.profesor as profesor, i (profesor)}
+							<div
+								class="decoration-foreground/50 w-max cursor-help text-left underline decoration-dotted hover:decoration-solid"
+							>
+								{profesor}
+							</div>
 						{/each}
 					</div>
 				{/snippet}

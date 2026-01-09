@@ -1,20 +1,20 @@
 <script lang="ts">
-	import { type Snippet } from 'svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
 	import { fade, scale } from 'svelte/transition';
+	import Floating from './Floating.svelte';
 
 	// Definimos el estilo base y sus partes
 	const slider = tv({
 		slots: {
-			root: 'relative hover:cursor-pointer flex w-full isolate touch-none select-none items-center py-2', // py-6 da espacio a los tooltips
+			root: 'relative hover:cursor-pointer flex w-full isolate touch-none select-none items-center py-2',
 			track: 'relative ring ring-input h-2 w-full grow overflow-hidden rounded-full bg-secondary',
 			range: 'absolute h-full bg-primary/50 rounded-full',
 			thumb:
 				'block h-5 w-5 rounded-full border-2 border-primary bg-primary ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 z-20',
-			tick: 'absolute top-1/2 h-2 w-2 rounded-full -translate-x-1/2 -translate-y-1/2 bg-muted-foreground/50 z-10 transition-all hover:bg-primary hover:scale-150 cursor-help',
+			tick: 'absolute top-1/2 h-2 w-2 rounded-full -translate-x-1/2 -translate-y-1/2 bg-muted-foreground/50 z-10 transition-all hover:bg-primary hover:scale-150s',
 			popup:
-				'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded border shadow-sm whitespace-nowrap pointer-events-none'
+				'absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded border shadow-sm whitespace-nowrap pointer-events-none z-50'
 		}
 	});
 
@@ -53,7 +53,9 @@
 
 	// Estado interno
 	let element: HTMLDivElement | undefined = $state();
+	let thumbRef: HTMLElement | undefined = $state();
 	let isDragging = $state(false);
+	let isHovered = $state(false);
 	let hoveredTick: Tick | null = $state(null);
 
 	// Porcentaje para posicionamiento visual
@@ -96,6 +98,8 @@
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
 	onpointerup={handlePointerUp}
+	onpointerenter={() => (isHovered = true)}
+	onpointerleave={() => (isHovered = false)}
 	role="slider"
 	aria-valuemin={min}
 	aria-valuemax={max}
@@ -116,37 +120,41 @@
 				role="presentation"
 				onpointerenter={() => (hoveredTick = tick)}
 				onpointerleave={() => (hoveredTick = null)}
-			>
-				{#if hoveredTick === tick && (tick.label || tick.description)}
-					<div
-						in:scale={{ duration: 150, start: 0.9 }}
-						out:fade={{ duration: 100 }}
-						class={popup()}
-					>
-						{#if tick.label}
-							<span class="block font-bold">{tick.label}</span>
-						{/if}
-						{#if tick.description}
-							<span class="text-muted-foreground block text-[10px]">{tick.description}</span>
-						{/if}
-					</div>
-				{/if}
-			</div>
+			></div>
 		{/if}
 	{/each}
 
 	<span
+		bind:this={thumbRef}
 		class={thumb()}
 		style="position: absolute; left: {percentage}%; transform: translate(-50%, -50%); top: 50%;"
 	>
-		{#if showValueTooltip && (isDragging || hoveredTick === null)}
-			<div
-				class="{popup()} {isDragging
-					? 'opacity-100'
-					: 'opacity-0 group-hover:opacity-100 hover:opacity-100'} transition-opacity"
+		{#if showValueTooltip}
+			{@const activeTick = parsedTicks.find((t) => t.value === value)}
+			<Floating
+				trigger={thumbRef}
+				visible={isDragging || isHovered}
+				position="bottom"
+				offset={10}
+				class="z-[inherit]"
 			>
-				{formatValue(value)}
-			</div>
+				<div
+					class="bg-popover text-popover-foreground rounded-md border px-2 py-1 text-xs whitespace-nowrap shadow-sm"
+				>
+					{#if activeTick && (activeTick.label || activeTick.description)}
+						<div class="flex flex-col items-center">
+							{#if activeTick.label}
+								<span class="font-bold">{activeTick.label}</span>
+							{/if}
+							{#if activeTick.description}
+								<span class="text-muted-foreground text-xs">{activeTick.description}</span>
+							{/if}
+						</div>
+					{:else}
+						{formatValue(value)}
+					{/if}
+				</div>
+			</Floating>
 		{/if}
 	</span>
 </div>

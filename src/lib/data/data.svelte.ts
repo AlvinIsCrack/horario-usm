@@ -85,11 +85,54 @@ const _jornadasCarreras: { [sede: string]: string[] } = Object.fromEntries(
     ])
 );
 
+function normalizeDepto(rawName: string): string {
+    const lower = rawName.trim().toLowerCase();
+
+    // 1. Mapeos directos para casos conocidos y unificación
+    const MAP: Record<string, string> = {
+        "defider": "DEFIDER",
+        "matematica": "Matemática",
+        "fisica": "Física",
+        "quimica": "Química",
+        "mecanica": "Mecánica",
+        "aeronautica": "Aeronáutica",
+        "electronica": "Electrónica",
+        "electrica": "Eléctrica",
+        "informatica": "Informática",
+        "humanisticos": "Humanísticos",
+        // Unificaciones semánticas
+        "electrotecnia": "Electrónica", // Unificamos Electrotecnia -> Electrónica
+        "electrotecnia e informatica": "Electrónica e Informática",
+        "construccion y prevencion de riesgos": "Construcción y Prevención de Riesgos",
+        "construcción y prevención de riesgos": "Construcción y Prevención de Riesgos",
+        "quimica y medio ambiente": "Química y Medio Ambiente",
+        "química y medio ambiente": "Química y Medio Ambiente",
+        "diseño y manufactura": "Diseño y Manufactura"
+    };
+
+    // Si está en el mapa directo, devolver corrección
+    if (MAP[lower]) return MAP[lower];
+
+    // Si contiene "electrotecnia", lo forzamos a "Electrónica" si no cayó arriba
+    if (lower.includes("electrotecnia")) {
+        return normalizeDepto(lower.replace("electrotecnia", "electrónica"));
+    }
+
+    // 2. Capitalización automática (Title Case) para los que no están en el mapa
+    return rawName
+        .toLowerCase()
+        .replace(/(?:^|\s|['"([{])+\S/g, (match) => match.toUpperCase())
+        .replace(/\b(De|Y|E|Del|La|El|En)\b/g, (match) => match.toLowerCase()) // Lowercase connectors
+        .replace(/^\w/, (c) => c.toUpperCase()); // Asegurar primera mayúscula
+}
+
 const _departamentos = Array.from(
     new Set(
-        Object.values(PROGRAMAS).flatMap((sedeData) => Object.keys(sedeData))
+        Object.values(PROGRAMAS)
+            .flatMap((sedeData) => Object.keys(sedeData))
+            .map(normalizeDepto) // Aplicamos la limpieza
     )
-).sort();
+).sort((a, b) => a.localeCompare(b, 'es')); // Orden alfabético correcto en español
 
 const _cachedRamos = $derived(ASIGNATURAS[Calendario?.sede]?.[Calendario.jornada]?.[Calendario.semestre] ?? []);
 const _cachedCarreras = $derived(CARRERAS.filter(carrera => {
@@ -190,4 +233,5 @@ export const Data = {
         return _updatedDate;
     },
 
+    normalizeDepto
 };

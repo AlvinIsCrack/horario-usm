@@ -5,11 +5,9 @@
 	import Search from '$lib/icons/search.svelte';
 	import SelectUI from '$lib/components/ui/Select.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
-	import Dialog, { Dialog as DialogManager } from '$lib/components/ui/Dialog.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Slider from '$lib/components/ui/Slider.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 
 	import { base } from '$app/paths';
@@ -22,6 +20,8 @@
 	} from '$lib/logic/professors/types';
 	import { orderTags } from '$lib/logic/professors';
 	import { Data } from '$lib/data/data.svelte';
+	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
+	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 
 	let query = $state('');
 	let selectedSede = $state('ALL');
@@ -85,7 +85,10 @@
 
 	const deptoOptions = [
 		{ value: 'ALL', label: 'Todos los Deptos.' },
-		...Data.departamentos.map((d) => ({ value: d, label: d[0].toUpperCase() + d.slice(1).toLowerCase() }))
+		...Data.departamentos.map((d) => ({
+			value: d,
+			label: d[0].toUpperCase() + d.slice(1).toLowerCase()
+		}))
 	];
 
 	// Búsqueda Reactiva
@@ -145,7 +148,7 @@
 	async function handleSubmit() {
 		if (!selectedProfessor) return;
 
-		const confirmed = await DialogManager.confirm({
+		const confirmed = await Dialog.confirm({
 			title: 'Consentimiento de Responsabilidad',
 			body: 'Al enviar esta evaluación, usted declara que el contenido es honesto y constructivo. Este es un espacio gestionado por y para estudiantes; el uso de lenguaje ofensivo o información falsa compromete la integridad del sistema y causará que su registro sea ignorado, dificultando la construcción de una herramienta útil para la comunidad. Cualquier abuso será detectado y se tomarán las medidas pertinentes. ¿Desea proceder con el envío?',
 			confirmText: 'Confirmar y Enviar',
@@ -245,7 +248,7 @@
 				</p>
 			</div>
 
-			<div class="flex w-full flex-1 flex-row items-end gap-4 max-w-1/2">
+			<div class="flex w-full max-w-1/2 flex-1 flex-row items-end gap-4">
 				<div class="flex flex-1 flex-col gap-1">
 					<p class="text-muted-foreground text-xs font-bold uppercase">Búsqueda</p>
 					<div class="relative">
@@ -303,11 +306,7 @@
 				>
 					<ProfessorCard professor={prof} />
 
-					<Button
-						size="sm"
-						class="mt-auto w-full"
-						onclick={() => openEvaluationModal(prof)}
-					>
+					<Button size="sm" class="mt-auto w-full" onclick={() => openEvaluationModal(prof)}>
 						Evaluar Desempeño Docente
 					</Button>
 				</div>
@@ -323,7 +322,7 @@
 		</div>
 	</div>
 
-	<Dialog bind:open={isModalOpen} class="gap-0 p-0">
+	<DialogComponent bind:open={isModalOpen} class="gap-0 p-0">
 		{#if selectedProfessor}
 			<div class="bg-muted/30 border-b p-5 pb-4">
 				<h2 class="text-lg leading-tight font-bold">Evaluación Docente</h2>
@@ -331,9 +330,9 @@
 					Está evaluando a <span class="text-foreground font-medium">{selectedProfessor.name}</span>
 				</p>
 				<p class="text-muted-foreground/80 mt-2 text-xs leading-relaxed">
-					La secuencia de criterios y etiquetas se presenta de forma aleatoria
-					para minimizar sesgos cognitivos de orden y fatiga de decisión, promoviendo una valoración
-					más objetiva e independiente de la estructura del formulario.
+					La secuencia de criterios y etiquetas se presenta de forma aleatoria para minimizar sesgos
+					cognitivos de orden y fatiga de decisión, promoviendo una valoración más objetiva e
+					independiente de la estructura del formulario.
 				</p>
 			</div>
 
@@ -356,7 +355,7 @@
 												<Tooltip wrapperClass="-mb-2" content={subDef.description}>
 													<label
 														for="metrics-{subDef.id}"
-														class="decoration-foreground/50 font-medium cursor-help text-sm underline decoration-dotted"
+														class="decoration-foreground/50 cursor-help text-sm font-medium underline decoration-dotted"
 													>
 														{subDef.label}
 													</label>
@@ -367,9 +366,15 @@
 												max={5}
 												step={1}
 												bind:value={formValues.metrics[subDef.id]}
-												ticks={[1, 2, 3, 4, 5]}
+												ticks={Object.values(subDef.levels).map((l: any, i: number) => ({
+													value: i + 1,
+													label: l.label,
+													description: l.description
+												}))}
 											/>
-											<div class="text-muted-foreground -mt-2 font-medium flex justify-between text-xs">
+											<div
+												class="text-muted-foreground -mt-2 flex justify-between text-xs font-medium"
+											>
 												<span>{subDef.levels[1].label}</span>
 												<span>{subDef.levels[5].label}</span>
 											</div>
@@ -489,7 +494,5 @@
 				</Button>
 			</div>
 		{/if}
-	</Dialog>
-
-	<Dialog />
+	</DialogComponent>
 </div>
