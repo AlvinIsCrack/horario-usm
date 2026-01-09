@@ -80,17 +80,30 @@
 						<h1 class="w-full text-left text-base font-medium">Profesores</h1>
 						<div class="my-2 mb-4 w-full scale-200 border-b-1"></div>
 						{#each ramo.profesor as profesor, i (profesor)}
-							<div
-								class="decoration-foreground/50 w-max cursor-help text-left underline decoration-dotted hover:decoration-solid"
-							>
-								{profesor}
-							</div>
+							{#snippet tooltipContent()}
+								<div class="p-1">
+									<ProfessorCard id={profesor} />
+								</div>
+							{/snippet}
+
+							{#if profesor.includes('NN')}
+								NN (Profesor aún no asignado)
+							{:else}
+								<Tooltip position="right" content={tooltipContent}>
+									<div
+										class="decoration-foreground/50 w-max cursor-help text-left underline decoration-dotted hover:decoration-solid"
+									>
+										{profesor}
+									</div>
+								</Tooltip>
+							{/if}
 						{/each}
 					</div>
 				{/snippet}
 
 				<Tooltip
 					position="right"
+					interactive
 					content={ramoTooltip}
 					class="max-w-md! overflow-hidden 2xl:max-w-lg!"
 					forceVisible={Boolean(ramo.profesor.length) && highlighted}

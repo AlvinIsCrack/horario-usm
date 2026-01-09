@@ -15,6 +15,7 @@
 		wrapperClass,
 		forceVisible = false,
 		closeOnClick = true,
+		interactive = false, // NUEVA PROPIEDAD
 		...props
 	}: {
 		wrapperClass?: ClassValue;
@@ -25,6 +26,7 @@
 		offset?: number;
 		closeOnClick?: boolean;
 		forceVisible?: boolean;
+		interactive?: boolean; // Propiedad para habilitar interacción
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const tooltip = tv({
@@ -39,15 +41,33 @@
 		}
 	});
 
-	// --- Estado y Referencias ---
+	// --- Estado y Lógica ---
 	let visible = $state(false);
 	let wrapperEl: HTMLDivElement | undefined = $state();
+	let timer: ReturnType<typeof setTimeout>;
+
+	// Lógica de apertura inmediata
+	function show() {
+		clearTimeout(timer);
+		visible = true;
+	}
+
+	// Lógica de cierre (con delay si es interactivo)
+	function hide() {
+		if (interactive) {
+			timer = setTimeout(() => {
+				visible = false;
+			}, 150); // 150ms de gracia para mover el cursor
+		} else {
+			visible = false;
+		}
+	}
 </script>
 
 <div
 	class="relative inline-flex {wrapperClass}"
-	onpointerenter={() => (visible = true)}
-	onpointerleave={() => (visible = false)}
+	onpointerenter={show}
+	onpointerleave={hide}
 	{...closeOnClick ? { onclick: () => (visible = false) } : {}}
 	bind:this={wrapperEl}
 	{...props}
@@ -56,7 +76,7 @@
 
 	<Floating
 		trigger={wrapperEl}
-		{visible}
+		visible={forceVisible || visible}
 		{position}
 		{offset}
 		class="z-[inherit] {tooltip({
@@ -64,10 +84,16 @@
 			class: _class as string
 		})}"
 	>
-		{#if typeof content === 'string'}
-			{content}
-		{:else if content}
-			{@render content()}
-		{/if}
+		<div
+			role="presentation"
+			onpointerenter={interactive ? show : undefined}
+			onpointerleave={interactive ? hide : undefined}
+		>
+			{#if typeof content === 'string'}
+				{content}
+			{:else if content}
+				{@render content()}
+			{/if}
+		</div>
 	</Floating>
 </div>

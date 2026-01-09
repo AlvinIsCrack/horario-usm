@@ -4,10 +4,10 @@
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import Teachers from '$lib/icons/teachers.svelte';
 
-	// Configuración de persistencia
 	const STORAGE_KEY = 'app_changelog_seen';
 	const EXPIRATION_DAYS = 7;
 	const MS_IN_DAY = 24 * 60 * 60 * 1000;
+	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000; // 1 hora para marcar como "leído"
 
 	const UPDATES = {
 		'Encuesta Docente Funcional': {
@@ -37,8 +37,7 @@
 			const now = Date.now();
 			let hasChanges = false;
 
-			// 1. Limpieza (Garbage Collection): Eliminar registros antiguos (> 1 semana)
-			// Esto libera espacio y permite reutilizar keys a largo plazo.
+			// 1. Limpieza (Garbage Collection)
 			for (const [key, timestamp] of Object.entries(seenData)) {
 				if (now - timestamp > EXPIRATION_DAYS * MS_IN_DAY) {
 					delete seenData[key];
@@ -46,22 +45,26 @@
 				}
 			}
 
-			// 2. Detección de nuevos ítems y marcado como vistos
+			// 2. Lógica de "Lectura Progresiva"
 			const currentNewItems = new Set<string>();
 
 			for (const title of Object.keys(UPDATES)) {
-				// Si no está en el registro, es nuevo
-				if (!seenData[title]) {
+				const firstSeen = seenData[title];
+
+				if (!firstSeen) {
+					// Caso A: Nunca visto. Lo registramos ahora y aparece como nuevo.
 					currentNewItems.add(title);
-					seenData[title] = now; // Lo marcamos como visto ahora mismo
+					seenData[title] = now;
 					hasChanges = true;
+				} else if (now - firstSeen < READ_THRESHOLD_MS) {
+					// Caso B: Visto hace poco (menos de 1 hora). Sigue siendo "nuevo".
+					currentNewItems.add(title);
 				}
+				// Caso C: Si pasó más de 1 hora, no se agrega a currentNewItems (aparece como leído)
 			}
 
-			// Actualizamos el estado para la UI
 			newItems = currentNewItems;
 
-			// 3. Guardar cambios en localStorage si hubo modificaciones
 			if (hasChanges) {
 				localStorage.setItem(STORAGE_KEY, JSON.stringify(seenData));
 			}

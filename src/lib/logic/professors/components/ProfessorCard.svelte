@@ -1,8 +1,16 @@
 <script lang="ts">
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import MaterialSymbolsExclamationRounded from '$lib/icons/MaterialSymbolsExclamationRounded.svelte';
+	import MaterialSymbolsInfoOutlineRounded from '$lib/icons/MaterialSymbolsInfoOutlineRounded.svelte';
+	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
+	import MaterialSymbolsQuestionMarkRounded from '$lib/icons/MaterialSymbolsQuestionMarkRounded.svelte';
+	import MaterialSymbolsVerifiedRounded from '$lib/icons/MaterialSymbolsVerifiedRounded.svelte';
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/logic/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/logic/professors/repository.svelte';
+
+	import { hasPendingReview } from '$lib/logic/reviews/api';
+	import { onMount } from 'svelte';
 
 	let {
 		id,
@@ -12,17 +20,18 @@
 		professor?: ProfessorEntry;
 	} = $props();
 
-	// 1. Determinar el nombre base para buscar
 	const nameToSearch = $derived(professor?.name ?? id ?? '');
-
-	// 2. Datos del Registry (Tags, Email, Stats, Metadata manual)
-	// findProfessor es tolerante a fallos, devuelve null si no existe registro manual
 	const registryProfile = $derived(findProfessor(nameToSearch));
 	const renderData = $derived(getProfessorRenderData(registryProfile));
-
-	// 3. Datos del Repositorio (Asignaturas, Sedes - Generado automáticamente)
-	// Si no pasaron el objeto 'professor', intentamos buscarlo en el repo por nombre
 	const repoData = $derived(professor ?? professorRepo.search(nameToSearch)[0]);
+
+	let isPendingMyVote = $state(false);
+	onMount(() => {
+		// Verificamos si el usuario votó recientemente por este profesor
+		if (renderData?.profile) {
+			isPendingMyVote = hasPendingReview(renderData.profile.name);
+		}
+	});
 
 	// 1. Helper Semántico para colores (Verde = Positivo/Fácil, Rojo = Negativo/Difícil)
 	function getMetricColor(val: number, metricId: string): string {
@@ -77,22 +86,34 @@
 
 			{#if renderData?.sampleMeta}
 				{@const count = renderData.sampleMeta.reviewCount}
-				{#snippet tooltipContent()}
-					Nivel de confianza estadística de la calificación, basado en la cantidad de votos.<br />
-					<span class="text-xs opacity-50">La cantidad de votos actualmente es {count}</span>
-				{/snippet}
-				<Tooltip content={tooltipContent}>
+				{@const isArchived = renderData.sampleMeta.isArchived}
+
+				<Tooltip
+					content={isArchived
+						? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
+						: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
+				>
 					<div
-						class="flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase shadow-sm {count <
-						5
-							? 'border-amber-200 bg-amber-500/10 text-amber-600'
-							: 'border-indigo-200 bg-indigo-500/10 text-indigo-600'}"
+						class="flex size-6 items-center gap-1.5 rounded-full border p-1.5 text-sm font-bold tracking-wider uppercase opacity-80 shadow-sm/50 text-shadow-sm hover:opacity-100 [&_svg]:scale-150
+                        {isArchived
+							? 'border-stone-500! text-stone-400'
+							: count < 5
+								? 'border-amber-500! text-amber-500'
+								: 'border-cyan-600! text-cyan-500'}"
 					>
-						{#if count < 5}
-							Preliminar
+						{#if isArchived}
+							<MaterialSymbolsExclamationRounded />
+						{:else if count < 5}
+							<MaterialSymbolsQuestionMarkRounded />
 						{:else}
-							Sólido
+							<MaterialSymbolsVerifiedRounded />
 						{/if}
+
+						<!-- <span
+							class="bg-background/80 min-w-[1.2em] rounded-full px-1 py-px text-center text-[9px]"
+						>
+							{count}
+						</span> -->
 					</div>
 				</Tooltip>
 			{/if}
@@ -111,10 +132,45 @@
 		{/if}
 	</div>
 
+	{#if repoData && repoData.subjects.length > 0}
+		<div class="my-1">
+			<p class="text-muted-foreground mb-1.5 text-[10px] font-bold tracking-wider uppercase">
+				Asignaturas recientes
+			</p>
+			<div class="flex flex-wrap gap-1">
+				{#each repoData.subjects.slice(0, 4) as subject}
+					<Tooltip content={subject.name}>
+						<span
+							class="bg-muted/50 text-muted-foreground border-border/50 rounded border px-1.5 py-0.5 font-mono text-[10px]"
+						>
+							{subject.sigla}
+						</span>
+					</Tooltip>
+				{/each}
+				{#if repoData.subjects.length > 4}
+					<span class="text-muted-foreground px-1 py-0.5 text-[10px]">
+						+{repoData.subjects.length - 4} más
+					</span>
+				{/if}
+			</div>
+		</div>
+	{:else if !repoData && !registryProfile}
+		<p class="text-muted-foreground mt-2 text-[10px] italic">
+			Sin información de asignaturas recientes.
+		</p>
+	{/if}
+
 	<div class="border-border -mx-4 w-[calc(100%+2rem)] border-t"></div>
 
-	{#if renderData?.meta}
+	{#if renderData?.meta && !renderData?.sampleMeta?.isArchived}
+		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
 		<div class="flex flex-col gap-1 py-2">
+			{#if count < 5}
+				<p class="text-xs font-bold text-amber-600 opacity-50 text-shadow-sm/50">
+					Pocos datos para establecer una tendencia
+				</p>
+			{/if}
+
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div>
 					<h4
@@ -123,7 +179,9 @@
 						{dim.label}
 					</h4>
 
-					<div class="grid grid-cols-2 gap-1">
+					<div
+						class="grid grid-cols-2 gap-1 {count < 5 ? 'opacity-80 grayscale-60' : 'opacity-100'}"
+					>
 						{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
 							<!-- {@const stats = sub.stats} -->
 
@@ -183,10 +241,18 @@
 			{/each}
 		</div>
 		<div class="border-border/50 -mx-4 border-t"></div>
+	{:else if renderData?.sampleMeta?.isArchived}
+		<div class="py-6 text-center">
+			<p class="text-muted-foreground text-xs italic">
+				Datos insuficientes o muy antiguos para generar un perfil actual.
+			</p>
+		</div>
+		<div class="border-border/50 -mx-4 border-t"></div>
 	{/if}
 
 	{#if renderData && renderData.tags.length > 0}
-		<div class="my-2 flex flex-wrap gap-1">
+		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
+		<div class="my-2 flex flex-wrap gap-1 {count < 5 ? 'opacity-80 grayscale-25' : 'opacity-100'}">
 			{#each orderTags(renderData.tags) as tag (tag.id)}
 				<Tooltip content={tag.description}>
 					<Badge
@@ -205,31 +271,38 @@
 		</div>
 	{/if}
 
-	{#if repoData && repoData.subjects.length > 0}
-		<div class="mt-2">
-			<p class="text-muted-foreground mb-1.5 text-[10px] font-bold tracking-wider uppercase">
-				Asignaturas recientes
-			</p>
-			<div class="flex flex-wrap gap-1">
-				{#each repoData.subjects.slice(0, 4) as subject}
-					<Tooltip content={subject.name}>
-						<span
-							class="bg-muted/50 text-muted-foreground border-border/50 rounded border px-1.5 py-0.5 font-mono text-[10px]"
-						>
-							{subject.sigla}
-						</span>
+	{#if renderData?.sampleMeta}
+		<div class="border-border bg-muted/20 -mx-4 mt-2 -mb-4 border-t px-4 py-2 select-none">
+			<div class="text-muted-foreground flex items-center justify-between text-[10px]">
+				<div class="flex items-center gap-2">
+					<Tooltip content="Última actualización de datos">
+						<div class="flex items-center gap-1 font-medium">
+							<MaterialSymbolsNestClockFarsightAnalogOutline class="size-3 scale-120" />
+							<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
+						</div>
 					</Tooltip>
-				{/each}
-				{#if repoData.subjects.length > 4}
-					<span class="text-muted-foreground px-1 py-0.5 text-[10px]">
-						+{repoData.subjects.length - 4} más
-					</span>
+
+					{#if isPendingMyVote}
+						<Tooltip content="Tu reseña se ha enviado y se procesará en el próximo ciclo (~30min).">
+							<span class="animate-pulse font-bold text-emerald-600"> ● Tu voto pendiente </span>
+						</Tooltip>
+					{/if}
+				</div>
+
+				{#if !renderData.sampleMeta.isArchived}
+					{#snippet tooltipContent()}
+						Peso Ef.: {renderData.sampleMeta.effectiveCount.toFixed(1)}<br />
+						<span class="text-xs opacity-50"
+							>Votos ponderados por recencia, coherencia y validez.</span
+						>
+					{/snippet}
+					<Tooltip content={tooltipContent}>
+						<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
+							<MaterialSymbolsInfoOutlineRounded class="size-3 scale-150" />
+						</div>
+					</Tooltip>
 				{/if}
 			</div>
 		</div>
-	{:else if !repoData && !registryProfile}
-		<p class="text-muted-foreground mt-2 text-[10px] italic">
-			Sin información de asignaturas recientes.
-		</p>
 	{/if}
 </div>

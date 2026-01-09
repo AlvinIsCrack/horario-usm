@@ -1,4 +1,4 @@
-LAST_PROCESSED_ROW = 81
+LAST_PROCESSED_ROW = 0
 import requests
 import json
 import os
@@ -57,7 +57,13 @@ def load_existing_reviews():
     if os.path.exists(OUTPUT_FILE):
         try:
             with open(OUTPUT_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                content = json.load(f)
+                # Validación crítica de estructura
+                if isinstance(content, list):
+                    return content
+                else:
+                    print(f"⚠️ Formato corrupto en historial. Se iniciará una nueva lista.")
+                    return []
         except: return []
     return []
 
@@ -103,10 +109,9 @@ def trigger_gas_analysis():
                             review_payload = json.loads(row[5])
                             metrics = review_payload.get('metrics', {})
                             
+                            # Construcción del perfil de la reseña
                             profile_entry = {
                                 "name": row[1],
-                                # CORRECCIÓN: Guardamos todo el objeto metrics tal cual viene del cliente
-                                # Esto preserva las claves correctas (ej: 'claridad_expositiva') y valores numéricos
                                 "stats": { **metrics }, 
                                 "activeTags": review_payload.get('tags', []),
                                 "summary": review_payload.get('comment', ''),
@@ -115,7 +120,7 @@ def trigger_gas_analysis():
                                     "reason": analysis.get('reason'),
                                     "addedAt": datetime.datetime.now().isoformat(),
                                     "serverTime": row[0],
-                                    "fingerprint": row[2][:8] + "..."
+                                    "fingerprint": row[2] # Guardamos fingerprint crudo para aggregate.py
                                 }
                             }
                             new_profiles.append(profile_entry)
@@ -146,6 +151,7 @@ def trigger_gas_analysis():
     except json.JSONDecodeError:
         print("❌ Error: Respuesta inválida.")
 
+    # Ejecutar pipeline de agregación si hubo cambios
     if has_changes:
         print("\n🔄 Ejecutando re-agregación de estadísticas...")
         aggregate.main()

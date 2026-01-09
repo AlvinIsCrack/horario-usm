@@ -197,6 +197,7 @@ export interface ProfessorMeta {
     reviewCount: number;
     effectiveCount: number; // N ponderado por tiempo
     lastUpdated: string;
+    isArchived?: boolean;
 }
 
 export interface ProfessorView {
