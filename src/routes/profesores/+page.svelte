@@ -212,6 +212,45 @@
 				return 'default';
 		}
 	}
+
+	// MOTOR DE CAOS SEMÁNTICO
+	// Se ejecuta una vez al montar para determinar el "Eje de Análisis" de esta sesión.
+	// Esto fragmenta la carga cognitiva: el usuario no tiene que pensar "qué escribir",
+	// el sistema le ordena imperativamente qué dimensión analizar.
+	const promptContexts = [
+		{
+			label: 'Justificación de la Calificación',
+			placeholder:
+				'Profundice en los criterios de corrección, la claridad de las pautas y la coherencia entre lo enseñado y lo evaluado.'
+		},
+		{
+			label: 'Metodología y Dinámica de Cátedra',
+			placeholder:
+				'Describa la estructura de las clases, el uso de recursos pedagógicos y la capacidad de transmisión de conocimientos.'
+		},
+		{
+			label: 'Análisis de Carga Académica',
+			placeholder:
+				'Detalle la relación entre los créditos asignados y el tiempo real de dedicación requerido (tareas, estudio, proyectos).'
+		},
+		{
+			label: 'Recomendaciones Técnicas',
+			placeholder:
+				'Especifique conocimientos previos necesarios, bibliografía útil o estrategias de estudio para aprobar la asignatura.'
+		},
+		{
+			label: 'Conducta y Trato',
+			placeholder:
+				'Refiérase a la disposición del docente, el manejo del ambiente en el aula y la recepción ante dudas o consultas.'
+		}
+	];
+
+	// Selección determinista o aleatoria al inicializar el componente
+	const activePrompt = promptContexts[Math.floor(Math.random() * promptContexts.length)];
+
+	const MIN_CHARS_THRESHOLD = 20;
+	// Estado derivado: Detecta si el contenido es insuficiente (vacío o muy corto)
+	let isLowQuality = $derived(formValues.comment.length < MIN_CHARS_THRESHOLD);
 </script>
 
 <div class="flex h-full w-full flex-col">
@@ -461,16 +500,53 @@
 				</div>
 
 				<div class="space-y-2">
-					<label for="review-comment" class="text-sm font-medium">Comentarios Adicionales</label>
+					<div class="flex items-center justify-between">
+						<label for="review-comment" class="text-sm font-medium">
+							Comentarios Adicionales
+						</label>
+
+						{#if formValues.comment.length === 0}
+							<span class="text-[10px] font-bold tracking-wider text-amber-600/80 uppercase">
+								Pendiente
+							</span>
+						{:else if isLowQuality}
+							<span
+								class="animate-pulse text-[10px] font-bold tracking-wider text-amber-600 uppercase"
+							>
+								Muy breve
+							</span>
+						{:else}
+							<span
+								class="animate-in fade-in text-[10px] font-bold tracking-wider text-emerald-600 uppercase"
+							>
+								Adecuado
+							</span>
+						{/if}
+					</div>
+
 					<textarea
 						id="review-comment"
-						class="bg-background border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-[80px] w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-						placeholder="Describa su experiencia de manera objetiva..."
+						class="bg-background ring-offset-background flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm transition-all duration-300 focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50
+        {isLowQuality
+							? 'border-amber-500! focus-visible:border-amber-500! focus-visible:ring-amber-500/50'
+							: 'border-input! focus-visible:ring-ring'}"
+						placeholder={activePrompt.placeholder}
 						bind:value={formValues.comment}
-						maxlength="500"
+						maxlength="800"
 					></textarea>
-					<div class="text-muted-foreground text-right text-[10px]">
-						{formValues.comment.length}/500
+
+					<div class="flex items-start justify-between gap-3 px-1">
+						<p class="text-muted-foreground text-[10px] leading-tight opacity-80">
+							<span class="text-primary/80 font-semibold">Nota:</span> Escribir un comentario valida
+							su opinión ante los filtros de veracidad, asegurando que su calificación sea contabilizada.
+						</p>
+						<div
+							class="{isLowQuality
+								? 'font-bold text-amber-600'
+								: 'font-medium text-emerald-600'} shrink-0 text-right text-[10px] tabular-nums transition-colors"
+						>
+							{formValues.comment.length}/800
+						</div>
 					</div>
 				</div>
 
