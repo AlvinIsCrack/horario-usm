@@ -40,7 +40,7 @@ export const EVALUATION_DIMENSIONS = {
         sub_dimensions: {
             rigor: {
                 id: 'rigor_calificatorio',
-                label: 'Calificación',
+                label: 'Rigor',
                 description: 'Severidad en la evaluación y rigor en la corrección.',
                 type: 'BARS',
                 levels: {

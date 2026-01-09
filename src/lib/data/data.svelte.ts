@@ -85,6 +85,12 @@ const _jornadasCarreras: { [sede: string]: string[] } = Object.fromEntries(
     ])
 );
 
+const _departamentos = Array.from(
+    new Set(
+        Object.values(PROGRAMAS).flatMap((sedeData) => Object.keys(sedeData))
+    )
+).sort();
+
 const _cachedRamos = $derived(ASIGNATURAS[Calendario?.sede]?.[Calendario.jornada]?.[Calendario.semestre] ?? []);
 const _cachedCarreras = $derived(CARRERAS.filter(carrera => {
     const sede = Calendario.sede;
@@ -166,6 +172,10 @@ export const Data = {
 
     get semestres(): { [sede: string]: { [jornada: string]: string[] } } {
         return _semestres;
+    },
+
+    get departamentos(): string[] {
+        return _departamentos;
     },
 
     get cachedRamos() {

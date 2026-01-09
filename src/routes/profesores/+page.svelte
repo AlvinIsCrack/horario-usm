@@ -21,6 +21,7 @@
 		TAG_CATEGORY_DESCRIPTIONS
 	} from '$lib/logic/professors/types';
 	import { orderTags } from '$lib/logic/professors';
+	import { Data } from '$lib/data/data.svelte';
 
 	let query = $state('');
 	let selectedSede = $state('ALL');
@@ -80,6 +81,11 @@
 		{ value: 'San Joaquín', label: 'San Joaquín' },
 		{ value: 'Vitacura', label: 'Vitacura' },
 		{ value: 'Concepción', label: 'Concepción' }
+	];
+
+	const deptoOptions = [
+		{ value: 'ALL', label: 'Todos los Deptos.' },
+		...Data.departamentos.map((d) => ({ value: d, label: d[0].toUpperCase() + d.slice(1).toLowerCase() }))
 	];
 
 	// Búsqueda Reactiva
@@ -239,8 +245,8 @@
 				</p>
 			</div>
 
-			<div class="flex w-full flex-1 flex-row items-end gap-4 md:max-w-xl">
-				<div class="flex flex-[2] flex-col gap-1">
+			<div class="flex w-full flex-1 flex-row items-end gap-4 max-w-1/2">
+				<div class="flex flex-1 flex-col gap-1">
 					<p class="text-muted-foreground text-xs font-bold uppercase">Búsqueda</p>
 					<div class="relative">
 						<Search
@@ -255,14 +261,26 @@
 					</div>
 				</div>
 
-				<div class="flex min-w-[150px] flex-1 flex-col gap-1">
-					<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
-					<SelectUI
-						items={sedeOptions}
-						bind:value={selectedSede}
-						placeholder="Todas"
-						class="w-full"
-					/>
+				<div class="flex w-full flex-1 flex-row gap-2">
+					<div class="flex flex-1 flex-col gap-1">
+						<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
+						<SelectUI
+							items={sedeOptions}
+							bind:value={selectedSede}
+							placeholder="Todas"
+							class="w-full"
+						/>
+					</div>
+
+					<div class="flex flex-1 flex-col gap-1">
+						<p class="text-muted-foreground text-xs font-bold uppercase">Departamento</p>
+						<SelectUI
+							items={deptoOptions}
+							bind:value={selectedDepto}
+							placeholder="Todos"
+							class="w-full"
+						/>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -286,7 +304,6 @@
 					<ProfessorCard professor={prof} />
 
 					<Button
-						variant="outlined"
 						size="sm"
 						class="mt-auto w-full"
 						onclick={() => openEvaluationModal(prof)}
@@ -336,17 +353,14 @@
 									{#if subDef.type === 'BARS'}
 										<div class="space-y-2">
 											<div class="flex justify-between">
-												<Tooltip content={subDef.description}>
+												<Tooltip wrapperClass="-mb-2" content={subDef.description}>
 													<label
 														for="metrics-{subDef.id}"
-														class="decoration-foreground/50 cursor-help text-sm font-medium underline decoration-dotted"
+														class="decoration-foreground/50 font-medium cursor-help text-sm underline decoration-dotted"
 													>
 														{subDef.label}
 													</label>
 												</Tooltip>
-												<Badge variant="outline" class="font-mono">
-													{formValues.metrics[subDef.id]}/5
-												</Badge>
 											</div>
 											<Slider
 												min={1}
@@ -355,7 +369,7 @@
 												bind:value={formValues.metrics[subDef.id]}
 												ticks={[1, 2, 3, 4, 5]}
 											/>
-											<div class="text-muted-foreground -mt-2 flex justify-between text-xs">
+											<div class="text-muted-foreground -mt-2 font-medium flex justify-between text-xs">
 												<span>{subDef.levels[1].label}</span>
 												<span>{subDef.levels[5].label}</span>
 											</div>

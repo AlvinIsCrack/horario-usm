@@ -35,11 +35,21 @@
 			<p class="-mt-0.5 text-xs opacity-50">{registryProfile.email}</p>
 		{/if}
 
-		{#if repoData && 'campuses' in repoData && repoData.campuses}
+		{#if repoData?.departments}
+			<p class="-mt-0.5 font-medium text-sky-500 text-xs opacity-50">
+				{repoData.departments
+					.values()
+					.toArray()
+					.map((t) => `DEPTO. DE ${t}`)
+					.join(', ')}
+			</p>
+		{/if}
+
+		{#if repoData?.campuses}
 			<div class="mt-1 flex flex-wrap gap-1">
 				{#each Array.from(repoData.campuses) as sede}
 					<span
-						class="bg-secondary text-secondary-foreground border-secondary-foreground/10 rounded-full border px-1.5 py-0.5 text-[10px]"
+						class="bg-secondary text-secondary-foreground border-secondary-foreground/10 rounded-full border px-2 py-0.5 text-[10px]"
 					>
 						{sede}
 					</span>
