@@ -22,6 +22,7 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
+	import { checkTextQuality } from '$lib/logic/reviews/quality';
 
 	let query = $state('');
 	let selectedSede = $state('ALL');
@@ -248,9 +249,34 @@
 	// Selección determinista o aleatoria al inicializar el componente
 	const activePrompt = promptContexts[Math.floor(Math.random() * promptContexts.length)];
 
-	const MIN_CHARS_THRESHOLD = 20;
 	// Estado derivado: Detecta si el contenido es insuficiente (vacío o muy corto)
-	let isLowQuality = $derived(formValues.comment.length < MIN_CHARS_THRESHOLD);
+	let quality = $derived(checkTextQuality(formValues.comment));
+	let isLowQuality = $derived(quality.isLowQuality);
+
+	let footerStatus = $derived(
+		formValues.comment.trim().length === 0
+			? {
+					message:
+						'Al incluir un comentario, duplicas la utilidad de tu reseña y el valor de tu aporte a la comunidad.',
+						messageStyle: 'text-amber-600 font-bold animate-pulse',
+						btnClass: 'bg-amber-600! text-white',
+					btnText: 'Omitir aporte'
+				}
+			: isLowQuality
+				? {
+						message:
+							'Parece que tu comentario no aporta mucha claridad. ¿Podrías ser más específico?',
+						messageStyle: 'text-rose-500 font-bold animate-pulse',
+						btnClass: 'bg-rose-400! text-white',
+						btnText: 'Publicar aporte débil'
+					}
+				: {
+						message: '¡Excelente! Tu reseña ayudará a otros estudiantes a decidir.',
+						messageStyle: 'text-sky-500 font-medium',
+						btnClass: 'text-white',
+						btnText: 'Confirmar aporte valioso'
+					}
+	);
 </script>
 
 <div class="flex h-full w-full flex-col">
@@ -361,7 +387,7 @@
 		</div>
 	</div>
 
-	<DialogComponent bind:open={isModalOpen} class="gap-0 p-0">
+	<DialogComponent bind:open={isModalOpen} class="min-w-2xl! gap-0 p-0">
 		{#if selectedProfessor}
 			<div class="bg-muted/30 border-b p-5 pb-4">
 				<h2 class="text-lg leading-tight font-bold">Evaluación Docente</h2>
@@ -501,25 +527,25 @@
 
 				<div class="space-y-2">
 					<div class="flex items-center justify-between">
-						<label for="review-comment" class="text-sm font-medium">
-							Comentarios Adicionales
-						</label>
+						<label for="review-comment" class="text-sm font-medium"> <span class="font-normal opacity-50">Tu experiencia:</span> {activePrompt.label} </label>
 
 						{#if formValues.comment.length === 0}
-							<span class="text-[10px] font-bold tracking-wider text-amber-600/80 uppercase">
-								Pendiente
+							<span
+								class="text-[10px] text-amber-500 font-bold tracking-wider uppercase italic"
+							>
+								Aporte invisible
 							</span>
 						{:else if isLowQuality}
 							<span
-								class="animate-pulse text-[10px] font-bold tracking-wider text-amber-600 uppercase"
+								class="animate-pulse text-[10px] font-black tracking-wider text-rose-500 uppercase"
 							>
-								Muy breve
+								Poco útil para otros
 							</span>
 						{:else}
 							<span
-								class="animate-in fade-in text-[10px] font-bold tracking-wider text-emerald-600 uppercase"
+								class="animate-in zoom-in-95 text-[10px] font-bold tracking-wider text-emerald-600 uppercase"
 							>
-								Adecuado
+								Aporte valioso
 							</span>
 						{/if}
 					</div>
@@ -530,15 +556,15 @@
         {isLowQuality
 							? 'border-amber-500! focus-visible:border-amber-500! focus-visible:ring-amber-500/50'
 							: 'border-input! focus-visible:ring-ring'}"
-						placeholder={activePrompt.placeholder}
+						placeholder="{activePrompt.placeholder}"
 						bind:value={formValues.comment}
 						maxlength="800"
 					></textarea>
 
 					<div class="flex items-start justify-between gap-3 px-1">
 						<p class="text-muted-foreground text-[10px] leading-tight opacity-80">
-							<span class="text-primary/80 font-semibold">Nota:</span> Escribir un comentario valida
-							su opinión ante los filtros de veracidad, asegurando que su calificación sea contabilizada.
+							<span class="font-bold text-amber-700">Importante:</span> Los comentarios vacíos o genéricos
+							tienen menos peso en el promedio y podrían ser descartados por falta de contexto.
 						</p>
 						<div
 							class="{isLowQuality
@@ -557,17 +583,37 @@
 				{/if}
 			</div>
 
-			<div class="bg-muted/30 flex justify-end gap-2 border-t p-4">
-				<Button variant="outlined" onclick={closeEvaluationModal} disabled={isSubmitting}>
-					Cancelar
-				</Button>
-				<Button onclick={handleSubmit} disabled={isSubmitting}>
-					{#if isSubmitting}
-						Enviando...
-					{:else}
-						Enviar Evaluación
-					{/if}
-				</Button>
+			<div
+				class="bg-muted/30 flex items-center justify-between border-t p-4 transition-colors duration-300"
+			>
+				<p
+					class="mr-4 text-[10px] tracking-wider uppercase transition-all duration-300 {footerStatus.messageStyle}"
+				>
+					{footerStatus.message}
+				</p>
+
+				<div class="flex gap-2">
+					<Button
+						variant="outlined"
+						class="text-nowrap"
+						onclick={closeEvaluationModal}
+						disabled={isSubmitting}
+					>
+						Cancelar
+					</Button>
+
+					<Button
+						onclick={handleSubmit}
+						disabled={isSubmitting}
+						class="text-nowrap transition-all duration-500 {footerStatus.btnClass}"
+					>
+						{#if isSubmitting}
+							Enviando...
+						{:else}
+							{footerStatus.btnText}
+						{/if}
+					</Button>
+				</div>
 			</div>
 		{/if}
 	</DialogComponent>
