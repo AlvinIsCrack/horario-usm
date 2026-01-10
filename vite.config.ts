@@ -8,14 +8,28 @@ export default defineConfig({
 		rollupOptions: {
 			output: {
 				manualChunks: (id) => {
-					// Si el archivo es uno de los JSON grandes de datos, ponlo en un chunk separado
 					if (id.includes('src/lib/data/') && id.endsWith('.json')) {
 						return 'usm-data';
 					}
 				}
 			}
 		},
-		// Opcional: Aumentar el límite de aviso si sabes que el JSON es grande y necesario
-		chunkSizeWarningLimit: 1000
+		chunkSizeWarningLimit: 1000,
+		minify: 'terser',
+		terserOptions: {
+			compress: {
+				drop_console: true,
+				drop_debugger: true,
+				pure_funcs: ['console.info', 'console.debug', 'console.warn'],
+				passes: 3,
+				unsafe: true,
+			},
+			format: {
+				comments: false
+			},
+			mangle: {
+				toplevel: true
+			}
+		}
 	}
 });

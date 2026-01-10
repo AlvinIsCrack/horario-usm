@@ -1,12 +1,7 @@
 <script lang="ts">
 	import { tv } from 'tailwind-variants';
-	import MaterialSymbolsBookRibbon from '$lib/icons/MaterialSymbolsBookRibbon.svelte';
 	import MaterialSymbolsAvTimerRounded from '$lib/icons/MaterialSymbolsAvTimerRounded.svelte';
-	import MaterialSymbolsRecordVoiceOverRounded from '$lib/icons/MaterialSymbolsRecordVoiceOverRounded.svelte';
-	import MaterialSymbolsPhoneInTalkWatchfaceIndicatorSharp from '$lib/icons/MaterialSymbolsPhoneInTalkWatchfaceIndicatorSharp.svelte';
-	import MaterialSymbolsEmoticon from '$lib/icons/MaterialSymbolsEmoticon.svelte';
 	import MaterialSymbolsBalance from '$lib/icons/MaterialSymbolsBalance.svelte';
-	import MaterialSymbolsDirectionsRun from '$lib/icons/MaterialSymbolsDirectionsRun.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import MaterialSymbolsWeight from '$lib/icons/MaterialSymbolsWeight.svelte';
 	import MaterialSymbolsAndroidMessages from '$lib/icons/MaterialSymbolsAndroidMessages.svelte';
@@ -17,12 +12,12 @@
 	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
 
 	const base = tv({
-		base: 'overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 hover:ring',
+		base: 'isolate overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-150 hover:saturate-80 hover:[&_svg]:scale-105',
 		variants: {
 			dimension: {
-				didactica: 'rounded-full',
+				didactica: '',
 				exigencia: 'rounded-md',
-				temperamento: ''
+				temperamento: 'rounded-full'
 			},
 			extreme: {
 				false: '',
@@ -35,16 +30,14 @@
 		const score = Math.max(1, Math.min(5, Math.round(val)));
 		const isInverse = ['rigor_calificatorio', 'dificultad_percibida'].includes(metricId);
 
-		// Escala: Chocolate/Naranja (Duro/Alerta) -> Slate/Sky (Limpio/Fácil)
 		const colors = [
-			'bg-red-600 ring-rose-400! text-rose-100', // 1: Muy Malo / Crítico
-			'bg-amber-600 text-amber-100', // 2: Difícil
-			'bg-sky-500/80 text-sky-100', // 3: Balance
-			'bg-teal-600 text-teal-100', // 4: Bueno
-			'bg-lime-600 ring-lime-400! text-lime-100' // 5: Máxima Claridad / Facilidad
+			'bg-red-600 ring-inset! ring-2! ring-orange-500/80', // 1: Muy Malo (Peligro)
+			'bg-amber-500', // 2: Difícil (Alerta, mejor contraste que Amber)
+			'bg-sky-500/80', // 3: Balance (Neutro "Friendly")
+			'bg-violet-600', // 4: Bueno (El salto visual que necesitabas)
+			'bg-green-500 ring-inset! ring-2! ring-lime-400/80!' // 5: Excelente (Brillante y legible)
 		];
 
-		// Si es inversa, damos vuelta la paleta para que 5 sea Rojo y 1 sea Verde
 		const finalColors = isInverse ? [...colors].reverse() : colors;
 		return finalColors[score - 1];
 	}
@@ -67,20 +60,36 @@
 
 <div class={base({ dimension: dimension.id, extreme: isExtreme })}>
 	<div
-		class="absolute top-0 left-0 h-full w-full rounded-[inherit] mask-b-from-20% mask-b-to-150% inset-shadow-xs inset-shadow-white ring-inset {getMetricColor(
+		style:box-shadow="inset 0 1.5px 1px #fffa;"
+		class="absolute top-0 left-0 h-full w-full rounded-[inherit] mask-b-from-25% mask-b-to-180% p-1 {getMetricColor(
 			subdimension.val,
 			subdimension.def.id
-		)} {isExtreme ? 'ring-2' : ''}"
+		)}"
 	></div>
 
+	<svg class="pointer-events-none absolute h-0 w-0" aria-hidden="true">
+		<filter id="grainy-{subdimension.def.id}">
+			<feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+			<feComponentTransfer>
+				<feFuncA type="linear" slope="1.5" />
+			</feComponentTransfer>
+		</filter>
+	</svg>
+
 	{#if isExtreme}
-		<div class="animate-shimmer pointer-events-none absolute inset-0 z-5 h-full w-full"></div>
+		<!-- <div class="pointer-events-none absolute inset-0 z-6 size-full animate-pulse bg-white/"></div> -->
+		<div class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full"></div>
 	{/if}
 
 	{#if currentIcon}
 		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full opacity-80 mix-blend-plus-lighter" />
+		<Icon class="relative z-10 size-full drop-shadow-sm/50 transition-all will-change-transform" />
 	{/if}
+
+	<div
+		class="grainy-overlay pointer-events-none absolute inset-0 z-6 mask-t-from-20% opacity-50 mix-blend-color-burn"
+		style="filter: url('#grainy-{subdimension.def.id}');"
+	></div>
 
 	{#snippet tooltipContent()}
 		<div class="space-y-4 text-left leading-tight">
@@ -99,7 +108,7 @@
 
 	<Tooltip
 		content={tooltipContent}
-		wrapperClass="absolute! left-0 top-0 z-10 pointer-events-auto w-full h-full"
+		wrapperClass="absolute! peer left-0 top-0 z-10 pointer-events-auto w-full h-full"
 	>
 		<div></div>
 	</Tooltip>
@@ -112,26 +121,33 @@
 			opacity: 0;
 		}
 		20% {
-			opacity: 0.6;
+			opacity: 0.5;
 		}
 		50% {
 			opacity: 1;
 		}
 		80% {
-			opacity: 0.6;
+			opacity: 0.5;
 		}
 		100% {
-			transform: translateX(150%) skewX(-20deg);
+			transform: translateX(150%) skewX(-25deg);
 			opacity: 0;
 		}
 	}
+
+	.grainy-overlay {
+		/* Mantiene el tamaño pero el contenido es generado por el filtro */
+		width: 100%;
+		height: 100%;
+	}
+
 	.animate-shimmer {
-		animation: shimmer 2.5s infinite;
+		animation: shimmer 2.2s infinite ease-out;
 		background: linear-gradient(
 			to right,
 			transparent,
-			rgba(255, 255, 255, 0.1) 20%,
-			rgba(255, 255, 255, 0.6) 50%,
+			rgba(255, 255, 255, 0.2) 20%,
+			rgba(255, 255, 255, 0.8) 50%,
 			rgba(255, 255, 255, 0.1) 80%,
 			transparent
 		);

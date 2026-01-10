@@ -171,7 +171,7 @@
 		if (!selectedProfessor) return;
 		const confirmed = await Dialog.confirm({
 			title: 'Consentimiento de Responsabilidad',
-			body: 'Al enviar esta evaluación, usted declara que el contenido es honesto y constructivo...',
+			body: 'Al enviar esta evaluación, usted declara que el contenido es honesto y constructivo. Este es un espacio gestionado por y para estudiantes; el uso de lenguaje ofensivo o información falsa compromete la integridad del sistema y causará que su registro sea ignorado, dificultando la construcción de una herramienta útil para la comunidad. Cualquier abuso será detectado y se tomarán las medidas pertinentes. ¿Desea proceder con el envío?',
 			confirmText: 'Confirmar y Enviar',
 			cancelText: 'Cancelar',
 			variant: 'primary'
@@ -231,8 +231,31 @@
 	}
 
 	const promptContexts = [
-		{ label: 'Justificación de la Calificación', placeholder: 'Profundice en los criterios...' }
-		// ... (resto de contextos)
+		{
+			label: 'Justificación de la Calificación',
+			placeholder:
+				'Profundice en los criterios de corrección, la claridad de las pautas y la coherencia entre lo enseñado y lo evaluado.'
+		},
+		{
+			label: 'Metodología y Dinámica de Cátedra',
+			placeholder:
+				'Describa la estructura de las clases, el uso de recursos pedagógicos y la capacidad de transmisión de conocimientos.'
+		},
+		{
+			label: 'Análisis de Carga Académica',
+			placeholder:
+				'Detalle la relación entre los créditos asignados y el tiempo real de dedicación requerido (tareas, estudio, proyectos).'
+		},
+		{
+			label: 'Recomendaciones Técnicas',
+			placeholder:
+				'Especifique conocimientos previos necesarios, bibliografía útil o estrategias de estudio para aprobar la asignatura.'
+		},
+		{
+			label: 'Conducta y Trato',
+			placeholder:
+				'Refiérase a la disposición del docente, el manejo del ambiente en el aula y la recepción ante dudas o consultas.'
+		}
 	];
 
 	const activePrompt = promptContexts[Math.floor(Math.random() * promptContexts.length)];
@@ -243,20 +266,22 @@
 	let footerStatus = $derived(
 		formValues.comment.trim().length === 0
 			? {
-					message: 'Al incluir un comentario, duplicas la utilidad...',
+					message:
+						'Al incluir un comentario, duplicas la utilidad de tu reseña y el valor de tu aporte a la comunidad.',
 					messageStyle: 'text-amber-600 font-bold animate-pulse',
 					btnClass: 'bg-amber-600! text-white',
 					btnText: 'Omitir aporte'
 				}
 			: isLowQuality
 				? {
-						message: 'Parece que tu comentario no aporta mucha claridad...',
+						message:
+							'Parece que tu comentario no aporta mucha claridad. ¿Podrías ser más específico?',
 						messageStyle: 'text-rose-500 font-bold animate-pulse',
 						btnClass: 'bg-rose-400! text-white',
 						btnText: 'Publicar aporte débil'
 					}
 				: {
-						message: '¡Excelente! Tu reseña ayudará...',
+						message: '¡Excelente! Tu reseña ayudará a otros estudiantes a decidir.',
 						messageStyle: 'text-sky-500 font-medium',
 						btnClass: 'text-white',
 						btnText: 'Confirmar aporte valioso'

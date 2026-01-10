@@ -15,6 +15,7 @@
 	import { hasPendingReview } from '$lib/logic/reviews/api';
 	import { onMount } from 'svelte';
 	import BARSBadge from './BARSBadge.svelte';
+	import ProfessorTag from './ProfessorTag.svelte';
 
 	let {
 		id,
@@ -65,11 +66,20 @@
 				{@const count = renderData.sampleMeta.reviewCount}
 				{@const isArchived = renderData.sampleMeta.isArchived}
 
+				{#snippet tooltipContent()}
+					<p>
+						{#if isArchived}
+							Datos históricos o insuficientes para generar una estadística actual confiable.
+						{:else}
+							Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. <br />
+							<span class="text-xs opacity-50">Basado en {count} votos.</span>
+						{/if}
+					</p>
+				{/snippet}
+
 				<Tooltip
-					wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute!"
-					content={isArchived
-						? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
-						: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
+					wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute! cursor-help"
+					content={tooltipContent}
 				>
 					<div
 						class="size-6 drop-shadow-md/100 not-hover:brightness-90 hover:brightness-110 [&_svg]:size-full
@@ -95,7 +105,7 @@
 			<div class="mt-1 flex flex-wrap gap-1">
 				{#each Array.from(repoData.campuses) as sede}
 					<span
-						class="bg-secondary text-secondary-foreground border-secondary-foreground/10 rounded-full border px-2 py-0.5 text-[10px]"
+						class="bg-primary/50 text-secondary-foreground border-secondary-foreground/10 rounded-full border px-1 py-0.5 text-[10px] select-none"
 					>
 						{sede}
 					</span>
@@ -138,7 +148,7 @@
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
 		<div
 			class="flex w-full flex-row flex-wrap justify-center gap-2 py-2 xl:gap-3 {count < 5
-				? 'grayscale-50'
+				? 'opacity-90 grayscale-25'
 				: ''}"
 		>
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
@@ -163,19 +173,7 @@
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
 		<div class="my-2 flex flex-wrap gap-1 {count < 5 ? 'opacity-80 grayscale-40' : 'opacity-100'}">
 			{#each orderTags(renderData.tags) as tag (tag.id)}
-				<Tooltip content={tag.description}>
-					<Badge
-						class="pointer-events-none h-5 px-1.5 text-[11px]"
-						variant={{
-							NEUTRAL: 'default',
-							ALERT: 'warning',
-							POSITIVE: 'success',
-							NEGATIVE: 'danger'
-						}[tag.sentiment] as any}
-					>
-						{tag.label}
-					</Badge>
-				</Tooltip>
+				<ProfessorTag {tag} />
 			{/each}
 		</div>
 	{/if}
