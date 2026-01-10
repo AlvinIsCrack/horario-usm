@@ -63,7 +63,7 @@
 					{#if profesor.includes('NN')}
 						NN (Profesor aún no asignado)
 					{:else}
-						<Tooltip offset={50} position="right" content={tooltipContent}>
+						<Tooltip interactive offset={50} position="right" content={tooltipContent}>
 							<span
 								class="decoration-foreground/50 cursor-help underline decoration-dotted hover:decoration-solid"
 								>{profesor}</span

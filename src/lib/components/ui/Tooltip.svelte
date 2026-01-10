@@ -1,4 +1,18 @@
+<script module>
+	// Contexto para comunicación Padre -> Hijo (Keep-Alive lógico)
+	const TOOLTIP_CTX = Symbol('tooltip_ctx');
+
+	// Registro global para cerrar vecinos (Anti-Cascada)
+	type TooltipInstance = {
+		id: symbol;
+		forceClose: () => void;
+		contains: (element: HTMLElement) => boolean;
+	};
+	const openTooltips = new Set<TooltipInstance>();
+</script>
+
 <script lang="ts">
+	import { setContext, getContext } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { ClassValue, HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
@@ -15,7 +29,8 @@
 		wrapperClass,
 		forceVisible = false,
 		closeOnClick = true,
-		interactive = false, // NUEVA PROPIEDAD
+		interactive = false,
+		closeDelay = undefined,
 		...props
 	}: {
 		wrapperClass?: ClassValue;
@@ -26,7 +41,8 @@
 		offset?: number;
 		closeOnClick?: boolean;
 		forceVisible?: boolean;
-		interactive?: boolean; // Propiedad para habilitar interacción
+		interactive?: boolean;
+		closeDelay?: number;
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const tooltip = tv({
@@ -41,33 +57,118 @@
 		}
 	});
 
-	// --- Estado y Lógica ---
+	// --- ESTADO ---
 	let visible = $state(false);
+	let isHovered = $state(false);
+	let activeChildren = $state(0); // Contador de hijos abiertos vía Contexto
+
 	let wrapperEl: HTMLDivElement | undefined = $state();
+	let contentEl: HTMLDivElement | undefined = $state();
 	let timer: ReturnType<typeof setTimeout>;
 
-	// Lógica de apertura inmediata
+	const instanceId = Symbol('tooltip_instance');
+
+	// --- CONTEXTO (Relación Padre-Hijo) ---
+	// 1. Obtener padre (si existe) para registrarme
+	const parentCtx = getContext<
+		| {
+				registerChild: () => void;
+				unregisterChild: () => void;
+		  }
+		| undefined
+	>(TOOLTIP_CTX);
+
+	// 2. Proveer contexto para mis propios hijos
+	setContext(TOOLTIP_CTX, {
+		registerChild: () => {
+			activeChildren++;
+			clearTimeout(timer); // Si un hijo se abre, cancelo mi cierre
+		},
+		unregisterChild: () => {
+			activeChildren = Math.max(0, activeChildren - 1);
+			// Si el último hijo se cerró y yo no tengo mouse encima, intento cerrarme
+			if (activeChildren === 0 && !isHovered) {
+				scheduleHide();
+			}
+		}
+	});
+
+	// --- INSTANCIA GLOBAL (Anti-Cascada) ---
+	const instance: TooltipInstance = {
+		id: instanceId,
+		forceClose: () => {
+			clearTimeout(timer);
+			visible = false;
+		},
+		contains: (element) => {
+			// Soy ancestro si el elemento está en mi contenido o es mi trigger
+			return (contentEl?.contains(element) || wrapperEl?.contains(element)) ?? false;
+		}
+	};
+
+	// --- LÓGICA ---
 	function show() {
 		clearTimeout(timer);
+		isHovered = true;
+
+		// Lógica Anti-Cascada: Cerrar otros tooltips que NO sean mis ancestros
+		for (const other of openTooltips) {
+			if (other.id === instanceId) continue;
+
+			// Si 'other' me contiene (es mi padre/abuelo), NO lo cierro.
+			// Usamos contains del DOM porque el trigger del hijo vive en el padre.
+			if (wrapperEl && other.contains(wrapperEl)) continue;
+
+			other.forceClose();
+		}
+
 		visible = true;
 	}
 
-	// Lógica de cierre (con delay si es interactivo)
-	function hide() {
-		if (interactive) {
+	function scheduleHide() {
+		const effectiveDelay = closeDelay ?? (interactive ? 150 : 0);
+
+		clearTimeout(timer);
+
+		if (effectiveDelay > 0) {
 			timer = setTimeout(() => {
+				// Keep-Alive: No cerrar si tengo hijos activos o el mouse volvió
+				if (isHovered || activeChildren > 0) return;
 				visible = false;
-			}, 150); // 150ms de gracia para mover el cursor
+			}, effectiveDelay);
 		} else {
+			if (activeChildren > 0) return;
 			visible = false;
 		}
 	}
+
+	function onPointerLeave() {
+		isHovered = false;
+		scheduleHide();
+	}
+
+	// Sincronización de estado
+	$effect(() => {
+		if (visible) {
+			openTooltips.add(instance);
+			parentCtx?.registerChild();
+		} else {
+			openTooltips.delete(instance);
+			parentCtx?.unregisterChild();
+		}
+
+		return () => {
+			openTooltips.delete(instance);
+			if (visible) parentCtx?.unregisterChild(); // Cleanup seguro
+			clearTimeout(timer);
+		};
+	});
 </script>
 
 <div
 	class="relative inline-flex {wrapperClass}"
 	onpointerenter={show}
-	onpointerleave={hide}
+	onpointerleave={onPointerLeave}
 	{...closeOnClick ? { onclick: () => (visible = false) } : {}}
 	bind:this={wrapperEl}
 	{...props}
@@ -86,8 +187,9 @@
 	>
 		<div
 			role="presentation"
+			bind:this={contentEl}
 			onpointerenter={interactive ? show : undefined}
-			onpointerleave={interactive ? hide : undefined}
+			onpointerleave={interactive ? onPointerLeave : undefined}
 		>
 			{#if typeof content === 'string'}
 				{content}

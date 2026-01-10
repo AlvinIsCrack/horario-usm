@@ -31,7 +31,7 @@ ENTROPY_TRIGGER_COUNT = 8    # Umbral de votos sospechosos en esa ventana
 ENTROPY_PENALTY_FACTOR = 0.25 # Los votos "spam" valen 25%
 
 # 3. Abandono Silencioso (Threshold de Calidad)
-MIN_EFFECTIVE_COUNT = 1.0 # Mínimo peso ponderado para mostrar stats
+MIN_EFFECTIVE_COUNT = 0.6 # Mínimo peso ponderado para mostrar stats
 
 # Mapeo Legacy
 LEGACY_MAPPING = {

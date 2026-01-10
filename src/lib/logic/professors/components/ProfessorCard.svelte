@@ -1,7 +1,10 @@
 <script lang="ts">
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import MaterialSymbolsDatabaseOff from '$lib/icons/MaterialSymbolsDatabaseOff.svelte';
 	import MaterialSymbolsExclamationRounded from '$lib/icons/MaterialSymbolsExclamationRounded.svelte';
+	import MaterialSymbolsHelpRounded from '$lib/icons/MaterialSymbolsHelpRounded.svelte';
+	import MaterialSymbolsInfo from '$lib/icons/MaterialSymbolsInfo.svelte';
 	import MaterialSymbolsInfoOutlineRounded from '$lib/icons/MaterialSymbolsInfoOutlineRounded.svelte';
 	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
 	import MaterialSymbolsQuestionMarkRounded from '$lib/icons/MaterialSymbolsQuestionMarkRounded.svelte';
@@ -11,6 +14,7 @@
 
 	import { hasPendingReview } from '$lib/logic/reviews/api';
 	import { onMount } from 'svelte';
+	import BARSBadge from './BARSBadge.svelte';
 
 	let {
 		id,
@@ -33,27 +37,7 @@
 		}
 	});
 
-	// 1. Helper Semántico para colores (Verde = Positivo/Fácil, Rojo = Negativo/Difícil)
-	function getMetricColor(val: number, metricId: string): string {
-		const score = Math.max(1, Math.min(5, Math.round(val)));
-		const isInverse = ['rigor_calificatorio', 'dificultad_percibida'].includes(metricId);
-
-		// Escala: Chocolate/Naranja (Duro/Alerta) -> Slate/Sky (Limpio/Fácil)
-		const colors = [
-			'bg-pink-900/50 text-pink-100', // 1: Muy Malo / Crítico
-			'bg-orange-600/40 text-amber-100', // 2: Difícil
-			'bg-stone-600/40 text-stone-100', // 3: Balance
-			'bg-sky-600/40 text-sky-100', // 4: Bueno
-			'bg-cyan-500/40 text-cyan-100' // 5: Máxima Claridad / Facilidad
-		];
-
-		// Si es inversa, damos vuelta la paleta para que 5 sea Rojo y 1 sea Verde
-		const finalColors = isInverse ? [...colors].reverse() : colors;
-
-		return finalColors[score - 1];
-	}
-
-	// 2. Helper para fecha relativa
+	// Helper para fecha relativa
 	function timeAgo(isoDate?: string) {
 		if (!isoDate) return '';
 		const diff = Date.now() - new Date(isoDate).getTime();
@@ -62,13 +46,6 @@
 		if (days < 30) return `Hace ${days}d`;
 		if (days < 365) return `Hace ${Math.floor(days / 30)} meses`;
 		return '+1 año';
-	}
-
-	// 3. Helper para normalizar el histograma (altura de barritas)
-	function getBarHeight(count: number, total: number) {
-		if (!total) return 0;
-		// Normalizamos al % del total, maximo 100%
-		return Math.max(10, Math.round((count / total) * 100));
 	}
 </script>
 
@@ -83,40 +60,6 @@
 					<p class="text-xs opacity-50">{registryProfile.email}</p>
 				{/if}
 			</div>
-
-			{#if renderData?.sampleMeta}
-				{@const count = renderData.sampleMeta.reviewCount}
-				{@const isArchived = renderData.sampleMeta.isArchived}
-
-				<Tooltip
-					content={isArchived
-						? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
-						: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
-				>
-					<div
-						class="flex size-6 items-center gap-1.5 rounded-full border p-1.5 text-sm font-bold tracking-wider uppercase opacity-80 shadow-sm/50 text-shadow-sm hover:opacity-100 [&_svg]:scale-150
-                        {isArchived
-							? 'border-stone-500! text-stone-400'
-							: count < 5
-								? 'border-amber-500! text-amber-500'
-								: 'border-cyan-600! text-cyan-500'}"
-					>
-						{#if isArchived}
-							<MaterialSymbolsExclamationRounded />
-						{:else if count < 5}
-							<MaterialSymbolsQuestionMarkRounded />
-						{:else}
-							<MaterialSymbolsVerifiedRounded />
-						{/if}
-
-						<!-- <span
-							class="bg-background/80 min-w-[1.2em] rounded-full px-1 py-px text-center text-[9px]"
-						>
-							{count}
-						</span> -->
-					</div>
-				</Tooltip>
-			{/if}
 		</div>
 
 		{#if repoData?.campuses}
@@ -160,83 +103,49 @@
 		</p>
 	{/if}
 
-	<div class="border-border -mx-4 w-[calc(100%+2rem)] border-t"></div>
+	<div class="border-border relative -mx-4 w-[calc(100%+2rem)] border-t">
+		{#if renderData?.sampleMeta}
+			{@const count = renderData.sampleMeta.reviewCount}
+			{@const isArchived = renderData.sampleMeta.isArchived}
+
+			<Tooltip
+				wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute!"
+				content={isArchived
+					? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
+					: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
+			>
+				<div
+					class="size-6 drop-shadow-md/100 not-hover:brightness-90 hover:brightness-110 [&_svg]:size-full
+                        {isArchived
+						? 'border-stone-500! text-stone-400'
+						: count < 5
+							? 'border-amber-500! text-amber-500 drop-shadow-amber-800'
+							: 'border-cyan-600! text-cyan-500 drop-shadow-cyan-900'}"
+				>
+					{#if isArchived}
+						<MaterialSymbolsDatabaseOff />
+					{:else if count < 5}
+						<MaterialSymbolsHelpRounded />
+					{:else}
+						<MaterialSymbolsVerifiedRounded />
+					{/if}
+				</div>
+			</Tooltip>
+		{/if}
+	</div>
 
 	{#if renderData?.meta && !renderData?.sampleMeta?.isArchived}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
-		<div class="flex flex-col gap-1 py-2">
-			{#if count < 5}
-				<p class="text-xs font-bold text-amber-600 opacity-50 text-shadow-sm/50">
-					Pocos datos para establecer una tendencia
-				</p>
-			{/if}
-
+		<div
+			class="flex w-full flex-row flex-wrap justify-center gap-2 py-2 xl:gap-3 {count < 5
+				? 'grayscale-50'
+				: ''}"
+		>
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
-				<div>
-					<h4
-						class="text-muted-foreground mb-1 text-[9px] font-bold tracking-wider uppercase opacity-80"
-					>
-						{dim.label}
-					</h4>
-
-					<div
-						class="grid grid-cols-2 gap-1 {count < 5 ? 'opacity-80 grayscale-60' : 'opacity-100'}"
-					>
-						{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
-							<!-- {@const stats = sub.stats} -->
-
-							<!-- {#snippet distributionTooltip()}
-								<div class="flex flex-col gap-1">
-									<p class="text-xs font-bold">{sub.label}</p>
-									<span class="text-[10px] opacity-70">Distribución de votos:</span>
-									{#if stats && stats.distribution}
-										<div class="flex h-8 items-end gap-1 pt-1">
-											{#each [1, 2, 3, 4, 5] as score}
-												{@const count = stats.distribution[score] || 0}
-												{@const total = renderData.sampleMeta.effectiveCount || 1}
-												{@const height = getBarHeight(count, total)}
-												<div class="flex w-3 flex-col items-center gap-0.5">
-													<div
-														class="w-full rounded-t-sm transition-all {score === Math.round(sub.val)
-															? 'bg-primary'
-															: 'bg-muted-foreground/30'}"
-														style="height: {height}%;"
-													></div>
-													<span class="font-mono text-[8px]">{score}</span>
-												</div>
-											{/each}
-										</div>
-									{/if}
-								</div>
-							{/snippet} -->
-
-							<!-- <Tooltip content={distributionTooltip}> -->
-							<div
-								class="flex flex-1 grow items-center gap-1.5 rounded-md border border-transparent p-1 transition-colors {getMetricColor(
-									sub.val,
-									sub.def.id
-								)}"
-							>
-								<div class="mx-1 flex flex-col overflow-hidden leading-none">
-									<span
-										class="text-muted-foreground translate-y-0.5 truncate text-[10px] font-medium opacity-80"
-									>
-										{sub.def.label}
-									</span>
-									<span class="text-foreground/90 truncate text-xs font-medium">
-										{sub.label}
-									</span>
-								</div>
-
-								<div
-									class="bg-card/50 right-0 ml-auto flex h-full max-w-10 flex-[0.8] items-center justify-center rounded border px-2 font-mono text-xs font-bold"
-								>
-									<span class="scale-120">{sub.val.toFixed(1)}</span>
-								</div>
-							</div>
-							<!-- </Tooltip> -->
-						{/each}
-					</div>
+				<div class="flex flex-row flex-wrap gap-0.5">
+					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
+						<BARSBadge dimension={dim} subdimension={sub} />
+					{/each}
 				</div>
 			{/each}
 		</div>
@@ -252,7 +161,7 @@
 
 	{#if renderData && renderData.tags.length > 0}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
-		<div class="my-2 flex flex-wrap gap-1 {count < 5 ? 'opacity-80 grayscale-25' : 'opacity-100'}">
+		<div class="my-2 flex flex-wrap gap-1 {count < 5 ? 'opacity-80 grayscale-40' : 'opacity-100'}">
 			{#each orderTags(renderData.tags) as tag (tag.id)}
 				<Tooltip content={tag.description}>
 					<Badge
@@ -273,11 +182,11 @@
 
 	{#if renderData?.sampleMeta}
 		<div class="border-border bg-muted/20 -mx-4 mt-2 -mb-4 border-t px-4 py-2 select-none">
-			<div class="text-muted-foreground flex items-center justify-between text-[10px]">
+			<div class="text-muted-foreground flex items-center justify-between text-xs">
 				<div class="flex items-center gap-2">
 					<Tooltip content="Última actualización de datos">
 						<div class="flex items-center gap-1 font-medium">
-							<MaterialSymbolsNestClockFarsightAnalogOutline class="size-3 scale-120" />
+							<MaterialSymbolsNestClockFarsightAnalogOutline class="size-4" />
 							<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
 						</div>
 					</Tooltip>
@@ -291,14 +200,16 @@
 
 				{#if !renderData.sampleMeta.isArchived}
 					{#snippet tooltipContent()}
-						Peso Ef.: {renderData.sampleMeta.effectiveCount.toFixed(1)}<br />
+						Peso Efectivo: <span class="ml-1 font-mono"
+							>{renderData.sampleMeta.effectiveCount.toFixed(1)}</span
+						><br />
 						<span class="text-xs opacity-50"
 							>Votos ponderados por recencia, coherencia y validez.</span
 						>
 					{/snippet}
 					<Tooltip content={tooltipContent}>
 						<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
-							<MaterialSymbolsInfoOutlineRounded class="size-3 scale-150" />
+							<MaterialSymbolsInfo class="size-3 scale-150" />
 						</div>
 					</Tooltip>
 				{/if}
