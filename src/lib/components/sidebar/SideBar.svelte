@@ -29,6 +29,9 @@
 	import { base } from '$app/paths';
 	import Teachers from '$lib/icons/teachers.svelte';
 	import { Dialog } from '../ui/helpers/DialogRenderer.svelte';
+	import DialogComponent from '$lib/components/ui/Dialog.svelte';
+	import MingcutePaypalFill from '$lib/icons/MingcutePaypalFill.svelte';
+	import MingcuteGithubFill from '$lib/icons/MingcuteGithubFill.svelte';
 
 	let activeWindowProps: any = $state(undefined);
 	let activeWindow: any | undefined = $state(undefined);
@@ -48,6 +51,8 @@
 			activeWindow = value;
 		}
 	};
+
+	let isContactDialogOpen = $state(false);
 </script>
 
 <div
@@ -243,14 +248,10 @@
 						<Me />
 						<p
 							class="decoration-foreground/50 mt-1 cursor-pointer underline decoration-dashed opacity-50 hover:decoration-solid hover:opacity-100"
-							onclick={() =>
-								window.open(
-									'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
-									'_blank'
-								)}
+							onclick={() => (isContactDialogOpen = true)}
 						>
 							<MaterialSymbolsFeedback class="mr-1 inline" />
-							Comentarios, reclamos y sugerencias
+							Contacto
 						</p>
 					{/await}
 				</div>
@@ -283,6 +284,64 @@
 			</div>
 		{/if}
 	</div>
+
+	<DialogComponent bind:open={isContactDialogOpen} class="max-w-sm gap-0 p-0">
+		<div class="border-b p-4 pb-3">
+			<h2 class="text-lg leading-none font-bold">Contacto</h2>
+			<p class="text-muted-foreground mt-1 text-xs">
+				¿Tienes dudas, encontraste un error o quieres apoyar el proyecto?
+			</p>
+		</div>
+
+		<div class="flex flex-col gap-3 p-4">
+			<Button
+				class="justify-start gap-3"
+				onclick={() => {
+					window.open(
+						'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
+						'_blank'
+					);
+					isContactDialogOpen = false;
+				}}
+			>
+				<MaterialSymbolsFeedback class="text-muted-foreground size-5" />
+				<div class="flex flex-col items-start text-sm">
+					<span class="font-medium">Reportar problema, comentar o sugerir</span>
+					<span class="text-muted-foreground text-xs">Formulario de Google</span>
+				</div>
+			</Button>
+
+			<!-- <Button
+				variant="outlined"
+				class="justify-start gap-3"
+				onclick={() => {
+					window.open('https://github.com/AlvinIsCrack', '_blank');
+					isContactDialogOpen = false;
+				}}
+			>
+				<MingcuteGithubFill class="text-muted-foreground size-5" />
+				<div class="flex flex-col items-start text-sm">
+					<span class="font-medium">Github de la página</span>
+					<span class="text-muted-foreground text-xs">Acepto seguidores :3</span>
+				</div>
+			</Button> -->
+
+			<Button
+				variant="outlined"
+				class="justify-start gap-3"
+				onclick={() => {
+					window.open('https://paypal.me/LuccaE', '_blank');
+					isContactDialogOpen = false;
+				}}
+			>
+				<MingcutePaypalFill class="text-muted-foreground size-5" />
+				<div class="flex flex-col items-start text-sm">
+					<span class="font-medium">Donar un peso con Paypal</span>
+					<span class="text-muted-foreground text-xs">Porque no tengo ko-fi</span>
+				</div>
+			</Button>
+		</div>
+	</DialogComponent>
 </div>
 
 <style lang="postcss">

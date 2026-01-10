@@ -23,6 +23,10 @@
 				didactica: 'rounded-full',
 				exigencia: 'rounded-md',
 				temperamento: ''
+			},
+			extreme: {
+				false: '',
+				true: ''
 			}
 		}
 	});
@@ -61,12 +65,12 @@
 	const isExtreme = $derived(Math.abs(subdimension.val - 3) >= 1.5);
 </script>
 
-<div class={base({ dimension: dimension.id })}>
+<div class={base({ dimension: dimension.id, extreme: isExtreme })}>
 	<div
 		class="absolute top-0 left-0 h-full w-full rounded-[inherit] mask-b-from-20% mask-b-to-150% inset-shadow-xs inset-shadow-white ring-inset {getMetricColor(
 			subdimension.val,
 			subdimension.def.id
-		)} {isExtreme ? 'ring-2' : 'scale-90'}"
+		)} {isExtreme ? 'ring-2' : ''}"
 	></div>
 
 	{#if isExtreme}
@@ -75,7 +79,7 @@
 
 	{#if currentIcon}
 		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full h-full w-full opacity-80 mix-blend-plus-lighter" />
+		<Icon class="relative z-10 size-full opacity-80 mix-blend-plus-lighter" />
 	{/if}
 
 	{#snippet tooltipContent()}

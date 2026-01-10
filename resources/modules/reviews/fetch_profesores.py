@@ -27,7 +27,7 @@ OUTPUT_FILE = os.path.join(DATA_PATH, "reviews_processed.json")
 os.makedirs(DATA_PATH, exist_ok=True)
 
 API_URL = "https://script.google.com/macros/s/AKfycbwt3x_JzbcCvB1yUp77nJ-NuZHV08GBeVYazsQkrN_so90q5PLCYH1mQ1Gj8x7kdFJf/exec"
-SECRET_TOKEN = "Rf98AsW2fzPTGbiW5juf3QDA0MUMhU4A59KdR4b18DwYYR5ZE9lLzKfVQOh9Zwwd"
+SECRET_TOKEN = os.getenv("SECRET_TOKEN")
 TYPES_PATH = os.path.join(BASE_DIR, "src/lib/logic/professors/types.ts")
 
 def update_script_state(new_index):
