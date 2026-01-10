@@ -2,14 +2,14 @@ name: Actualizar Horarios y Datos
 
 on:
   schedule:
-    # --- NIVEL 1: ALTA PRIORIDAD (Peak Académico) ---
+    # --- NIVEL 1: ALTA PRIORIDAD ---
     - cron: '*/30 8-21 * 1,7,8,12 *' 
     - cron: '0 22-23,0-3 * 1,7,8,12 *'
 
-    # --- NIVEL 2: MEDIA PRIORIDAD (Transición/Cierre) ---
+    # --- NIVEL 2: MEDIA PRIORIDAD ---
     - cron: '0 8-22/4 * 2,5,6,11 *'
 
-    # --- NIVEL 3: BAJA PRIORIDAD (Semestre Estable) ---
+    # --- NIVEL 3: BAJA PRIORIDAD ---
     - cron: '0 8,16 * 3,4,9,10 *'
   workflow_dispatch:
     inputs:
@@ -44,7 +44,7 @@ jobs:
           SIGA_LOGIN: ${{ secrets.SIGA_LOGIN }}
           SIGA_SERVER: ${{ secrets.SIGA_SERVER }}
           SIGA_PASSWD: ${{ secrets.SIGA_PASSWD }}
-          # Aseguramos que Python encuentre 'cookie.py' en la misma carpeta
+          SECRET_TOKEN: ${{ secrets.SECRET_TOKEN }}
           PYTHONPATH: ${{ github.workspace }}/resources
         run: python resources/generar.py ${{ github.event.inputs.script_args }}
 
