@@ -100,7 +100,7 @@
 			const colorFrom = PALETTE[idxLeft].grad.split(' ')[0]; // toma el 'from-...'
 			const colorTo = PALETTE[idxRight].grad.split(' ')[1]; // toma el 'to-...'
 
-			return `bg-gradient-to-br ${colorFrom} from-30% ${colorTo} to-70% ring-inset! ring-2! ring-amber-400/50`;
+			return `bg-gradient-to-br ${colorFrom} from-40% ${colorTo} to-60%`;
 		}
 
 		// 2. Manejo Estándar (Promedio)
