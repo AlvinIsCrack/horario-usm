@@ -31,28 +31,28 @@
 	const PALETTE = [
 		{
 			// 1: Muy Malo
-			solid: 'bg-red-600 ring-inset! ring-2! ring-orange-500/80',
+			solid: 'bg-red-600',
 			grad: 'from-red-600 to-red-600'
 		},
 		{
 			// 2: Difícil/Malo
-			solid: 'bg-amber-500',
-			grad: 'from-amber-500 to-amber-500'
+			solid: 'bg-orange-500',
+			grad: 'from-orange-500 to-orange-500'
 		},
 		{
 			// 3: Neutro
-			solid: 'bg-sky-500/80',
-			grad: 'from-sky-500/80 to-sky-500/80'
+			solid: 'bg-slate-500',
+			grad: 'from-slate-500 to-slate-500'
 		},
 		{
 			// 4: Bueno
-			solid: 'bg-violet-600',
-			grad: 'from-violet-600 to-violet-600'
+			solid: 'bg-blue-600',
+			grad: 'from-blue-600 to-blue-600'
 		},
 		{
 			// 5: Excelente
-			solid: 'bg-green-500 ring-inset! ring-2! ring-lime-400/80!',
-			grad: 'from-green-500 to-green-500'
+			solid: 'bg-fuchsia-600',
+			grad: 'from-fuchsia-600 to-fuchsia-600'
 		}
 	] as const;
 
@@ -100,7 +100,7 @@
 			const colorFrom = PALETTE[idxLeft].grad.split(' ')[0]; // toma el 'from-...'
 			const colorTo = PALETTE[idxRight].grad.split(' ')[1]; // toma el 'to-...'
 
-			return `bg-gradient-to-br ${colorFrom} from-40% ${colorTo} to-60%`;
+			return `bg-gradient-to-tr ${colorFrom} from-45% ${colorTo} to-55%`;
 		}
 
 		// 2. Manejo Estándar (Promedio)
