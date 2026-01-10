@@ -76,11 +76,11 @@
 				{@const { creditos } = ramosCarrera[i] ?? {}}
 
 				{#snippet ramoTooltip()}
-					<div class="max-h-200 space-y-1 overflow-x-hidden overflow-y-visible p-1 text-left">
+					<div class="max-h-200 space-y-1 overflow-y-visible p-1 text-left">
 						<h1 class="w-full text-left text-base font-medium">Profesores</h1>
-						<div class="my-2 mb-4 w-full scale-200 border-b-1"></div>
+						<div class="my-2 mb-4 w-full scale-x-200 border-b-1"></div>
 						{#each ramo.profesor as profesor (profesor)}
-							<div class="mr-2 overflow-hidden rounded-lg border p-3">
+							<div class="bg-card mr-2 overflow-hidden rounded-lg border p-3">
 								{#if profesor.includes('NN')}
 									<p class="font-medium opacity-50">NN (Profesor aún no asignado)</p>
 								{:else}
@@ -95,7 +95,7 @@
 					position="right"
 					interactive
 					content={ramoTooltip}
-					class="max-w-sm! overflow-hidden 2xl:max-w-md!"
+					class="bg-card/50! max-w-2xs! overflow-hidden 2xl:max-w-xs!"
 					forceVisible={Boolean(ramo.profesor.length) && highlighted}
 				>
 					<div

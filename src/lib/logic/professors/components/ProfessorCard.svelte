@@ -51,7 +51,7 @@
 </script>
 
 <div class="w-full text-left">
-	<div class="bg-accent/50 -mx-4 -mt-4 rounded-t-lg p-4">
+	<div class="bg-accent/50 -mx-4 -mt-4 rounded-t-lg p-5">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize">
@@ -105,7 +105,7 @@
 			<div class="mt-1 flex flex-wrap gap-1">
 				{#each Array.from(repoData.campuses) as sede}
 					<span
-						class="bg-primary/50 text-secondary-foreground border-secondary-foreground/10 rounded-full border px-1 py-0.5 text-[10px] select-none"
+						class="bg-primary/50 text-secondary-foreground border-secondary-foreground/10 -ml-0.5 rounded-full border px-1.5 text-[10px] select-none"
 					>
 						{sede}
 					</span>
@@ -116,14 +116,14 @@
 
 	{#if repoData && repoData.subjects.length > 0}
 		<div class="my-1">
-			<p class="text-muted-foreground mb-1.5 text-[10px] font-bold tracking-wider uppercase">
+			<p class="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-wider uppercase">
 				Asignaturas recientes
 			</p>
 			<div class="flex flex-wrap gap-1">
 				{#each repoData.subjects.slice(0, 4) as subject}
 					<Tooltip content={subject.name}>
 						<span
-							class="bg-muted/50 text-muted-foreground border-border/50 rounded border px-1.5 py-0.5 font-mono text-[10px]"
+							class="bg-accent text-muted-foreground border-border/50 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-tight shadow-sm/50"
 						>
 							{subject.sigla}
 						</span>
@@ -147,12 +147,13 @@
 	{#if renderData?.meta && !renderData?.sampleMeta?.isArchived}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
 		<div
-			class="flex w-full flex-row flex-wrap justify-center gap-2 py-2 xl:gap-3 {count < 5
+			class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 py-1.5 xl:gap-2.5 {count <
+			5
 				? 'opacity-90 grayscale-25'
 				: ''}"
 		>
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
-				<div class="flex flex-row flex-wrap gap-0.5">
+				<div class="flex flex-row flex-wrap gap-px">
 					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
 						<BARSBadge dimension={dim} subdimension={sub} />
 					{/each}
@@ -179,7 +180,7 @@
 	{/if}
 
 	{#if renderData?.sampleMeta}
-		<div class="border-border bg-muted/20 -mx-4 mt-2 -mb-4 border-t px-4 py-2 select-none">
+		<div class="border-border bg-muted/20 -mx-4 mt-2 -mb-3 border-t px-4 py-2 select-none">
 			<div class="text-muted-foreground flex items-center justify-between text-xs">
 				<div class="flex items-center gap-2">
 					<Tooltip content="Última actualización de datos">
