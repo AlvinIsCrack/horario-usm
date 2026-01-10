@@ -30,29 +30,24 @@
 	// Definimos la paleta base (1 a 5) con sus variantes para sólido y gradiente
 	const PALETTE = [
 		{
-			// 1: Muy Malo
 			solid: 'bg-red-600',
 			grad: 'from-red-600 to-red-600'
 		},
 		{
-			// 2: Difícil/Malo
-			solid: 'bg-orange-500',
-			grad: 'from-orange-500 to-orange-500'
+			solid: 'bg-slate-600/80',
+			grad: 'from-slate-600/80 to-slate-600/80'
 		},
 		{
-			// 3: Neutro
-			solid: 'bg-slate-500',
-			grad: 'from-slate-500 to-slate-500'
+			solid: 'bg-slate-600',
+			grad: 'from-slate-600 to-slate-600'
 		},
 		{
-			// 4: Bueno
-			solid: 'bg-blue-600',
-			grad: 'from-blue-600 to-blue-600'
+			solid: 'bg-slate-600/80',
+			grad: 'from-slate-600/80 to-slate-600/80'
 		},
 		{
-			// 5: Excelente
-			solid: 'bg-fuchsia-600',
-			grad: 'from-fuchsia-600 to-fuchsia-600'
+			solid: 'bg-green-600',
+			grad: 'from-green-600 to-green-600'
 		}
 	] as const;
 
@@ -125,6 +120,8 @@
 	};
 	const currentIcon = $derived(ICON_MAP[subdimension.def.id]);
 
+	const roundedValue = $derived(Math.round(subdimension.val));
+
 	const isExtreme = $derived(Math.abs(subdimension.val - 3) >= 1.5);
 </script>
 
@@ -133,9 +130,14 @@
 		style:box-shadow="inset 0 1.5px 1px #fffa;"
 		class="absolute top-0 left-0 h-full w-full rounded-[inherit] mask-b-from-10% mask-b-to-150% {getBackgroundClass(
 			subdimension.val,
-			isPolarized
+			false //TODO: Mejorar o quitar, no sé
 		)}"
 	></div>
+
+	{#if currentIcon}
+		{@const Icon = currentIcon}
+		<Icon class="relative z-10 size-full drop-shadow-sm/50 transition-all will-change-transform" />
+	{/if}
 
 	<svg class="pointer-events-none absolute h-0 w-0" aria-hidden="true">
 		<filter id="grainy-{subdimension.def.id}">
@@ -146,20 +148,23 @@
 		</filter>
 	</svg>
 
+	<div
+		class="grainy-overlay pointer-events-none absolute inset-0 z-6 mask-t-from-0% mask-t-to-50% opacity-80 mix-blend-multiply"
+		style="filter: url('#grainy-{subdimension.def.id}');"
+	></div>
+
+	{#if [2, 4].includes(roundedValue)}
+		<div
+			class="absolute z-5 size-full {roundedValue === 2
+				? 'bg-rose-500'
+				: 'bg-lime-500'} mix-blend-overlay saturate-35"
+		></div>
+	{/if}
+
 	{#if isExtreme}
 		<!-- <div class="pointer-events-none absolute inset-0 z-6 size-full animate-pulse bg-white/"></div> -->
 		<div class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full"></div>
 	{/if}
-
-	{#if currentIcon}
-		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full drop-shadow-sm/50 transition-all will-change-transform" />
-	{/if}
-
-	<div
-		class="grainy-overlay pointer-events-none absolute inset-0 z-6 mask-t-from-0% mask-t-to-60% opacity-60 mix-blend-color-dodge"
-		style="filter: url('#grainy-{subdimension.def.id}');"
-	></div>
 
 	{#snippet tooltipContent()}
 		<div class="space-y-4 text-left leading-tight">
@@ -167,7 +172,7 @@
 				<span class="mr-1 font-medium opacity-50">{dimension.label}, {subdimension.def.label}:</span
 				>
 				{subdimension.label}.
-				{subdimension.def.levels[Math.round(subdimension.val)].description}
+				{subdimension.def.levels[roundedValue].description}
 
 				{#if isPolarized}
 					{@const modes = getModes(subdimension.stats.distribution)}
@@ -228,8 +233,8 @@
 		background: linear-gradient(
 			to right,
 			transparent,
-			rgba(255, 255, 255, 0.2) 20%,
-			rgba(255, 255, 255, 0.8) 50%,
+			rgba(255, 255, 255, 0.1) 20%,
+			rgba(255, 255, 255, 1) 50%,
 			rgba(255, 255, 255, 0.1) 80%,
 			transparent
 		);
