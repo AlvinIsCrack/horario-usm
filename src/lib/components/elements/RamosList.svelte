@@ -95,7 +95,7 @@
 					position="right"
 					interactive
 					content={ramoTooltip}
-					class="max-w-md! overflow-hidden 2xl:max-w-lg!"
+					class="max-w-sm! overflow-hidden 2xl:max-w-md!"
 					forceVisible={Boolean(ramo.profesor.length) && highlighted}
 				>
 					<div
