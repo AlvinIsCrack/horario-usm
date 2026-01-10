@@ -376,6 +376,230 @@
 		{#if selectedProfessor}
 			<div class="bg-muted/30 border-b p-5 pb-4">
 				<h2 class="text-lg leading-tight font-bold">Evaluación Docente</h2>
+				<p class="text-muted-foreground text-sm">
+					Está evaluando a <span class="text-foreground font-medium">{selectedProfessor.name}</span>
+				</p>
+				<p class="text-muted-foreground/80 mt-2 text-xs leading-relaxed">
+					La secuencia de criterios y etiquetas se presenta de forma aleatoria para minimizar sesgos
+					cognitivos de orden y fatiga de decisión, promoviendo una valoración más objetiva e
+					independiente de la estructura del formulario.
+				</p>
+			</div>
+
+			<div class="max-h-[70vh] flex-1 space-y-6 overflow-y-auto p-6">
+				<div class="grid gap-6">
+					{#each renderedDimensions as [dimKey, dimDef] (dimKey)}
+						<div class="space-y-4">
+							<div class="flex items-center gap-2">
+								<h3 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">
+									{dimDef.label}
+								</h3>
+								<div class="bg-border/60 h-px flex-1"></div>
+							</div>
+
+							<div class="grid gap-5 pl-1">
+								{#each Object.entries(dimDef.sub_dimensions) as [subKey, subDef]}
+									{#if subDef.type === 'BARS'}
+										<div class="space-y-2">
+											<div class="flex justify-between">
+												<Tooltip wrapperClass="-mb-2" content={subDef.description}>
+													<label
+														for="metrics-{subDef.id}"
+														class="decoration-foreground/50 cursor-help text-sm font-medium underline decoration-dotted"
+													>
+														{subDef.label}
+													</label>
+												</Tooltip>
+											</div>
+											<Slider
+												min={1}
+												max={5}
+												step={1}
+												bind:value={formValues.metrics[subDef.id]}
+												ticks={Object.values(subDef.levels).map((l: any, i: number) => ({
+													value: i + 1,
+													label: l.label,
+													description: l.description
+												}))}
+											/>
+											<div
+												class="text-muted-foreground -mt-2 flex justify-between text-xs font-medium"
+											>
+												<span>{subDef.levels[1].label}</span>
+												<span>{subDef.levels[5].label}</span>
+											</div>
+										</div>
+									{:else if subDef.type === 'DISCRETE'}
+										<div class="space-y-2">
+											<Tooltip content={subDef.description}>
+												<label
+													for="metrics-{subDef.id}"
+													class="decoration-foreground/50 cursor-help text-sm font-medium underline decoration-dotted"
+												>
+													{subDef.label}
+												</label>
+											</Tooltip>
+											<SelectUI
+												items={Object.entries(subDef.options).map(([key, option]) => ({
+													value: key,
+													//@ts-ignore
+													label: `${option.label} - ${option.description}`
+												}))}
+												bind:value={formValues.metrics[subDef.id]}
+											/>
+										</div>
+									{/if}
+								{/each}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<div class="border-border/50 border-t pt-4">
+					<div
+						class="bg-background/95 sticky top-0 z-10 -mx-6 mb-4 flex items-center justify-between px-6 py-3 transition-all"
+					>
+						<div>
+							<label class="text-sm font-medium">Etiquetas Descriptivas</label>
+							<p class="text-muted-foreground text-xs">
+								Seleccione los atributos que mejor describan al docente.
+							</p>
+						</div>
+
+						{#key formValues.tags.length}
+							<div
+								class="bg-background border-border text-muted-foreground starting:text-foreground flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-sm font-bold tracking-wider uppercase shadow-sm transition-colors duration-400 {formValues
+									.tags.length >= 5
+									? 'bg-amber-700! text-amber-50!'
+									: ''}"
+							>
+								<span>{formValues.tags.length}/5</span>
+							</div>
+						{/key}
+					</div>
+
+					<div class="space-y-4">
+						{#each renderedTagGroups as [category, tags]}
+							<div class="bg-card/50 rounded-md border p-3">
+								<Tooltip content={TAG_CATEGORY_DESCRIPTIONS[category as TagCategory]}>
+									<h4
+										class="text-muted-foreground decoration-muted-foreground/50 mb-2 cursor-help text-xs font-bold tracking-wider uppercase underline decoration-dotted"
+									>
+										{category}
+									</h4>
+								</Tooltip>
+								<div class="flex flex-wrap gap-2">
+									{#each orderTags(tags) as tag (tag.id)}
+										{@const isSelected = formValues.tags.includes(tag.id as any)}
+										{@const isDisabled = !isSelected && formValues.tags.length >= 5}
+										<Tooltip content={tag.description}>
+											<Toggle
+												size="sm"
+												pressed={isSelected}
+												variant={getSentimentVariant(tag.sentiment)}
+												onclick={() => toggleTag(tag.id)}
+												disabled={isDisabled}
+											>
+												{tag.label}
+											</Toggle>
+										</Tooltip>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div class="space-y-2">
+					<div class="flex items-center justify-between">
+						<label for="review-comment" class="text-sm font-medium">
+							<span class="font-normal opacity-50">Tu experiencia:</span>
+							{activePrompt.label}
+						</label>
+
+						{#if formValues.comment.length === 0}
+							<span class="text-[10px] font-bold tracking-wider text-amber-500 uppercase italic">
+								Aporte invisible
+							</span>
+						{:else if isLowQuality}
+							<span
+								class="animate-pulse text-[10px] font-black tracking-wider text-rose-500 uppercase"
+							>
+								Poco útil para otros
+							</span>
+						{:else}
+							<span
+								class="animate-in zoom-in-95 text-[10px] font-bold tracking-wider text-emerald-600 uppercase"
+							>
+								Aporte valioso
+							</span>
+						{/if}
+					</div>
+
+					<textarea
+						id="review-comment"
+						class="bg-background ring-offset-background flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm transition-all duration-300 focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50
+        {isLowQuality
+							? 'border-amber-500! focus-visible:border-amber-500! focus-visible:ring-amber-500/50'
+							: 'border-input! focus-visible:ring-ring'}"
+						placeholder={activePrompt.placeholder}
+						bind:value={formValues.comment}
+						maxlength="800"
+					></textarea>
+
+					<div class="flex items-start justify-between gap-3 px-1">
+						<p class="text-muted-foreground text-[10px] leading-tight opacity-80">
+							<span class="font-bold text-amber-700">Importante:</span> Los comentarios vacíos o genéricos
+							tienen menos peso en el promedio y podrían ser descartados por falta de contexto.
+						</p>
+						<div
+							class="{isLowQuality
+								? 'font-bold text-amber-600'
+								: 'font-medium text-emerald-600'} shrink-0 text-right text-[10px] tabular-nums transition-colors"
+						>
+							{formValues.comment.length}/800
+						</div>
+					</div>
+				</div>
+
+				{#if submissionError}
+					<div class="bg-destructive/10 text-destructive rounded-md p-3 text-xs font-medium">
+						{submissionError}
+					</div>
+				{/if}
+			</div>
+
+			<div
+				class="bg-muted/30 flex items-center justify-between border-t p-4 transition-colors duration-300"
+			>
+				<p
+					class="mr-4 text-[10px] tracking-wider uppercase transition-all duration-300 {footerStatus.messageStyle}"
+				>
+					{footerStatus.message}
+				</p>
+
+				<div class="flex gap-2">
+					<Button
+						variant="outlined"
+						class="text-nowrap"
+						onclick={closeEvaluationModal}
+						disabled={isSubmitting}
+					>
+						Cancelar
+					</Button>
+
+					<Button
+						onclick={handleSubmit}
+						disabled={isSubmitting}
+						class="text-nowrap transition-all duration-500 {footerStatus.btnClass}"
+					>
+						{#if isSubmitting}
+							Enviando...
+						{:else}
+							{footerStatus.btnText}
+						{/if}
+					</Button>
+				</div>
 			</div>
 		{/if}
 	</DialogComponent>

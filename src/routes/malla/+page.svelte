@@ -259,9 +259,9 @@
 
 				{#each mallaState.currentMalla as semestre, i (i)}
 					<div
-						class="-my-3.5 flex flex-col gap-2 px-2 py-4 md:px-3 {
-						i % 2 === 0 ? 'bg-gradient-to-b from-75% from-black/30 to-transparent' :
-						'bg-gradient-to-b from-75% from-white/5 to-transparent'}"
+						class="-my-3.5 flex flex-col gap-2 px-2 py-4 md:px-3 {i % 2 === 0
+							? 'bg-gradient-to-b from-black/30 from-75% to-transparent'
+							: 'bg-gradient-to-b from-white/5 from-75% to-transparent'}"
 					>
 						<div
 							class="relative z-10 mb-2 flex items-center justify-between border-b border-white/50 px-1"

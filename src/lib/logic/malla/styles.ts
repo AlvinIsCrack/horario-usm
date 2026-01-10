@@ -9,9 +9,9 @@ export const cardStyles = tv({
     },
     variants: {
         status: {
-            disponible: 'bg-card border-border hover:border-primary/50',
+            disponible: 'bg-primary border-transparent hover:border-primary/50!',
             aprobado: 'bg-lime-600 text-background border-lime-300',
-            bloqueado: 'bg-primary border-transparent grayscale-25 saturate-120'
+            bloqueado: ' bg-muted border-border grayscale-25 saturate-120'
         },
         relation: {
             none: 'z-0',
@@ -37,7 +37,7 @@ export const cardStyles = tv({
         {
             status: 'bloqueado',
             class: {
-                sigla: 'text-background/80'
+                sigla: 'text-foreground/80'
             }
         }
     ]

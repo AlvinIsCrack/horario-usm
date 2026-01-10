@@ -51,7 +51,7 @@
 
 <div class="w-full text-left">
 	<div class="bg-accent/50 -mx-4 -mt-4 rounded-t-lg p-4">
-		<div class="flex items-start justify-between gap-2">
+		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize">
 					{repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido'}
@@ -60,6 +60,35 @@
 					<p class="text-xs opacity-50">{registryProfile.email}</p>
 				{/if}
 			</div>
+
+			{#if renderData?.sampleMeta}
+				{@const count = renderData.sampleMeta.reviewCount}
+				{@const isArchived = renderData.sampleMeta.isArchived}
+
+				<Tooltip
+					wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute!"
+					content={isArchived
+						? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
+						: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
+				>
+					<div
+						class="size-6 drop-shadow-md/100 not-hover:brightness-90 hover:brightness-110 [&_svg]:size-full
+                        {isArchived
+							? 'border-stone-500! text-stone-400'
+							: count < 5
+								? 'border-amber-500! text-amber-500 drop-shadow-amber-800'
+								: 'border-cyan-600! text-cyan-500 drop-shadow-cyan-900'}"
+					>
+						{#if isArchived}
+							<MaterialSymbolsDatabaseOff />
+						{:else if count < 5}
+							<MaterialSymbolsHelpRounded />
+						{:else}
+							<MaterialSymbolsVerifiedRounded />
+						{/if}
+					</div>
+				</Tooltip>
+			{/if}
 		</div>
 
 		{#if repoData?.campuses}
@@ -103,36 +132,7 @@
 		</p>
 	{/if}
 
-	<div class="border-border relative -mx-4 w-[calc(100%+2rem)] border-t">
-		{#if renderData?.sampleMeta}
-			{@const count = renderData.sampleMeta.reviewCount}
-			{@const isArchived = renderData.sampleMeta.isArchived}
-
-			<Tooltip
-				wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute!"
-				content={isArchived
-					? 'Datos históricos o insuficientes para generar una estadística actual confiable.'
-					: `Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. Basado en ${count} votos.`}
-			>
-				<div
-					class="size-6 drop-shadow-md/100 not-hover:brightness-90 hover:brightness-110 [&_svg]:size-full
-                        {isArchived
-						? 'border-stone-500! text-stone-400'
-						: count < 5
-							? 'border-amber-500! text-amber-500 drop-shadow-amber-800'
-							: 'border-cyan-600! text-cyan-500 drop-shadow-cyan-900'}"
-				>
-					{#if isArchived}
-						<MaterialSymbolsDatabaseOff />
-					{:else if count < 5}
-						<MaterialSymbolsHelpRounded />
-					{:else}
-						<MaterialSymbolsVerifiedRounded />
-					{/if}
-				</div>
-			</Tooltip>
-		{/if}
-	</div>
+	<div class="border-border -mx-4 w-[calc(100%+2rem)] border-t"></div>
 
 	{#if renderData?.meta && !renderData?.sampleMeta?.isArchived}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
