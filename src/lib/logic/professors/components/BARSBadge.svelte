@@ -34,16 +34,16 @@
 			grad: 'from-red-600 to-red-600'
 		},
 		{
-			solid: 'bg-slate-600/80',
-			grad: 'from-slate-600/80 to-slate-600/80'
+			solid: 'bg-slate-600',
+			grad: 'from-slate-600 to-slate-600'
 		},
 		{
 			solid: 'bg-slate-600',
 			grad: 'from-slate-600 to-slate-600'
 		},
 		{
-			solid: 'bg-slate-600/80',
-			grad: 'from-slate-600/80 to-slate-600/80'
+			solid: 'bg-slate-600',
+			grad: 'from-slate-600 to-slate-600'
 		},
 		{
 			solid: 'bg-green-600',
@@ -156,8 +156,8 @@
 	{#if [2, 4].includes(roundedValue)}
 		<div
 			class="absolute z-5 size-full {roundedValue === 2
-				? 'bg-rose-500'
-				: 'bg-lime-500'} mix-blend-overlay saturate-35"
+				? 'bg-red-500'
+				: 'bg-green-500'} opacity-50 mix-blend-overlay saturate-80"
 		></div>
 	{/if}
 
