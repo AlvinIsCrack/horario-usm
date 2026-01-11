@@ -44,23 +44,20 @@ export function analyzeAcademicStrategy(ctx: AnalyzerContext, icons: any): StatI
         }
     }
 
-    // B. Sobrecarga Continua vs Inmersión (Detección de Talleres)
-    // Buscamos rachas largas, pero distinguimos si son varios ramos (agotador) o uno solo (taller).
-
+    // B. Sobrecarga Continua vs Inmersión (LÓGICA REFINADA)
     let maxStreakBloques = 0;
-    let isTallerStreak = false; // Flag para saber si la racha más larga es un taller
-    let detectedTallerName = '';
+    // CAMBIO 1: En vez de booleano, guardamos cuántos ramos distintos componen la racha
+    let maxStreakUniqueCount = 0;
+    let detectedMainName = '';
 
     for (let d = 0; d <= 5; d++) {
-        // Obtenemos bloques con metadata para identificar el ramo
         const bloquesDia = ctx.ramos
-            .flatMap(r => r.horario.map(h => ({ ...h, sigla: r.sigla })))
+            .flatMap(r => r.horario.map(h => ({ ...h, sigla: r.sigla }))) //
             .filter(b => b.dia === d)
             .sort((a, b) => a.bloque - b.bloque);
 
         if (bloquesDia.length === 0) continue;
 
-        // Algoritmo de detección de rachas
         let currentStreak = 1;
         let currentSiglas = new Set<string>([bloquesDia[0].sigla]);
 
@@ -68,57 +65,57 @@ export function analyzeAcademicStrategy(ctx: AnalyzerContext, icons: any): StatI
             const actual = bloquesDia[i];
             const siguiente = bloquesDia[i + 1];
 
-            // Continuidad: Siguiente es el bloque inmediatamente posterior (y no es el corte de almuerzo 8-9)
-            // NOTA: Si es el MISMO ramo, a veces el corte de almuerzo es irrelevante para considerarlo "Taller de todo el día"
-            // pero mantendremos la lógica de corte de almuerzo para ser conservadores, salvo que sea la misma sigla.
-
             const esContinuo = siguiente.bloque === actual.bloque + 1;
-            const saltaAlmuerzo = actual.bloque === 8 && siguiente.bloque === 9; // En USM bloque 8 termina 15:40, 9 empieza 15:50 (o similar según sede).
+            const saltaAlmuerzo = actual.bloque === 8 && siguiente.bloque === 9;
 
-            // Si es continuo (incluyendo salto de almuerzo si es el mismo ramo, para detectar 'Jornada')
             if (esContinuo && (!saltaAlmuerzo || actual.sigla === siguiente.sigla)) {
                 currentStreak++;
                 currentSiglas.add(siguiente.sigla);
             } else {
-                // Fin de la racha actual, evaluamos
                 checkStreak(currentStreak, currentSiglas);
-                // Reiniciar
                 currentStreak = 1;
                 currentSiglas = new Set<string>([siguiente.sigla]);
             }
         }
-        // Check final del día
         checkStreak(currentStreak, currentSiglas);
     }
 
     function checkStreak(length: number, siglas: Set<string>) {
         if (length > maxStreakBloques) {
             maxStreakBloques = length;
-            // Si la racha es larga y solo tiene 1 sigla, es un Taller/Lab
+            maxStreakUniqueCount = siglas.size; // Guardamos cuántos ramos únicos hay en la racha
             if (siglas.size === 1) {
-                isTallerStreak = true;
-                detectedTallerName = [...siglas][0]; // Guardamos la sigla
-            } else {
-                isTallerStreak = false;
+                detectedMainName = [...siglas][0];
             }
         }
     }
 
-    // Reportar resultados
+    // Reportar resultados (LÓGICA TRI-ESTADO)
     if (maxStreakBloques >= 5) {
         const hrs = (maxStreakBloques * BLOQUE_DURATION_MINUTES) / 60;
 
-        if (isTallerStreak) {
-            // CASO: Taller / Laboratorio (Mismo ramo > 5 bloques) -> Info/Success
+        // CASO 1: Inmersión (1 solo ramo) - Taller/Lab
+        if (maxStreakUniqueCount === 1) {
             out.push({
-                icon: icons.Category, // Icono visual de "Bloque sólido"
-                label: STAT_LABELS.IMMERSION, // Nuevo Label
+                icon: icons.Category,
+                label: STAT_LABELS.IMMERSION,
                 value: `${hrs.toFixed(1)} hrs Taller`,
-                tooltip: `Se detectó un bloque extendido de <b>${detectedTallerName}</b> (${maxStreakBloques} bloques).<br/><span class="opacity-70 text-xs">Al ser una única asignatura, se considera una jornada de taller o laboratorio práctico donde el ritmo suele ser diferente a una cátedra continua.</span>`,
-                status: 'success' // O 'null' si prefieres neutro, pero success indica que "está bien, no es error"
+                tooltip: `Se detectó un bloque extendido de <b>${detectedMainName}</b> (${maxStreakBloques} bloques).<br/><span class="opacity-70 text-xs">Al ser una única asignatura, se considera una jornada de taller o laboratorio práctico.</span>`,
+                status: 'success'
             });
-        } else {
-            // CASO: Maratón (Varios ramos) -> Danger
+        }
+        // CASO 2: Jornada Dual (2 Ramos) - Cansado pero Enfocado (TU CASO)
+        else if (maxStreakUniqueCount === 2) {
+            out.push({
+                icon: icons.Weight, // Icono de peso/carga física
+                label: STAT_LABELS.SOBRECARGA_CONTINUA,
+                value: 'Extensa', // No "Sobrecarga", sino "Extensa"
+                tooltip: `Tienes <b>${hrs.toFixed(1)} horas seguidas</b> divididas en solo 2 asignaturas.<br/><span class="opacity-70 text-xs">Aunque el cambio de contexto es bajo (bueno), el agotamiento físico será alto. Camina en los recreos.</span>`,
+                status: 'warning' // Amarillo, no Rojo
+            });
+        }
+        // CASO 3: Maratón Fragmentada (3+ Ramos) - Peligro Cognitivo
+        else {
             let status: StatStatus = 'warning';
             if (maxStreakBloques >= 6) status = 'danger';
 
@@ -126,7 +123,7 @@ export function analyzeAcademicStrategy(ctx: AnalyzerContext, icons: any): StatI
                 icon: icons.Run,
                 label: STAT_LABELS.SOBRECARGA_CONTINUA,
                 value: `${hrs.toFixed(1)} hrs seguidas`,
-                tooltip: `Maratón de <b>${maxStreakBloques} bloques</b> de distintas asignaturas sin pausas reales.<br/><span class="opacity-70 text-xs">Cambiar de contexto tantas veces seguidas sin descanso genera fatiga cognitiva severa.</span>`,
+                tooltip: `Maratón de <b>${maxStreakBloques} bloques</b> con ${maxStreakUniqueCount} asignaturas distintas.<br/><span class="opacity-70 text-xs">El alto "Coste de Cambio de Contexto" generará fatiga cognitiva severa.</span>`,
                 status
             });
         }

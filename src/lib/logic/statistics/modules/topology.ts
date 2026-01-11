@@ -13,15 +13,57 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
         if (v.duraciónBloques === 1) ventanasCortas++;
     }
 
-    if (ctx.ventanas.length === 0) {
+    // A.2. Compacidad Tóxica (La vejiga no perdona)
+    // Buscamos el día con la racha continua más larga SIN ventanas intermedias
+    let maxRachaSinRecreo = 0;
+
+    // Iteramos por día para ver "ladrillos" sólidos
+    Object.entries(metrics).forEach(([d, m]) => {
+        // Obtenemos los bloques del día ordenados
+        const bloquesDia = ctx.ramos.flatMap(r => r.horario)
+            .filter(b => b.dia === Number(d))
+            .map(b => b.bloque)
+            .sort((a, b) => a - b);
+
+        if (bloquesDia.length === 0) return;
+
+        let currentStreak = 1;
+        for (let i = 0; i < bloquesDia.length - 1; i++) {
+            // Si son consecutivos (ej: 3 y 4) sumamos. 
+            // Si hay un salto (ej: 4 y 6), se rompe la racha.
+            if (bloquesDia[i + 1] === bloquesDia[i] + 1) {
+                currentStreak++;
+            } else {
+                maxRachaSinRecreo = Math.max(maxRachaSinRecreo, currentStreak);
+                currentStreak = 1;
+            }
+        }
+        maxRachaSinRecreo = Math.max(maxRachaSinRecreo, currentStreak);
+    });
+
+    // Si el horario es "demasiado" compacto
+    if (maxRachaSinRecreo >= 5) {
+        // Reemplazamos o agregamos sobre el status de "Compacto"
+        // Nota: Esto podría coexistir con "Compacto", pero es una advertencia de salud.
+        out.push({
+            icon: icons.Warning, // O un icono de batería baja
+            label: STAT_LABELS.HORARIO,
+            value: 'Asfixiante',
+            tooltip: `Tienes una racha de <b>${maxRachaSinRecreo} bloques seguidos</b> sin ni una sola ventana.<br/><span class="opacity-70 text-xs">La eficiencia es buena, pero ojo con la ausencia de una ventana estratégica.</span>`,
+            status: 'danger'
+        });
+    } else if (ctx.ventanas.length === 0) {
+        // (Tu código original de Compacto Success se mantiene aquí como else)
         out.push({
             icon: icons.Asterisk,
             label: STAT_LABELS.HORARIO,
             value: 'Compacto',
-            tooltip: 'Sin tiempos muertos entre bloques. Máxima compactación.',
+            tooltip: 'Sin tiempos muertos entre bloques. Máxima eficiencia de tiempo.',
             status: 'success'
         });
-    } else if (ventanasCortas > 0) {
+    }
+
+    if (ventanasCortas > 0) {
         let status: StatStatus = 'warning';
         let valor = 'Moderada';
         let desc = 'Tu horario presenta algunas interrupciones breves.';
