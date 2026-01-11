@@ -30,74 +30,27 @@
 	// Definimos la paleta base (1 a 5) con sus variantes para sólido y gradiente
 	const PALETTE = [
 		{
-			solid: 'bg-red-600',
-			grad: 'from-red-600 to-red-600'
+			solid: 'bg-red-600'
 		},
 		{
-			solid: 'bg-slate-600',
-			grad: 'from-slate-600 to-slate-600'
+			solid: 'bg-slate-600'
 		},
 		{
-			solid: 'bg-slate-600',
-			grad: 'from-slate-600 to-slate-600'
+			solid: 'bg-slate-600'
 		},
 		{
-			solid: 'bg-slate-600',
-			grad: 'from-slate-600 to-slate-600'
+			solid: 'bg-slate-600'
 		},
 		{
-			solid: 'bg-green-600',
-			grad: 'from-green-600 to-green-600'
+			solid: 'bg-lime-600'
 		}
 	] as const;
 
-	const isPolarized = $derived(subdimension?.stats.is_bimodal);
 	const isInverseMetric = $derived(
 		['rigor_calificatorio', 'dificultad_percibida'].includes(subdimension.def.id)
 	);
 
-	/**
-	 * Encuentra los 2 puntajes más votados en la distribución.
-	 */
-	function getModes(distribution: Record<string, number>): [number, number] {
-		if (!distribution) return [1, 5]; // Fallback por seguridad
-
-		// Ordenamos las llaves (scores) por cantidad de votos descendente
-		const sortedScores = Object.keys(distribution)
-			.map(Number)
-			.sort((a, b) => (distribution[b] ?? 0) - (distribution[a] ?? 0));
-
-		// Tomamos los top 2 y los ordenamos numéricamente (ej: [1, 5] o [2, 4])
-		// para que el gradiente siempre vaya de menor a mayor score visualmente
-		const modeA = sortedScores[0];
-		const modeB = sortedScores[1] ?? (modeA === 5 ? 1 : 5); // Fallback si solo hay 1 voto
-
-		return [modeA, modeB].sort((a, b) => a - b) as [number, number];
-	}
-
-	function getBackgroundClass(val: number, polarized: boolean): string {
-		// 1. Manejo de Polarización (Bi-modal)
-		if (polarized) {
-			const [scoreLeft, scoreRight] = getModes(subdimension.stats.distribution);
-
-			// Ajustamos índices (Score 1..5 -> Índice 0..4)
-			// Si es métrica inversa, invertimos el índice (1->4, 2->3, etc)
-			let idxLeft = scoreLeft - 1;
-			let idxRight = scoreRight - 1;
-
-			if (isInverseMetric) {
-				idxLeft = 4 - idxLeft;
-				idxRight = 4 - idxRight;
-			}
-
-			// Extraemos solo la parte 'from-COLOR' del objeto izquierdo y 'to-COLOR' del derecho
-			// Nota: PALETTE[i].grad tiene formato "from-X to-X". Hacemos split para mezclar.
-			const colorFrom = PALETTE[idxLeft].grad.split(' ')[0]; // toma el 'from-...'
-			const colorTo = PALETTE[idxRight].grad.split(' ')[1]; // toma el 'to-...'
-
-			return `bg-gradient-to-tr ${colorFrom} from-45% ${colorTo} to-55%`;
-		}
-
+	function getBackgroundClass(val: number): string {
 		// 2. Manejo Estándar (Promedio)
 		let scoreIndex = Math.max(1, Math.min(5, Math.round(val))) - 1;
 		if (isInverseMetric) {
@@ -118,21 +71,32 @@
 		estabilidad_emocional: MaterialSymbolsMood,
 		accesibilidad: MaterialSymbolsLinkRounded
 	};
+
 	const currentIcon = $derived(ICON_MAP[subdimension.def.id]);
-
 	const roundedValue = $derived(Math.round(subdimension.val));
-
 	const isExtreme = $derived(Math.abs(subdimension.val - 3) >= 1.5);
+	const isIntermediateValue = $derived([2, 4].includes(roundedValue));
+
+	function getBarColor(score: number) {
+		let idx = score - 1;
+		if (isInverseMetric) idx = 4 - idx;
+		return PALETTE[idx].solid.split(' ')[0];
+	}
 </script>
 
 <div class={base({ dimension: dimension.id, extreme: isExtreme })}>
 	<div
 		style:box-shadow="inset 0 1.5px 1px #fffa;"
-		class="absolute top-0 left-0 h-full w-full rounded-[inherit] mask-b-from-10% mask-b-to-150% {getBackgroundClass(
-			subdimension.val,
-			false //TODO: Mejorar o quitar, no sé
+		class="absolute top-0 left-0 size-full rounded-[inherit] mask-b-from-10% mask-b-to-150% {getBackgroundClass(
+			subdimension.val
 		)}"
 	></div>
+
+	{#if isExtreme}
+		<div
+			class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! opacity-40 mix-blend-color-dodge [background:url(/media/metal.png)]"
+		></div>
+	{/if}
 
 	{#if currentIcon}
 		{@const Icon = currentIcon}
@@ -153,39 +117,76 @@
 		style="filter: url('#grainy-{subdimension.def.id}');"
 	></div>
 
-	{#if [2, 4].includes(roundedValue)}
+	{#if isIntermediateValue}
 		<div
-			class="absolute z-5 size-full {roundedValue === 2
-				? 'bg-red-500'
-				: 'bg-green-500'} opacity-50 mix-blend-overlay saturate-80"
+			class="absolute z-5 size-full {(roundedValue === 2 && !isInverseMetric) ||
+			(roundedValue === 4 && isInverseMetric)
+				? 'bg-orange-500'
+				: 'bg-emerald-400/80'} mix-blend-overlay"
 		></div>
 	{/if}
 
 	{#if isExtreme}
 		<!-- <div class="pointer-events-none absolute inset-0 z-6 size-full animate-pulse bg-white/"></div> -->
-		<div class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full"></div>
+		<div
+			class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full mix-blend-plus-lighter"
+		></div>
 	{/if}
 
 	{#snippet tooltipContent()}
-		<div class="space-y-4 text-left leading-tight">
+		{#snippet histogram()}
+			{@const dist = subdimension.stats.distribution}
+			{@const maxVal = Math.max(...Object.values(dist).map(Number)) || 1}
+
+			<div class="my-4 mt-5 flex h-20 w-full items-end justify-between gap-1.5 px-4 select-none">
+				{#each [1, 2, 3, 4, 5] as score}
+					{@const count = dist[score] ?? 0}
+					{@const percent = count > 0 ? Math.max(15, (count / maxVal) * 100) : 4}
+					{@const isCurrent = roundedValue === score}
+
+					<div
+						class="group/bar relative flex h-full w-full flex-col items-center justify-end gap-1"
+					>
+						{#if count > 0}
+							<span
+								class="absolute -top-5 text-[10px] font-bold {isCurrent
+									? 'opacity-100'
+									: 'opacity-40'}"
+							>
+								{count}
+							</span>
+						{/if}
+
+						<div class="flex h-full w-full items-end justify-center mask-b-from-80%">
+							<div
+								class="h-[var(--h)] w-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(.08,.96,.49,1)] starting:h-0 {getBarColor(
+									score
+								)} {count > 0 ? 'opacity-100' : 'bg-white opacity-20'}"
+								style:--h="{percent}%"
+							></div>
+						</div>
+
+						<span
+							class="font-mono text-[10px] leading-none tracking-tighter {isCurrent
+								? 'scale-105 font-medium text-white'
+								: 'text-muted-foreground/80 scale-90'}"
+						>
+							{subdimension.def.levels[score].label}
+						</span>
+					</div>
+				{/each}
+			</div>
+		{/snippet}
+
+		<div class="space-y-8 text-left leading-tight">
 			<p>
 				<span class="mr-1 font-medium opacity-50">{dimension.label}, {subdimension.def.label}:</span
 				>
 				{subdimension.label}.
 				{subdimension.def.levels[roundedValue].description}
-
-				{#if isPolarized}
-					{@const modes = getModes(subdimension.stats.distribution)}
-					<br />
-					<span class="text-xs font-bold tracking-wide text-amber-400">
-						<span class="uppercase">⚠️ Opiniones divididas:</span>
-						<span class="font-normal text-white/80"
-							>Entre "{subdimension.def.levels[Math.round(modes[0])].label}" y "{subdimension.def
-								.levels[Math.round(modes[1])].label}"</span
-						>
-					</span>
-				{/if}
 			</p>
+
+			{@render histogram()}
 
 			<p class="text-xs opacity-50">
 				{subdimension.def.label} es {subdimension.def.description.toLowerCase()}
@@ -208,13 +209,13 @@
 			opacity: 0;
 		}
 		20% {
-			opacity: 0.5;
+			opacity: 0.3;
 		}
 		50% {
 			opacity: 1;
 		}
 		80% {
-			opacity: 0.5;
+			opacity: 0.4;
 		}
 		100% {
 			transform: translateX(150%) skewX(-25deg);
@@ -229,13 +230,13 @@
 	}
 
 	.animate-shimmer {
-		animation: shimmer 2.2s infinite ease-out;
+		animation: shimmer 2s infinite cubic-bezier(0.15, 0.66, 0.28, 0.95);
 		background: linear-gradient(
 			to right,
 			transparent,
-			rgba(255, 255, 255, 0.1) 20%,
+			rgba(255, 255, 255, 0.25) 20%,
 			rgba(255, 255, 255, 1) 50%,
-			rgba(255, 255, 255, 0.1) 80%,
+			rgba(255, 255, 255, 0.1) 60%,
 			transparent
 		);
 	}
