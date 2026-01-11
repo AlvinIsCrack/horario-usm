@@ -1,4 +1,6 @@
 <script module>
+	import { tick } from 'svelte';
+
 	// Tipos extraídos
 	export type DialogOptions = {
 		title: string;
@@ -17,6 +19,7 @@
 		mode: DialogMode;
 		options: DialogOptions;
 		inputValue: string;
+		open: boolean; // <--- Nuevo campo para controlar animación
 		resolve: (value: any) => void;
 	};
 
@@ -36,17 +39,22 @@
 			});
 		},
 		closeAll: () => {
-			dialogs = [];
+			// Forzamos cierre con animación si es posible, o vaciamos
+			dialogs.forEach((d) => (d.open = false));
+			setTimeout(() => {
+				dialogs = [];
+			}, 200);
 		}
 	};
 
 	// Función interna para añadir a la pila
 	function addDialog(mode: DialogMode, opts: DialogOptions, resolve: (value: any) => void) {
 		const id = crypto.randomUUID();
-		dialogs.push({
+		const newDialog: DialogInstance = {
 			id,
 			mode,
 			inputValue: opts.value ?? '',
+			open: false, // <--- Inicia cerrado para permitir transición de entrada
 			options: {
 				confirmText: 'Aceptar',
 				cancelText: 'Cancelar',
@@ -54,6 +62,14 @@
 				...opts
 			},
 			resolve
+		};
+
+		dialogs.push(newDialog);
+
+		// <--- Activamos la animación en el siguiente tick
+		tick().then(() => {
+			const d = dialogs.find((x) => x.id === id);
+			if (d) d.open = true;
 		});
 	}
 
@@ -62,8 +78,17 @@
 		const index = dialogs.findIndex((d) => d.id === id);
 		if (index !== -1) {
 			const dialog = dialogs[index];
-			dialog.resolve(result);
-			dialogs.splice(index, 1);
+			dialog.open = false; // <--- Dispara transición de salida
+
+			// <--- Esperamos a que termine la animación (150ms en Dialog.svelte + buffer)
+			setTimeout(() => {
+				// Re-buscamos por si el índice cambió
+				const idx = dialogs.findIndex((d) => d.id === id);
+				if (idx !== -1) {
+					dialogs[idx].resolve(result);
+					dialogs.splice(idx, 1);
+				}
+			}, 200);
 		}
 	}
 </script>
@@ -91,12 +116,13 @@
 	}
 
 	function focusInput(el: HTMLInputElement) {
-		el.focus();
+		// Pequeño delay para asegurar que el input esté renderizado y visible
+		setTimeout(() => el.focus(), 50);
 	}
 </script>
 
 {#each dialogs as dialog (dialog.id)}
-	<DialogComponent open={true} onclose={() => handleCancel(dialog)} class="gap-4 p-6">
+	<DialogComponent open={dialog.open} onclose={() => handleCancel(dialog)} class="gap-4 p-6">
 		<div class="flex flex-col space-y-1.5 text-center sm:text-left">
 			<h2 class={titleStyle()}>
 				{dialog.options.title}

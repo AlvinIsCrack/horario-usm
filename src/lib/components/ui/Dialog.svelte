@@ -1,3 +1,8 @@
+<script lang="ts" module>
+	// Contador global para gestionar el apilamiento de diálogos anidados
+	let globalZIndex = 100;
+</script>
+
 <script lang="ts">
 	import { fade, scale } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
@@ -16,13 +21,25 @@
 		onclose?: () => void;
 	} = $props();
 
-	// --- Estilos Base ---
-	const overlayStyle = tv({
-		base: 'fixed inset-0 pointer-events-auto z-[100] bg-black/60'
+	// Estado local para el z-index de esta instancia
+	let zIndex = $state(100);
+	let wasOpen = false;
+
+	// Detectamos la apertura antes de pintar para asignar el z-index correcto
+	$effect.pre(() => {
+		if (open && !wasOpen) {
+			globalZIndex += 2; // Incrementamos en 2 (capa overlay + capa contenido)
+			zIndex = globalZIndex;
+		}
+		wasOpen = open;
 	});
 
+	// --- Estilos Base (Se eliminaron z-[100] y z-[101]) ---
+	const overlayStyle = tv({
+		base: 'fixed inset-0 pointer-events-auto bg-black/60'
+	});
 	const contentStyle = tv({
-		base: 'fixed left-[50%] top-[50%] pointer-events-auto z-[101] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background shadow-lg duration-200 rounded-xl overflow-hidden md:w-full'
+		base: 'fixed left-[50%] top-[50%] pointer-events-auto grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background shadow-lg duration-200 rounded-xl overflow-hidden md:w-full'
 	});
 
 	function handleKeydown(e: KeyboardEvent) {
@@ -49,6 +66,7 @@
 		use:portal
 		transition:fade={{ duration: 150 }}
 		class={overlayStyle()}
+		style="z-index: {zIndex};"
 		onclick={handleClose}
 		role="button"
 		tabindex="-1"
@@ -59,6 +77,7 @@
 		use:portal
 		transition:scale={{ start: 0.95, duration: 150, easing: cubicOut }}
 		class="{contentStyle()} {_class}"
+		style="z-index: {zIndex + 1};"
 		role="alertdialog"
 		aria-modal="true"
 		onclick={(e) => e.stopPropagation()}
