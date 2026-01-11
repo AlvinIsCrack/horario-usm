@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import MaterialSymbolsGrid4x4 from '$lib/icons/MaterialSymbolsGrid4x4.svelte';
-	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import Teachers from '$lib/icons/teachers.svelte';
 
 	const STORAGE_KEY = 'app_changelog_seen';
 	const EXPIRATION_DAYS = 7;
 	const MS_IN_DAY = 24 * 60 * 60 * 1000;
-	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000; // 1 hora para marcar como "leído"
+	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
 
 	const UPDATES = {
 		'Encuesta Docente Funcional': {
@@ -27,9 +26,7 @@
 		}
 	};
 
-	// Estado para saber qué keys son nuevas en esta sesión
 	let newItems = $state(new Set<string>());
-
 	onMount(() => {
 		try {
 			const rawData = localStorage.getItem(STORAGE_KEY);

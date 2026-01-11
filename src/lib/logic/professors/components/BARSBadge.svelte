@@ -33,7 +33,7 @@
 			solid: 'bg-red-600'
 		},
 		{
-			solid: 'bg-slate-600'
+			solid: 'bg-slate-500'
 		},
 		{
 			solid: 'bg-slate-600'
@@ -122,7 +122,7 @@
 			class="absolute z-5 size-full {(roundedValue === 2 && !isInverseMetric) ||
 			(roundedValue === 4 && isInverseMetric)
 				? 'bg-orange-500'
-				: 'bg-emerald-400/80'} mix-blend-overlay"
+				: 'bg-green-400'} mix-blend-overlay"
 		></div>
 	{/if}
 

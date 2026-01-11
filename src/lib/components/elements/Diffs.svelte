@@ -7,6 +7,7 @@
 	import Tooltip from '../ui/Tooltip.svelte';
 	import Badge from '../ui/Badge.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
+	import { onMount } from 'svelte';
 
 	dayjs.extend(relativeTime);
 	dayjs.locale('es');
@@ -360,9 +361,9 @@
 				'mx-auto will-change-contents flex w-full max-w-fit flex-col gap-4 pb-10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]',
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
-				'flex items-baseline gap-2 px-1 text-[10px] -mb-1 font-bold uppercase tracking-wide text-muted-foreground',
-			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-1',
-			cardStructural: 'mx-1 rounded-md border border-dashed px-2 py-1 text-xs font-medium',
+				'flex items-baseline gap-2 px-1 text-[10px] mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
+			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-0.5',
+			cardStructural: 'rounded-md gap-3 border border-dashed px-3 py-0.5 text-xs font-medium',
 			indicador: 'h-2 w-2 rounded-full shrink-0',
 			content: 'flex min-w-0 flex-1 flex-col',
 			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
@@ -386,6 +387,13 @@
 			expanded: {
 				true: { container: 'max-h-100 opacity-100' },
 				false: { container: 'max-h-30 opacity-60! scale-90' }
+			},
+			new: {
+				false: {},
+				true: {
+					card: 'bg-gradient-to-r from-amber-500/50 to-50% to-transparent',
+					cardStructural: ''
+				}
 			}
 		}
 	});
@@ -413,6 +421,53 @@
 		if (r.tipos.has('METADATA')) return 'Actualización de Datos (Nombre/Depto)';
 		return 'Evento registrado';
 	}
+
+	const STORAGE_KEY = 'app_diffs_seen';
+	const EXPIRATION_DAYS = 7;
+	const MS_IN_DAY = 24 * 60 * 60 * 1000;
+	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
+
+	let newItems = $state(new Set<number>());
+	onMount(() => {
+		try {
+			const rawData = localStorage.getItem(STORAGE_KEY);
+			let seenData: Record<string, number> = rawData ? JSON.parse(rawData) : {};
+			const now = Date.now();
+			let hasChanges = false;
+
+			// 1. Limpieza (Garbage Collection)
+			for (const [key, timestamp] of Object.entries(seenData)) {
+				if (now - timestamp > EXPIRATION_DAYS * MS_IN_DAY) {
+					delete seenData[key];
+					hasChanges = true;
+				}
+			}
+
+			// 2. Lógica de "Lectura Progresiva"
+			const currentNewItems = new Set<number>();
+
+			for (const { timestamp } of historial) {
+				const firstSeen = seenData[timestamp];
+
+				if (!firstSeen) {
+					// Caso A: Nunca visto. Lo registramos ahora y aparece como nuevo.
+					currentNewItems.add(timestamp);
+					seenData[timestamp] = now;
+					hasChanges = true;
+				} else if (now - firstSeen < READ_THRESHOLD_MS) {
+					// Caso B: Visto hace poco (menos de 1 hora). Sigue siendo "nuevo".
+					currentNewItems.add(timestamp);
+				}
+				// Caso C: Si pasó más de 1 hora, no se agrega a currentNewItems (aparece como leído)
+			}
+
+			newItems = currentNewItems;
+
+			if (hasChanges) localStorage.setItem(STORAGE_KEY, JSON.stringify(seenData));
+		} catch (error) {
+			console.warn('Error accediendo a localStorage para diffs:', error);
+		}
+	});
 </script>
 
 {#if Calendario.sede && Calendario.jornada}
@@ -444,16 +499,21 @@
 						<span class="ml-2 opacity-60">{grupo.items.length} eventos</span>
 					</header>
 
-					<div class="ml-2 flex flex-col pl-0">
+					<div class="ml-2 flex flex-col gap-px pl-0">
 						{#each grupo.items as item}
 							{#if 'esEstructural' in item}
-								<div class={s.cardStructural({ structType: item.tipo })}>
+								<div
+									class={s.cardStructural({
+										structType: item.tipo,
+										new: newItems.has(grupo.timestamp)
+									})}
+								>
 									{item.mensaje}
 								</div>
 							{:else}
 								{@const status = getStatus(item)}
 
-								<div class={s.card()}>
+								<div class={s.card({ new: newItems.has(grupo.timestamp) })}>
 									<Tooltip content={getStatusTooltip(item)}>
 										<div class={s.indicador({ status })}></div>
 									</Tooltip>
