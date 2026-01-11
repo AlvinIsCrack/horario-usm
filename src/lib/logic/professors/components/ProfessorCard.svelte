@@ -16,6 +16,7 @@
 	import { onMount } from 'svelte';
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
+	import MaterialSymbolsWarningRounded from '$lib/icons/MaterialSymbolsWarningRounded.svelte';
 
 	let {
 		id,
@@ -71,7 +72,7 @@
 						{#if isArchived}
 							Datos históricos o insuficientes para generar una estadística actual confiable.
 						{:else}
-							Nivel de confianza estadística ${count < 5 ? 'preliminar' : 'sólida'}. <br />
+							Nivel de confianza estadística <b>{count < 5 ? 'preliminar' : 'sólida'}</b>. <br />
 							<span class="text-xs opacity-50">Basado en {count} votos.</span>
 						{/if}
 					</p>
@@ -92,7 +93,7 @@
 						{#if isArchived}
 							<MaterialSymbolsDatabaseOff />
 						{:else if count < 5}
-							<MaterialSymbolsHelpRounded />
+							<MaterialSymbolsWarningRounded />
 						{:else}
 							<MaterialSymbolsVerifiedRounded />
 						{/if}
