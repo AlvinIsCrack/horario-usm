@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import MaterialSymbolsGrid4x4 from '$lib/icons/MaterialSymbolsGrid4x4.svelte';
 	import Teachers from '$lib/icons/teachers.svelte';
+	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
+	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 
 	const STORAGE_KEY = 'app_changelog_seen';
 	const EXPIRATION_DAYS = 7;
@@ -9,20 +11,20 @@
 	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
 
 	const UPDATES = {
+		'Mejora del prompt para IA': {
+			icon: MaterialSymbolsMagicButton,
+			description:
+				'Ahora incluye mayor contexto del horario. Se añade un acceso rápido a los programas académicos de los ramos seleccionados, facilitando su descarga y adjunto para obtener recomendaciones personalizadas de alta calidad.'
+		},
+		'¡Comunidad activa!': {
+			icon: MaterialSymbolsFeedback,
+			description:
+				'Superamos las 200 calificaciones de profesores. Gracias por construir este espacio juntos; cada voto ayuda a alguien a elegir mejor su semestre.'
+		},
 		'Encuesta Docente Funcional': {
 			icon: Teachers,
 			description:
 				'¡Los aportes de comentarios y evaluaciones a los profesores funciona! La actualización de los datos es cada 30 minutos aprox.'
-		},
-		'Repositorio y Reviews de Profesores': {
-			icon: Teachers,
-			description:
-				'En la pestaña "profesores" se pueden visualizar y filtrar profesores, además de poder realizar una <b>encuesta no oficial para calificarlo.</b> Por el momento es EXPERIMENTAL, pero el envío de datos anónimos funciona. Por favor, usar con respeto.'
-		},
-		'Malla Interactiva': {
-			icon: MaterialSymbolsGrid4x4,
-			description:
-				'Volvió la malla interactiva. Ofrece mejor visualización de relaciones entre ramos. Está aún en prueba, pero funciona lo básico.'
 		}
 	};
 
