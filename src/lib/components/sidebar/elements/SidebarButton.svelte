@@ -1,7 +1,13 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 
-	let { text, onclick, Icon, variant = '', class: _class = '' } = $props();
+	let {
+		text,
+		onclick,
+		Icon,
+		variant = undefined as string | undefined,
+		class: _class = ''
+	} = $props();
 </script>
 
 <Button
