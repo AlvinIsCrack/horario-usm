@@ -92,9 +92,13 @@
 		)}"
 	></div>
 
+	<div
+		class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! opacity-40 mix-blend-color-dodge [background:url(/media/metal.png)]"
+	></div>
+
 	{#if isExtreme}
 		<div
-			class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! opacity-40 mix-blend-color-dodge [background:url(/media/metal.png)]"
+			class="absolute top-0 left-0 z-5 size-full animate-pulse bg-white/50 mask-radial-[100%_100%] mask-radial-from-transparent mask-radial-from-10% mask-radial-to-black mask-radial-to-80% mask-radial-at-center mix-blend-plus-lighter"
 		></div>
 	{/if}
 
@@ -121,13 +125,12 @@
 		<div
 			class="absolute z-5 size-full {(roundedValue === 2 && !isInverseMetric) ||
 			(roundedValue === 4 && isInverseMetric)
-				? 'bg-orange-500'
+				? 'bg-amber-500'
 				: 'bg-green-400'} mix-blend-overlay"
 		></div>
 	{/if}
 
 	{#if isExtreme}
-		<!-- <div class="pointer-events-none absolute inset-0 z-6 size-full animate-pulse bg-white/"></div> -->
 		<div
 			class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full mix-blend-plus-lighter"
 		></div>
