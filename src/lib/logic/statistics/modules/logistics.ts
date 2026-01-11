@@ -7,7 +7,10 @@ import { type AnalyzerContext, type StatItem, STAT_LABELS } from "../types";
 export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
     const out: StatItem[] = [];
     const esInvierno = ctx.semestre.includes('1') || ctx.semestre.toLowerCase().includes('primer');
-    const esSedeRiesgosa = ['San Joaquín', 'Valparaíso', 'Casa Central'].some(s => ctx.sede.includes(s));
+
+    // Detectamos si es una sede con tráfico pesado urbano (Santiago/Valpo)
+    const esSedeUrbana = ['San Joaquín', 'Valparaíso', 'Casa Central', 'Vitacura'].some(s => ctx.sede.includes(s));
+
     const tiempoViajeTotal = ctx.tiempoTraslado * 2;
 
     // A. Costo de Activación (ROC)
@@ -30,7 +33,7 @@ export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
         }
     }
 
-    // B. Hora Punta vs Valle
+    // B. Hora Punta vs Valle - LÓGICA SANTIAGO/URBANA AJUSTADA
     let diasHoraPunta = 0;
     let diasValle = 0;
     for (let d = 0; d <= 5; d++) {
@@ -40,20 +43,27 @@ export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
         const inicio = Math.min(...bloques);
         const fin = Math.max(...bloques);
 
-        // Punta PM y AM
-        if ((fin >= 11 && fin <= 16) || (inicio <= 2)) {
+        // Definición de Punta para Sede Urbana (San Joaquín/Casa Central):
+        // AM: Entrar Bloque 1 o 2 (Viajar entre 7:00 - 9:00)
+        // PM: Salir Bloque 10 o superior (Estar en la calle a las 17:30+)
+        // Nota: Bloque 10 termina aprox 17:15. Salir ahí ya roza el inicio del peak.
+        const esPuntaAM = inicio <= 2;
+        const esPuntaPM = fin >= 10;
+
+        if (esPuntaAM || esPuntaPM) {
             diasHoraPunta++;
-        } else if (inicio >= 3 && fin <= 10) {
+        } else if (inicio >= 3 && fin <= 9) {
+            // Entrar después de las 11:00 y salir antes de las 16:00
             diasValle++;
         }
     }
 
     if (diasHoraPunta >= 2) {
         out.push({
-            icon: icons.Bus, // Icono Transporte
+            icon: icons.Bus,
             label: STAT_LABELS.TRANSPORTE,
             value: 'Hora Punta',
-            tooltip: `Tus horarios coinciden frecuentemente con el peak de congestión.<br/><span class="opacity-70 text-xs">El tiempo de viaje podría aumentar un 30-40% respecto al promedio.</span>`,
+            tooltip: `Tus horarios coinciden con el peak de congestión (Entrada 8:15/9:35 o Salida >17:15).<br/><span class="opacity-70 text-xs">En San Joaquín/Valpo esto aumenta el tiempo de viaje drásticamente.</span>`,
             status: 'warning'
         });
     } else if (diasValle >= 3) {
@@ -66,9 +76,9 @@ export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
         });
     }
 
-    // C. Seguridad Dinámica (Invierno/Noche) y Llegada Tarde
-    const HORA_OSCURIDAD = 18 * 60 + 40; // 18:40
-    const HORA_LIMITE_CASA = 21 * 60; // 21:00
+    // C. Seguridad (Se mantiene igual, solo ajustando el tooltip si quieres)
+    const HORA_OSCURIDAD = 18 * 60 + 40;
+    const HORA_LIMITE_CASA = 21 * 60;
 
     for (let d = 0; d <= 5; d++) {
         const bloques = ctx.ramos.flatMap(r => r.horario).filter(b => b.dia === d).map(b => b.bloque);
@@ -78,29 +88,24 @@ export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
         const salida = Time.bloqueToMinutes(maxB) + BLOQUE_DURATION_MINUTES;
         const llegada = salida + ctx.tiempoTraslado;
 
-        // Salida Noche (Invierno)
-        if (esInvierno && esSedeRiesgosa && salida > HORA_OSCURIDAD) {
+        if (esInvierno && esSedeUrbana && salida > HORA_OSCURIDAD) {
             out.push({
                 icon: icons.Moon,
                 label: STAT_LABELS.SEGURIDAD,
                 value: `Salida Noche (${Días[d]})`,
-                tooltip: `Alerta de Invierno: El ${Días[d]} sales de noche (~18:40).<br/><span class="opacity-70 text-xs">Considera la seguridad del entorno de tu campus.</span>`,
+                tooltip: `Alerta: El ${Días[d]} sales de noche (~18:40).<br/><span class="opacity-70 text-xs">Precaución en paraderos y entorno del campus.</span>`,
                 status: 'warning'
             });
         }
 
-        // Llegada Tarde
         if (llegada > HORA_LIMITE_CASA) {
             const hh = Math.floor(llegada / 60);
             const mm = llegada % 60;
-            let tt = `El ${Días[d]} llegarías a casa cerca de las <b>${hh}:${mm.toString().padStart(2, '0')}</b>.`;
-            if (ctx.esTiempoEstimado) tt += `<br/><br/>⚠️ <b>Certeza limitada:</b> Basado en estimación genérica de traslado.`;
-
             out.push({
                 icon: icons.Warning,
                 label: STAT_LABELS.SEGURIDAD,
                 value: 'Llegada Tarde',
-                tooltip: tt,
+                tooltip: `El ${Días[d]} llegarías a casa cerca de las <b>${hh}:${mm.toString().padStart(2, '0')}</b>.`,
                 status: 'warning'
             });
         }

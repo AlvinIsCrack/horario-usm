@@ -58,21 +58,36 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
         });
     }
 
-    // C. Enfoque (Peso Promedio)
+    // C. Enfoque (Densidad Técnica vs Promedio) - LÓGICA MEJORADA
     const totalSCT = Object.values(creditosMap).reduce((sum, c) => sum + c, 0);
-    if (ctx.ramos.length > 0 && totalSCT > 0) {
-        const pesoPromedio = totalSCT / ctx.ramos.length;
+    const ramosTotales = ctx.ramos.length;
+
+    if (ramosTotales > 0 && totalSCT > 0) {
+        const pesoPromedio = totalSCT / ramosTotales;
+
+        // Filtramos ramos "Core" (>= 3 créditos) para ver la densidad real
+        const ramosCore = Object.values(creditosMap).filter(c => c >= 3);
+        const pesoTecnico = ramosCore.length > 0
+            ? ramosCore.reduce((a, b) => a + b, 0) / ramosCore.length
+            : 0;
+
         let perfil = 'Estándar';
-        let desc = 'Tu carga combina asignaturas de distinto peso, requiriendo un balance normal.';
+        let desc = 'Carga balanceada.';
         let status: StatStatus = 'success';
 
-        if (pesoPromedio < 4.0) {
-            perfil = 'Fragmentado';
-            desc = 'Mucha "challa". Tu enemigo será el desorden administrativo. Usa agenda.';
+        // Lógica de detección
+        if (pesoTecnico >= 5 && pesoPromedio < 4) {
+            // Caso: Matemáticas + Física + 3 deportes/humanistas
+            perfil = 'Disfrazada';
+            desc = 'Tu promedio es bajo por los ramos chicos, pero tu núcleo es <b>muy pesado</b>. No te confíes.';
             status = 'warning';
-        } else if (pesoPromedio > 5.2) {
+        } else if (pesoPromedio < 3.5) {
+            perfil = 'Fragmentado';
+            desc = 'Muchos ramos de bajo crédito. El peligro es el desorden administrativo, no la dificultad.';
+            status = 'warning';
+        } else if (pesoPromedio > 5.0) {
             perfil = 'Denso';
-            desc = 'Pocos ramos, pero "ladrillos". Un error cuesta caro; requiere profundidad.';
+            desc = 'Pocos ramos, pero "ladrillos" (Créditos > 5). Requiere profundidad técnica.';
             status = 'warning';
         }
 
@@ -80,7 +95,7 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
             icon: icons.Balance,
             label: STAT_LABELS.ENFOQUE,
             value: perfil,
-            tooltip: `Promedio: ${pesoPromedio.toFixed(1)} créditos por ramo.<br/><span class="opacity-70 text-xs">${desc}</span>`,
+            tooltip: `Promedio General: ${pesoPromedio.toFixed(1)} <span class="opacity-50">|</span> Núcleo Técnico: ${pesoTecnico.toFixed(1)}<br/><span class="opacity-70 text-xs">${desc}</span>`,
             status
         });
     }

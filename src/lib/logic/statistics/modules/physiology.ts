@@ -67,38 +67,62 @@ export function analyzePhysiology(ctx: AnalyzerContext, icons: any): StatItem[] 
         }
     }
 
-    // C. Nutrición (Ventana Ajustada)
-    const bloquesAlmuerzo = [BLOQUE_COMIDA, BLOQUE_COMIDA + 1].filter(b => b !== undefined);
-    const diasSinAlmuerzo: string[] = [];
-    const diasAjustados: string[] = [];
+    // C. Nutrición (Logística de Colas) - LÓGICA REFINADA
+    // Asumimos que BLOQUE_COMIDA es el bloque previo al salto protegido (ej: 8).
+    // El salto protegido está implícitamente entre BLOQUE_COMIDA y BLOQUE_COMIDA + 1.
+    const preAlmuerzo = BLOQUE_COMIDA;
+    const postAlmuerzo = BLOQUE_COMIDA + 1;
+
+    const diasSandwich: string[] = []; // Días apretados estándar
+    const diasColapso: string[] = [];  // Miércoles apretados (Peak de filas)
 
     for (let d = 0; d <= 5; d++) {
         const bloquesDia = ctx.ramos.flatMap(r => r.horario).filter(b => b.dia === d).map(b => b.bloque);
         if (bloquesDia.length === 0) continue;
 
-        const ocupados = bloquesAlmuerzo.filter(b => bloquesDia.includes(b)).length;
-        if (ocupados === bloquesAlmuerzo.length) {
-            diasSinAlmuerzo.push(Días[d]);
-        } else if (ocupados > 0) {
-            diasAjustados.push(Días[d]);
+        const tienePre = bloquesDia.includes(preAlmuerzo);
+        const tienePost = bloquesDia.includes(postAlmuerzo);
+
+        // Caso "Sandwich": Clase justo antes y justo después del bloque protegido.
+        // Esto te deja SOLO con la hora protegida (aprox 50-60 min) para salir, hacer fila, comer y volver.
+        if (tienePre && tienePost) {
+            // El Miércoles (índice 2) es históricamente el día de mayor congestión en casinos/kioscos.
+            if (d === 2) {
+                diasColapso.push(Días[d]);
+            } else {
+                diasSandwich.push(Días[d]);
+            }
         }
     }
 
-    if (diasSinAlmuerzo.length > 0) {
+    if (diasColapso.length > 0) {
+        // Prioridad alta: El miércoles es crítico
+        const otrosDias = diasSandwich.length > 0 ? `, más ${diasSandwich.join(', ')}` : '';
         out.push({
-            icon: icons.Fire,
+            icon: icons.Fire, // Usamos fuego para denotar "Zona caliente/Tráfico"
             label: STAT_LABELS.NUTRICION,
-            value: 'Sin Ventana',
-            tooltip: `Días críticos: <b>${diasSinAlmuerzo.join(', ')}</b> sin bloque protegido.<br/><span class="opacity-70 text-xs">Riesgo de malnutrición o hipoglucemia funcional.</span>`,
-            status: 'danger'
+            value: 'Casino Colapsado',
+            tooltip: `El <b>Miércoles</b> tienes horario "Sandwich" justo en el peak semanal de filas.<br/><span class="opacity-70 text-xs">Dependerás exclusivamente del Bloque Protegido. Lleva almuerzo o prepárate para comer en 10 minutos.${otrosDias ? ` (También aplica para ${diasSandwich.join(', ')})` : ''}</span>`,
+            status: 'warning' // Warning fuerte, pero no Danger porque "comer se puede".
         });
-    } else if (diasAjustados.length > 0) {
+    } else if (diasSandwich.length > 0) {
+        // Prioridad media: Días normales apretados
         out.push({
             icon: icons.FastFood,
             label: STAT_LABELS.NUTRICION,
-            value: 'Ajustada',
-            tooltip: `Días apretados: <b>${diasAjustados.join(', ')}</b>.<br/><span class="opacity-70 text-xs">Solo un bloque libre. Entre filas y traslados, te quedarán ~20 min efectivos para comer.</span>`,
-            status: 'warning'
+            value: 'Almuerzo Express',
+            tooltip: `Días con logística ajustada: <b>${diasSandwich.join(', ')}</b>.<br/><span class="opacity-70 text-xs">Tienes clases pegadas al bloque protegido. Considera filas de microondas o casino.</span>`,
+            status: 'warning' // Warning suave (Amarillo)
+        });
+    } else {
+        // Opcional: Feedback positivo si tiene holgura (ej: bloque 8 o 9 libre)
+        // Esto refuerza la tranquilidad del usuario
+        out.push({
+            icon: icons.Leaf,
+            label: STAT_LABELS.NUTRICION,
+            value: 'Holgado',
+            tooltip: 'Tienes bloques libres adyacentes al almuerzo. Puedes comer tranquilo.',
+            status: 'success'
         });
     }
 
