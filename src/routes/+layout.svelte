@@ -21,10 +21,15 @@
 </div>
 
 <DialogRenderer />
+
+<div
+	id="dialogs-portal"
+	class="pointer-events-none fixed top-0 left-0 isolate z-200 h-full w-full"
+></div>
 <Toaster />
 <div
 	id="tooltip-portal"
-	class="pointer-events-none fixed top-0 left-0 z-[1000] h-full w-full"
+	class="pointer-events-none fixed top-0 left-0 isolate z-1000 h-full w-full"
 ></div>
 
 <style>

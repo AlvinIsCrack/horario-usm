@@ -28,7 +28,7 @@ class ToastState {
             title: text,
             description: desc,
             type,
-            duration: 5000,
+            duration: 6000,
             createdAt: Date.now(),
             ...options
         };

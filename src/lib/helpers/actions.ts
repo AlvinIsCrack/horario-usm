@@ -14,8 +14,8 @@ export function clickOutside(node: HTMLElement, handler: () => void) {
     };
 }
 
-export function portal(node: HTMLElement) {
-    const target = document.querySelector('#tooltip-portal');
+export function portal(node: HTMLElement, id: string = "tooltip-portal") {
+    const target = document.querySelector('#' + id);
 
     if (target) {
         target.appendChild(node);

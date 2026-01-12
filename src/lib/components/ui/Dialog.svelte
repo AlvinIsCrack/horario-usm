@@ -63,7 +63,7 @@
 
 {#if open}
 	<div
-		use:portal
+		use:portal={'dialogs-portal'}
 		transition:fade={{ duration: 150 }}
 		class={overlayStyle()}
 		style="z-index: {zIndex};"
@@ -74,7 +74,7 @@
 	></div>
 
 	<div
-		use:portal
+		use:portal={'dialogs-portal'}
 		transition:scale={{ start: 0.95, duration: 150, easing: cubicOut }}
 		class="{contentStyle()} {_class}"
 		style="z-index: {zIndex + 1};"

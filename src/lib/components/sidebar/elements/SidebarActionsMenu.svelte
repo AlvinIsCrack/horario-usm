@@ -48,6 +48,9 @@
 			await navigator.clipboard.writeText(prompt);
 
 			PromptDialog.open();
+			toast.success('Prompt pegado al portapepeles de tu dispositivo', {
+				description: 'Pega o pulsa CTRL+V en el teclado para pegar el contenido.'
+			});
 		}}
 	>
 		<MaterialSymbolsMagicButton class="mr-2 h-4 w-4" />
