@@ -5,12 +5,10 @@
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/logic/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/logic/professors/repository.svelte';
 	import { hasPendingReview } from '$lib/logic/reviews/api';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
-	import MaterialSymbolsAndroidMessages from '$lib/icons/MaterialSymbolsAndroidMessages.svelte';
-	import { fade, slide } from 'svelte/transition';
-	import { flip } from 'svelte/animate';
+	import { fade } from 'svelte/transition';
 
 	let {
 		id,
@@ -52,12 +50,13 @@
 	let isPaused = $state(false);
 
 	$effect(() => {
+		const _ = [isPaused];
 		let interval: any;
 		// Solo rota si hay más de 1 comentario y no está pausado por el mouse
 		if ((renderData?.profile.comments?.length ?? 0) > 1 && !isPaused) {
 			interval = setInterval(() => {
 				commentIndex = (commentIndex + 1) % renderData!.profile.comments!.length;
-			}, 5000); // 6 segundos por comentario
+			}, 4000); // 6 segundos por comentario
 		}
 		return () => clearInterval(interval);
 	});
@@ -140,7 +139,7 @@
 					</span>
 				{/each}
 			{/if}
-			{#each repoData.subjects.slice(0, 4) as subject}
+			{#each repoData?.subjects.slice(0, 4) as subject}
 				<Tooltip content={subject.name}>
 					<span
 						class="bg-accent text-muted-foreground border-border/50 rounded border px-1 font-mono text-xs font-bold tracking-tight shadow-sm/50"
@@ -149,7 +148,7 @@
 					</span>
 				</Tooltip>
 			{/each}
-			{#if repoData.subjects.length > 4}
+			{#if repoData?.subjects.length > 4}
 				<Tooltip
 					content={repoData.subjects
 						.slice(4)
@@ -215,11 +214,16 @@
 				{#if renderData!.profile.comments!.length > 1}
 					<div class="flex gap-1">
 						{#each renderData!.profile.comments! as _, i}
-							<div
+							<button
+								aria-label="Breadcrumb"
+								onclick={() => {
+									isPaused = true;
+									commentIndex = i;
+								}}
 								class="size-1.5 rounded-full transition-all duration-300 {i === commentIndex
-									? 'bg-primary w-4'
-									: 'bg-muted-foreground/30'}"
-							></div>
+									? 'bg-primary pointer-events-none w-4'
+									: 'bg-muted-foreground/30 cursor-pointer hover:ring-2'}"
+							></button>
 						{/each}
 					</div>
 				{/if}
@@ -252,8 +256,8 @@
 
 				{#key commentIndex}
 					<div
-						in:slide={{ duration: 500, delay: 500 }}
-						out:slide={{ duration: 500 }}
+						in:fade={{ duration: 100, delay: 200 }}
+						out:fade={{ duration: 100 }}
 						class="relative inset-0 -mb-2 h-full w-full"
 					>
 						<Tooltip
