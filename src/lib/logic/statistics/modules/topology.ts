@@ -27,7 +27,8 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
         // Obtenemos los bloques con su tipo
         const bloquesDia = ctx.ramos.flatMap(r => r.horario.map(h => ({
             bloque: h.bloque,
-            tipo: h.tipo || 'CAT'
+            tipo: h.tipo || 'CAT',
+            dia: h.dia
         })))
             .filter(b => b.dia === Number(d))
             .sort((a, b) => a.bloque - b.bloque);

@@ -121,7 +121,6 @@ def trigger_gas_analysis():
                     if not analysis: continue
                     
                     score = analysis.get('score', 0.0)
-                    
                     if score >= 0.5:
                         try:
                             review_payload = json.loads(row[5])
@@ -132,12 +131,15 @@ def trigger_gas_analysis():
                             prof_name = row[1]
 
                             unique_id = generate_review_id(fingerprint, server_time, prof_name)
-                            
                             if unique_id in existing_ids:
                                 print(f"    Saltando duplicado: {prof_name} (ID: {unique_id[:8]}...)")
                                 continue
-                            
+
                             # Construcción del perfil de la reseña
+                            rewritten_summary = analysis_map.get('summary', '')
+                            if rewritten_summary:
+                                metrics['rewritten_summary'] = rewritten_summary
+                            
                             profile_entry = {
                                 "id": unique_id,
                                 "name": row[1],

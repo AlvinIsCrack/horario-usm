@@ -19,12 +19,13 @@
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
 	import MdiPrinter from '$lib/icons/teachers.svelte'; // Iconos sugeridos
 	import MdiDownload from '$lib/icons/save.svelte';
-	import ExportableSchedule from '$lib/logic/export/components/ExportableSchedule.svelte';
+	import ExportableSchedule, {
+		ExportableScheduleStyles
+	} from '$lib/logic/export/components/ExportableSchedule.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 
 	let theme = $state<'light' | 'dark' | 'bw'>('light');
 	let nomenclature = $state<'detailed' | 'codes'>('detailed');
-	let showProfessors = $state(true);
 	let showRooms = $state(true);
 	let showHeader = $state(true);
 	let showParalelos = $state(true);
@@ -65,22 +66,24 @@
 				<div class="space-y-2">
 					<label class="text-sm font-medium">Modo de Etiquetas</label>
 					<div class="grid grid-cols-2 gap-2">
-						<button
-							class="rounded border px-2 py-1.5 text-xs transition-all {nomenclature === 'detailed'
-								? 'bg-primary text-primary-foreground border-primary'
-								: 'bg-background hover:bg-accent'}"
+						<Button
+							variant="ghost"
+							class={nomenclature === 'detailed'
+								? 'bg-primary! text-primary-foreground! cursor-default!'
+								: 'bg-background! hover:bg-accent!'}
 							onclick={() => (nomenclature = 'detailed')}
 						>
 							Completo
-						</button>
-						<button
-							class="rounded border px-2 py-1.5 text-xs transition-all {nomenclature === 'codes'
-								? 'bg-primary text-primary-foreground border-primary'
-								: 'bg-background hover:bg-accent'}"
+						</Button>
+						<Button
+							variant="ghost"
+							class={nomenclature === 'codes'
+								? 'bg-primary! text-primary-foreground! cursor-default!'
+								: 'bg-background! hover:bg-accent!'}
 							onclick={() => (nomenclature = 'codes')}
 						>
 							Compacto
-						</button>
+						</Button>
 					</div>
 					<p class="text-muted-foreground text-xs leading-tight">
 						{nomenclature === 'detailed'
@@ -92,7 +95,7 @@
 				<div class="space-y-2">
 					<label class="text-sm font-medium">Tema</label>
 					<div class="bg-muted flex rounded-lg p-1">
-						{#each ['light', 'dark', 'bw'] as t}
+						{#each Object.entries(ExportableScheduleStyles) as [t, label] (t)}
 							<button
 								class="flex-1 rounded-md px-3 py-1 text-xs font-medium capitalize transition-all {theme ===
 								t
@@ -100,7 +103,7 @@
 									: 'text-muted-foreground hover:text-foreground hover:cursor-pointer'}"
 								onclick={() => (theme = t as any)}
 							>
-								{t === 'bw' ? 'Tinta' : t === 'light' ? 'Papel' : 'Pantalla'}
+								{label}
 							</button>
 						{/each}
 					</div>
@@ -113,7 +116,6 @@
 					<Toggle bind:pressed={showHeader} size="sm">Encabezado</Toggle>
 					<Toggle bind:pressed={showParalelos} size="sm">Paralelos</Toggle>
 					<Toggle bind:pressed={showRooms} size="sm">Salas</Toggle>
-					<Toggle bind:pressed={showProfessors} size="sm">Profesores</Toggle>
 					<Toggle bind:pressed={showClassType} size="sm">Tipo de Clase</Toggle>
 					<Toggle bind:pressed={showBloqueEnd} size="sm">Termino de bloque</Toggle>
 				</div>
@@ -140,7 +142,7 @@
 		<div class="relative flex aspect-[1.5] flex-2 items-start justify-center overflow-auto">
 			<div class="top-0 left-0 h-full w-full shadow-2xl transition-transform duration-300">
 				<ExportableSchedule
-					{theme}
+					theme={theme as any}
 					{nomenclature}
 					{showParalelos}
 					{showRooms}

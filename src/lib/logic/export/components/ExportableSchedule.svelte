@@ -1,3 +1,11 @@
+<script module>
+	export const ExportableScheduleStyles = {
+		light: 'Papel',
+		pastel: 'Pastel',
+		bw: 'Tinta'
+	};
+</script>
+
 <script lang="ts">
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Time from '$lib/helpers/time';
@@ -6,7 +14,7 @@
 	import { truncate } from 'lodash';
 
 	let {
-		theme = 'light',
+		theme = 'light' as keyof typeof ExportableScheduleStyles,
 		showRooms = true,
 		showClassType = true,
 		nomenclature = 'detailed',
@@ -14,6 +22,50 @@
 		showParalelos = true,
 		showBloqueEnd = true
 	} = $props();
+
+	const styles: {
+		[key: string]: {
+			label: string;
+			values: {
+				primary: string;
+				secondary: string;
+				border: string;
+				subtext: string;
+				gridLine: string;
+			};
+		};
+	} = {
+		light: {
+			label: 'Papel',
+			values: {
+				primary: 'text-slate-950!',
+				secondary: 'text-slate-800!',
+				border: 'border-stone-500!',
+				subtext: 'text-stone-600!',
+				gridLine: 'bg-black/10!'
+			}
+		},
+		pastel: {
+			label: 'Pastel',
+			values: {
+				primary: 'text-slate-900',
+				secondary: 'text-slate-100!',
+				border: 'border-slate-600/80!',
+				subtext: 'text-slate-400',
+				gridLine: 'bg-white/5'
+			}
+		},
+		bw: {
+			label: 'Tinta',
+			values: {
+				primary: 'text-black!',
+				secondary: 'text-black!',
+				border: 'border-black!',
+				subtext: 'text-black/60!',
+				gridLine: 'bg-black/10!'
+			}
+		}
+	} as const;
 
 	const DAYS_LABEL = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 	const MIN_BLOCKS = 8;
@@ -45,46 +97,22 @@
 		return t.slice(0, 3); // Ej: "LAB", "AYU", "TAL"
 	}
 
-	// --- ESTILOS ---
-	const styles = {
-		light: {
-			bg: 'bg-white!',
-			text: 'text-slate-950!',
-			border: 'border-stone-400!',
-			subtext: 'text-stone-600!',
-			gridLine: 'bg-black/10!'
-		},
-		dark: {
-			bg: 'bg-slate-950',
-			text: 'text-slate-50',
-			border: 'border-slate-800!',
-			subtext: 'text-slate-400',
-			gridLine: 'bg-white/5'
-		},
-		bw: {
-			bg: 'bg-white!',
-			text: 'text-black!',
-			border: 'border-black!',
-			subtext: 'text-black/60!',
-			gridLine: 'bg-black/10!'
-		}
-	};
-	let s = $derived(styles[theme as keyof typeof styles]);
+	let s = $derived(styles[theme as keyof typeof ExportableScheduleStyles]);
 </script>
 
 <div
 	id="export-schedule-target"
-	class="{s.bg} {s.text} flex w-[1100px] flex-col gap-6 p-10 font-sans antialiased"
+	class="{s.values.primary} flex w-[1100px] flex-col gap-6 bg-white p-10 font-sans antialiased"
 >
 	<div
-		class="flex items-start justify-between gap-8 {s.border} {showHeader
+		class="flex items-start justify-between gap-8 {s.values.border} {showHeader
 			? 'border-b-2 pb-2'
 			: 'pb-1'}"
 	>
 		{#if showHeader}
 			<div class="space-y-1">
 				<h1 class="text-4xl font-black tracking-tight uppercase">Horario</h1>
-				<p class="{s.subtext} text-sm font-medium tracking-wide uppercase">
+				<p class="{s.values.subtext} text-sm font-medium tracking-wide uppercase">
 					Universidad Técnica Federico Santa María
 				</p>
 			</div>
@@ -94,10 +122,11 @@
 			<div class="grid flex-1 grid-cols-2 gap-x-6 gap-y-1 self-end">
 				{#each Calendario.ramos as ramo}
 					<div
-						class="flex items-baseline gap-2 border-b text-[10px] leading-tight {s.border} border-dashed pb-0.5"
+						class="flex items-baseline gap-2 border-b text-[10px] leading-tight {s.values
+							.border} border-dashed pb-0.5"
 					>
 						<span class="font-bold whitespace-nowrap">{ramo.sigla}</span>
-						<span class="{s.subtext} truncate">{ramo.nombre}</span>
+						<span class="{s.values.subtext} truncate">{ramo.nombre}</span>
 					</div>
 				{/each}
 			</div>
@@ -105,8 +134,10 @@
 
 		{#if showHeader}
 			<div class="shrink-0 text-right">
-				<div class="font-mono text-[10px] {s.subtext} tracking-wider uppercase">Generado el</div>
-				<div class="text-sm font-bold uppercase">
+				<div class="font-mono text-[10px] {s.values.subtext} tracking-wider uppercase">
+					Generado el
+				</div>
+				<div class="-mt-1 text-sm font-bold uppercase">
 					{new Date().toLocaleDateString('es-CL', {
 						month: 'long',
 						day: 'numeric',
@@ -118,13 +149,14 @@
 	</div>
 
 	<div
-		class="grid border-t border-l {s.border} w-full"
+		class="grid border-t border-l {s.values.border} w-full"
 		style="grid-template-columns: auto repeat({activeDaysIndices.length}, 1fr);"
 	>
-		<div class="border-r border-b p-2 {s.border}"></div>
+		<div class="border-r border-b p-2 {s.values.border}"></div>
 		{#each activeDaysIndices as diaIndex}
 			<div
-				class="border-r border-b py-2 text-center text-xs font-bold tracking-widest uppercase {s.border} {s.gridLine}"
+				class="tracking-wid border-r border-b py-1 text-center text-base font-bold uppercase {s
+					.values.border} {s.values.gridLine}"
 			>
 				{DAYS_LABEL[diaIndex]}
 			</div>
@@ -132,14 +164,16 @@
 
 		{#each blocks as bloque}
 			<div
-				class="flex w-14 flex-col items-center justify-center border-r border-b p-2 px-3 font-mono text-xs {s.border} {s.subtext} {s.gridLine}"
+				class="flex w-14 flex-col items-center justify-center border-r border-b p-2 px-3 font-mono text-xs {s
+					.values.border} {s.values.subtext} {s.values.gridLine}"
 			>
 				<span class="text-sm font-bold">{bloque}º</span>
-				<span class="mt-0.5 text-[9px] opacity-60">
-					<div>{Time.bloqueToHHMM(bloque)}</div>
+				<span class="mt-0.5 text-[10px]">
+					<div class="font-semibold opacity-80">{Time.bloqueToHHMM(bloque)}</div>
 					{#if showBloqueEnd}
-						<div class="mx-auto scale-150 text-center font-normal tracking-tighter">↓</div>
-						<div>{Time.MinutesToHHMM(Time.bloqueToMinutes(bloque) + BLOQUE_DURATION_MINUTES)}</div>
+						<div class="opacity-60">
+							{Time.MinutesToHHMM(Time.bloqueToMinutes(bloque) + BLOQUE_DURATION_MINUTES)}
+						</div>
 					{/if}
 				</span>
 			</div>
@@ -151,7 +185,8 @@
 				{@const info = ramo?.horario.find((h) => h.dia === dia && h.bloque === bloque)}
 
 				<div
-					class="relative min-h-[70px] border-r border-b {s.border} flex flex-col items-center justify-center p-1.5 text-center"
+					class="relative min-h-[70px] border-r border-b {s.values
+						.border} flex flex-col items-center justify-center p-1.5 text-center"
 				>
 					{#if ramo && info}
 						<div
@@ -159,15 +194,13 @@
 							style:background-color={theme !== 'bw' ? ramo.color?.hex() : undefined}
 						></div>
 
-						<div
-							class="relative z-10 flex w-full -translate-y-2 scale-105 flex-col items-center px-1.5"
-						>
+						<div class="relative z-10 mb-2 flex w-full scale-105 flex-col items-center px-1.5">
 							{#if nomenclature === 'detailed'}
-								<div class="text-sm leading-3 font-bold">
+								<div class="text-base leading-4 font-bold">
 									{truncate(ramo.nombre, { length: 30 })}
 								</div>
 								<div
-									class="flex flex-wrap justify-center gap-2 text-[10px] font-medium tracking-tight uppercase opacity-80"
+									class="flex flex-wrap justify-center gap-2 text-xs font-medium tracking-tight uppercase opacity-80"
 								>
 									<span class="font-mono font-bold">{ramo.sigla} </span>
 									<span class="opacity-80">
@@ -177,10 +210,10 @@
 									</span>
 								</div>
 							{:else}
-								<div class="text-lg leading-none font-mono scale-110 font-black tracking-tight">
+								<div class="scale-110 font-mono text-2xl leading-none font-black tracking-tight">
 									{ramo.sigla}
 								</div>
-								<div class="flex items-center gap-1.5 text-[10px] font-medium">
+								<div class="-mt-1 flex items-center gap-1.5 text-sm font-medium">
 									{#if showParalelos}
 										<span class="tracking-tight opacity-80">PAR. {ramo.paralelo}</span>
 									{/if}
@@ -192,10 +225,8 @@
 							{@const typeLabel = formatClassType(info.tipo)}
 							{#if typeLabel}
 								<div
-									class="absolute right-1 bottom-1 mt-1 px-1.5 py-0 text-[10px] font-bold uppercase {s.border} rounded-sm {theme ===
-									'dark'
-										? 'bg-white/30 text-white'
-										: 'bg-black/30 text-black'} "
+									class="absolute right-1 bottom-1 mt-1 px-1.5 py-0 text-[10px] font-bold uppercase {s
+										.values.border} rounded-sm {s.values.secondary}"
 								>
 									{typeLabel}
 								</div>
