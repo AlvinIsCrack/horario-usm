@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&family=Special+Gothic+Expanded+One&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -45,6 +46,7 @@
 @theme {
   --font-gothic-expanded: "Special Gothic Expanded One", "sans-serif";
   --font-roboto: "Roboto", "sans-serif";
+  --font-serif: "Noto Serif", "serif";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

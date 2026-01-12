@@ -9,6 +9,8 @@
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
 	import MaterialSymbolsAndroidMessages from '$lib/icons/MaterialSymbolsAndroidMessages.svelte';
+	import { fade, slide } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
 
 	let {
 		id,
@@ -46,11 +48,23 @@
 	const isSolid = $derived((renderData?.sampleMeta.reviewCount || 0) >= 5);
 	const isArchived = $derived(renderData?.sampleMeta.isArchived);
 
-	console.log(renderData);
+	let commentIndex = $state(0);
+	let isPaused = $state(false);
+
+	$effect(() => {
+		let interval: any;
+		// Solo rota si hay más de 1 comentario y no está pausado por el mouse
+		if ((renderData?.profile.comments?.length ?? 0) > 1 && !isPaused) {
+			interval = setInterval(() => {
+				commentIndex = (commentIndex + 1) % renderData!.profile.comments!.length;
+			}, 5000); // 6 segundos por comentario
+		}
+		return () => clearInterval(interval);
+	});
 </script>
 
 <div class="relative h-full w-full space-y-2.5 text-left">
-	<div class="bg-accent/50 -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
+	<div class="bg-accent/50 relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize">
@@ -88,6 +102,32 @@
 					<p class="text-xs opacity-50">{registryProfile.email}</p>
 				{/if}
 			</div>
+
+			{#if renderData?.sampleMeta}
+				{#snippet tooltipContent()}
+					<div class="space-y-2 leading-tight">
+						{#if !isArchived}
+							<p>
+								Peso Efectivo: <span class="ml-1 font-mono"
+									>{renderData.sampleMeta.effectiveCount.toFixed(1)}</span
+								><br />
+								<span class="text-xs opacity-50"
+									>Votos ponderados por recencia, coherencia y validez.</span
+								>
+							</p>
+						{/if}
+						<p class="text-xs">
+							<MaterialSymbolsNestClockFarsightAnalogOutline class="inline size-4" />
+							<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
+						</p>
+					</div>
+				{/snippet}
+				<Tooltip wrapperClass="absolute! opacity-50 right-0 top-0" content={tooltipContent}>
+					<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
+						<MaterialSymbolsInfo class="size-3 scale-150" />
+					</div>
+				</Tooltip>
+			{/if}
 		</div>
 
 		<div class="flex flex-wrap gap-1">
@@ -155,75 +195,93 @@
 		</div>
 	{/if}
 
-	<!-- {#if renderData?.meta}
-        <div class="mt-4 flex flex-col gap-2 border-t border-border/50 pt-3">
-            <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
-                <MaterialSymbolsAndroidMessages class="size-3" />
-                <span>Opiniones ({professor.comments.length})</span>
-            </div>
+	{#if renderData?.profile.comments?.length}
+		{@const activeComment = renderData!.profile.comments![commentIndex]}
 
-            <div class="flex flex-col gap-2 pr-1 max-h-40 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-border/50 scrollbar-track-transparent">
-                {#each professor.comments as comment}
-                    <div class="relative group rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-all hover:bg-muted/40 hover:border-border/60">
-                        <p class="text-xs italic leading-relaxed text-foreground/80 line-clamp-4">
-                            "{comment.text}"
-                        </p>
+		<div
+			onmouseenter={() => (isPaused = true)}
+			onmouseleave={() => (isPaused = false)}
+			role="region"
+			aria-label="Comentarios rotativos"
+			class="h-fit"
+		>
+			<div class="flex items-center justify-between px-1">
+				<div
+					class="text-muted-foreground/70 flex items-center gap-1.5 text-[10px] font-bold uppercase"
+				>
+					<span>PALABRAS</span>
+				</div>
 
-                        {#snippet metaTooltip()}
-                            <div class="flex flex-col gap-1.5">
-                                <span class="text-xs font-medium text-foreground/90">
-                                    📅 {new Date(comment.date).toLocaleDateString(undefined, { dateStyle: 'long' })}
-                                </span>
-                                {#if comment.tags?.length}
-                                    <div class="flex flex-wrap gap-1 border-t border-white/10 pt-1 mt-1">
-                                        {#each comment.tags as tag}
-                                            <span class="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
-                                                {tag}
-                                            </span>
-                                        {/each}
-                                    </div>
-                                {/if}
-                            </div>
-                        {/snippet}
+				{#if renderData!.profile.comments!.length > 1}
+					<div class="flex gap-1">
+						{#each renderData!.profile.comments! as _, i}
+							<div
+								class="size-1.5 rounded-full transition-all duration-300 {i === commentIndex
+									? 'bg-primary w-4'
+									: 'bg-muted-foreground/30'}"
+							></div>
+						{/each}
+					</div>
+				{/if}
+			</div>
 
-                        <Tooltip content={metaTooltip} wrapperClass="absolute inset-0 w-full h-full cursor-help">
-                            <span class="sr-only">Detalles</span>
-                        </Tooltip>
-                    </div>
-                {/each}
-            </div>
-        </div>
-    {/if} -->
+			<div class="relative h-14 w-full">
+				{#snippet fullContent()}
+					<div class="space-y-2">
+						<p class="text-foreground p-2 text-sm leading-snug italic">
+							{@html activeComment.text
+								.replaceAll('\n', '<br/>')
+								.replace(/\((.*?)\)/g, '<span class="opacity-50">($1)</span>')}
+						</p>
+
+						<div
+							class="text-muted-foreground -mx-3 flex items-center justify-between space-x-2 border-t border-white/10 px-3 pt-2 text-[10px]"
+						>
+							<span class="text-nowrap">📅 {new Date(activeComment.date).toLocaleDateString()}</span
+							>
+							<!-- {#if activeComment.tags?.length}
+									<div class="flex gap-1">
+										{#each activeComment.tags.slice(0, 3) as tag}
+											<ProfessorTag {tag} />
+										{/each}
+									</div>
+								{/if} -->
+						</div>
+					</div>
+				{/snippet}
+
+				{#key commentIndex}
+					<div
+						in:slide={{ duration: 500, delay: 500 }}
+						out:slide={{ duration: 500 }}
+						class="relative inset-0 -mb-2 h-full w-full"
+					>
+						<Tooltip
+							wrapperClass="cursor-help w-full block! max-h-full"
+							class="min-w-lg! 2xl:min-w-xl!"
+							content={fullContent}
+						>
+							<div
+								class="group hover:bg-accent hover:border-foreground relative h-full w-full rounded-lg border p-1.5 px-2.5 transition-colors"
+							>
+								<p class="z-5 line-clamp-3 text-xs italic">
+									{activeComment.text.replace(/\n/g, ' ')}
+								</p>
+							</div>
+						</Tooltip>
+
+						<!-- <MaterialSymbolsAndroidMessages
+							class="absolute right-2 bottom-0 z-0 h-8 w-auto opacity-50"
+						/> -->
+					</div>
+				{/key}
+			</div>
+		</div>
+	{/if}
 
 	{#if isPendingMyVote}
 		<Tooltip content="Tu reseña se ha enviado y se procesará en el próximo ciclo (~30min).">
 			<span class="animate-pulse font-bold text-emerald-600"> ● Tu voto pendiente </span>
-		</Tooltip>
-	{/if}
-
-	{#if renderData?.sampleMeta}
-		{#snippet tooltipContent()}
-			<div class="space-y-2 leading-tight">
-				{#if !isArchived}
-					<p>
-						Peso Efectivo: <span class="ml-1 font-mono"
-							>{renderData.sampleMeta.effectiveCount.toFixed(1)}</span
-						><br />
-						<span class="text-xs opacity-50"
-							>Votos ponderados por recencia, coherencia y validez.</span
-						>
-					</p>
-				{/if}
-				<p class="text-xs">
-					<MaterialSymbolsNestClockFarsightAnalogOutline class="inline size-4" />
-					<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
-				</p>
-			</div>
-		{/snippet}
-		<Tooltip wrapperClass="absolute! opacity-50 right-0 top-0" content={tooltipContent}>
-			<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
-				<MaterialSymbolsInfo class="size-3 scale-150" />
-			</div>
 		</Tooltip>
 	{/if}
 </div>

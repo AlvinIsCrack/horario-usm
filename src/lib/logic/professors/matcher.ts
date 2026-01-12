@@ -49,7 +49,7 @@ function getSimilarity(s1: string, s2: string): number {
  * Encuentra el perfil más cercano dado un nombre sucio.
  * Prioriza match exacto de ID, luego similitud de nombre.
  */
-export function findBestMatch(rawName: string, threshold = 0.85): ProfessorView | null {
+export function findBestMatch(rawName: string, threshold = 0.95): ProfessorView | null {
     if (!rawName) return null;
     const target = normalizeString(rawName);
 
