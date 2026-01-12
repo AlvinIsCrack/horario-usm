@@ -1,11 +1,3 @@
-<script module>
-	export const ExportableScheduleStyles = {
-		light: 'Papel',
-		pastel: 'Pastel',
-		bw: 'Tinta'
-	};
-</script>
-
 <script lang="ts">
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Time from '$lib/helpers/time';
@@ -13,8 +5,11 @@
 	import { BLOQUE_DURATION_MINUTES } from '$lib/constants/usm';
 	import { truncate } from 'lodash';
 
+	// Importamos la nueva función tv
+	import { scheduleStyles } from '../styles';
+
 	let {
-		theme = 'light' as keyof typeof ExportableScheduleStyles,
+		theme = undefined as undefined | keyof typeof scheduleStyles.variants.theme,
 		showRooms = true,
 		showClassType = true,
 		nomenclature = 'detailed',
@@ -23,56 +18,10 @@
 		showBloqueEnd = true
 	} = $props();
 
-	const styles: {
-		[key: string]: {
-			label: string;
-			values: {
-				primary: string;
-				secondary: string;
-				border: string;
-				subtext: string;
-				gridLine: string;
-			};
-		};
-	} = {
-		light: {
-			label: 'Papel',
-			values: {
-				primary: 'text-slate-950!',
-				secondary: 'text-slate-800!',
-				border: 'border-stone-500!',
-				subtext: 'text-stone-600!',
-				gridLine: 'bg-black/10!'
-			}
-		},
-		pastel: {
-			label: 'Pastel',
-			values: {
-				primary: 'text-slate-900',
-				secondary: 'text-slate-100!',
-				border: 'border-slate-600/80!',
-				subtext: 'text-slate-400',
-				gridLine: 'bg-white/5'
-			}
-		},
-		bw: {
-			label: 'Tinta',
-			values: {
-				primary: 'text-black!',
-				secondary: 'text-black!',
-				border: 'border-black!',
-				subtext: 'text-black/60!',
-				gridLine: 'bg-black/10!'
-			}
-		}
-	} as const;
-
 	const DAYS_LABEL = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 	const MIN_BLOCKS = 8;
 
 	// --- LÓGICA DE DATOS ---
-
-	// 1. Cálculo de límites (igual que antes)
 	const maxBlock = $derived.by(() => {
 		let max = MIN_BLOCKS;
 		for (const ramo of Calendario.ramos) {
@@ -90,43 +39,32 @@
 	const blocks = $derived(Array.from({ length: maxBlock }, (_, i) => i + 1));
 	const activeDaysIndices = $derived(hasSaturday ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4]);
 
-	// 2. Helper para tipos de clase (Filtrar cátedras)
 	function formatClassType(type: string = '') {
 		const t = type.toUpperCase();
 		if (!t || t.includes('CAT') || t === 'C' || t === 'CLA') return null;
-		return t.slice(0, 3); // Ej: "LAB", "AYU", "TAL"
+		return t.slice(0, 3);
 	}
 
-	let s = $derived(styles[theme as keyof typeof ExportableScheduleStyles]);
+	// --- ESTILOS REACTIVOS ---
+	// Generamos las clases basadas en el tema actual
+	const styles = $derived(scheduleStyles({ theme: theme as any }));
 </script>
 
-<div
-	id="export-schedule-target"
-	class="{s.values.primary} flex w-[1100px] flex-col gap-6 bg-white p-10 font-sans antialiased"
->
-	<div
-		class="flex items-start justify-between gap-8 {s.values.border} {showHeader
-			? 'border-b-2 pb-2'
-			: 'pb-1'}"
-	>
+<div id="export-schedule-target" class={styles.root()}>
+	<div class={styles.header({ class: showHeader ? '' : 'border-none pb-0' })}>
 		{#if showHeader}
 			<div class="space-y-1">
-				<h1 class="text-4xl font-black tracking-tight uppercase">Horario</h1>
-				<p class="{s.values.subtext} text-sm font-medium tracking-wide uppercase">
-					Universidad Técnica Federico Santa María
-				</p>
+				<h1 class={styles.title()}>Horario</h1>
+				<p class="{styles.subtext()} text-sm">Universidad Técnica Federico Santa María</p>
 			</div>
 		{/if}
 
 		{#if nomenclature === 'codes'}
-			<div class="grid flex-1 grid-cols-2 gap-x-6 gap-y-1 self-end">
+			<div class="mx-8 grid flex-1 grid-cols-2 gap-x-6 gap-y-1 self-end">
 				{#each Calendario.ramos as ramo}
-					<div
-						class="flex items-baseline gap-2 border-b text-[10px] leading-tight {s.values
-							.border} border-dashed pb-0.5"
-					>
+					<div class="flex items-baseline gap-2 text-[10px] leading-tight {styles.dashedBorder()}">
 						<span class="font-bold whitespace-nowrap">{ramo.sigla}</span>
-						<span class="{s.values.subtext} truncate">{ramo.nombre}</span>
+						<span class="{styles.subtext()} truncate">{ramo.nombre}</span>
 					</div>
 				{/each}
 			</div>
@@ -134,9 +72,7 @@
 
 		{#if showHeader}
 			<div class="shrink-0 text-right">
-				<div class="font-mono text-[10px] {s.values.subtext} tracking-wider uppercase">
-					Generado el
-				</div>
+				<div class={styles.metaText()}>Generado el</div>
 				<div class="-mt-1 text-sm font-bold uppercase">
 					{new Date().toLocaleDateString('es-CL', {
 						month: 'long',
@@ -149,24 +85,18 @@
 	</div>
 
 	<div
-		class="grid border-t border-l {s.values.border} w-full"
+		class={styles.gridContainer()}
 		style="grid-template-columns: auto repeat({activeDaysIndices.length}, 1fr);"
 	>
-		<div class="border-r border-b p-2 {s.values.border}"></div>
+		<div class="border-r border-b p-2 {styles.gridHeader().split(' ')[0]}"></div>
 		{#each activeDaysIndices as diaIndex}
-			<div
-				class="tracking-wid border-r border-b py-1 text-center text-base font-bold uppercase {s
-					.values.border} {s.values.gridLine}"
-			>
+			<div class={styles.gridHeader()}>
 				{DAYS_LABEL[diaIndex]}
 			</div>
 		{/each}
 
 		{#each blocks as bloque}
-			<div
-				class="flex w-14 flex-col items-center justify-center border-r border-b p-2 px-3 font-mono text-xs {s
-					.values.border} {s.values.subtext} {s.values.gridLine}"
-			>
+			<div class={styles.blockTime()}>
 				<span class="text-sm font-bold">{bloque}º</span>
 				<span class="mt-0.5 text-[10px]">
 					<div class="font-semibold opacity-80">{Time.bloqueToHHMM(bloque)}</div>
@@ -184,15 +114,9 @@
 				)}
 				{@const info = ramo?.horario.find((h) => h.dia === dia && h.bloque === bloque)}
 
-				<div
-					class="relative min-h-[70px] border-r border-b {s.values
-						.border} flex flex-col items-center justify-center p-1.5 text-center"
-				>
+				<div class={styles.cell()}>
 					{#if ramo && info}
-						<div
-							class="absolute inset-0 opacity-25 {theme === 'bw' ? 'bg-slate-300' : ''}"
-							style:background-color={theme !== 'bw' ? ramo.color?.hex() : undefined}
-						></div>
+						<div class={styles.overlay()} style:background-color={ramo.color?.hex() ?? ''}></div>
 
 						<div class="relative z-10 mb-2 flex w-full scale-105 flex-col items-center px-1.5">
 							{#if nomenclature === 'detailed'}
@@ -224,10 +148,7 @@
 						{#if showClassType && info.tipo !== TipoBloque.Cátedra}
 							{@const typeLabel = formatClassType(info.tipo)}
 							{#if typeLabel}
-								<div
-									class="absolute right-1 bottom-1 mt-1 px-1.5 py-0 text-[10px] font-bold uppercase {s
-										.values.border} rounded-sm {s.values.secondary}"
-								>
+								<div class="absolute right-1 bottom-1 mt-1 {styles.badge()}">
 									{typeLabel}
 								</div>
 							{/if}

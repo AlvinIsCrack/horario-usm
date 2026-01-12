@@ -74,7 +74,7 @@
 
 	const currentIcon = $derived(ICON_MAP[subdimension.def.id]);
 	const roundedValue = $derived(Math.round(subdimension.val));
-	const isExtreme = $derived(Math.abs(subdimension.val - 3) >= 1.5);
+	const isExtreme = $derived([1, 5].includes(roundedValue));
 	const isIntermediateValue = $derived([2, 4].includes(roundedValue));
 
 	function getBarColor(score: number) {

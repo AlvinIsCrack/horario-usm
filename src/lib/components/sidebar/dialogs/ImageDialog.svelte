@@ -17,14 +17,11 @@
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
-	import MdiPrinter from '$lib/icons/teachers.svelte'; // Iconos sugeridos
 	import MdiDownload from '$lib/icons/save.svelte';
-	import ExportableSchedule, {
-		ExportableScheduleStyles
-	} from '$lib/logic/export/components/ExportableSchedule.svelte';
+	import ExportableSchedule from '$lib/logic/export/components/ExportableSchedule.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 
-	let theme = $state<'light' | 'dark' | 'bw'>('light');
+	let theme = $state<string>('Papel');
 	let nomenclature = $state<'detailed' | 'codes'>('detailed');
 	let showRooms = $state(true);
 	let showHeader = $state(true);
@@ -95,15 +92,15 @@
 				<div class="space-y-2">
 					<label class="text-sm font-medium">Tema</label>
 					<div class="bg-muted flex rounded-lg p-1">
-						{#each Object.entries(ExportableScheduleStyles) as [t, label] (t)}
+						{#each ['Papel', 'Pastel', 'Tinta'] as t}
 							<button
 								class="flex-1 rounded-md px-3 py-1 text-xs font-medium capitalize transition-all {theme ===
 								t
 									? 'bg-background text-foreground shadow'
 									: 'text-muted-foreground hover:text-foreground hover:cursor-pointer'}"
-								onclick={() => (theme = t as any)}
+								onclick={() => (theme = t)}
 							>
-								{label}
+								{t}
 							</button>
 						{/each}
 					</div>
