@@ -11,6 +11,11 @@
 	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
 
 	const UPDATES = {
+		'Comentarios en calificaciones de profesores': {
+			icon: MaterialSymbolsFeedback,
+			description:
+				'Finalmente se pueden visualizar y leer las opiniones escritas por los sansanos para cada profesor.'
+		},
 		'Mejora del prompt para IA': {
 			icon: MaterialSymbolsMagicButton,
 			description:
@@ -20,11 +25,6 @@
 			icon: MaterialSymbolsFeedback,
 			description:
 				'Superamos las 200 calificaciones de profesores. Gracias por construir este espacio juntos; cada voto ayuda a alguien a elegir mejor su semestre.'
-		},
-		'Encuesta Docente Funcional': {
-			icon: Teachers,
-			description:
-				'¡Los aportes de comentarios y evaluaciones a los profesores funciona! La actualización de los datos es cada 30 minutos aprox.'
 		}
 	};
 
