@@ -24,7 +24,7 @@
 		</div>
 
 		<div class="z-10 flex flex-col items-center justify-center">
-			<div class="text-foreground flex flex-col items-center">
+			<div class="text-foreground peer flex flex-col items-center">
 				<span
 					class="mb-1 text-center text-xl font-black
 							 tracking-tight opacity-70 lg:text-3xl xl:text-4xl"
@@ -41,7 +41,9 @@
 					{Data.updateDate?.fromNow().replace('hace', '').deaccent() ?? '...'}
 				</div>
 			</div>
-			<div class="w-full text-center italic opacity-50">
+			<div
+				class="max-h-0 w-full text-center italic opacity-0 transition-all duration-500 peer-hover:max-h-8 peer-hover:opacity-50"
+			>
 				Actualizado el {Data.updateDate?.format('dddd D [de] MMM/YYYY[, a las] HH:mm')}
 			</div>
 			<div class="mt-4">

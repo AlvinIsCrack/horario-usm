@@ -20,10 +20,16 @@
 	});
 
 	const itemStyle = tv({
-		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all duration-150 border border-transparent group overflow-hidden hover:cursor-pointer',
+		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all from-25% bg-gradient-to-r from-card to-card duration-150 border hover:border-foreground/50! group overflow-hidden hover:cursor-pointer',
 		variants: {
 			active: {
-				true: 'bg-accent/50 border-accent'
+				true: 'from-accent/50 to-accent/50 border-accent brightness-150'
+			},
+			tipo: {
+				AMBOS: 'to-green-500/40',
+				PAR: 'to-amber-400/40',
+				IMPAR: 'to-sky-500/40',
+				ELECTIVO: 'to-rose-600/40'
 			},
 			added: {
 				true: 'opacity-70 bg-green-500/5 hover:bg-green-500/10 border-green-500/20'
@@ -323,6 +329,8 @@
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
+						{@const programa = Data.getProgramaRamo(Calendario.sede, sigla)}
+
 						<li
 							bind:this={itemNodes[i]}
 							data-sigla={sigla}
@@ -333,18 +341,42 @@
 							class="list-none"
 						>
 							<button
-								class={itemStyle({ active: highlightedIndex === i, added: inHorario })}
+								class={itemStyle({
+									active: highlightedIndex === i,
+									added: inHorario,
+									tipo: (programa?.tipo ?? '').toUpperCase() as any
+								})}
 								onmousedown={(e) => {
 									e.preventDefault();
 									onItemClicked(sigla);
 								}}
 							>
 								<div class="leading-2">
-									<p>
+									<p class="max-w-11/12">
 										<span class="mr-1 font-mono text-xl font-black tracking-wide drop-shadow-sm/50"
 											>{sigla}</span
 										>
-										<span class="text-muted-foreground text-sm font-medium tracking-tight leading-3">{ramo.nombre}</span>
+										<span
+											class="text-muted-foreground text-sm leading-3 font-medium tracking-tight"
+										>
+											{ramo.nombre}
+										</span>
+										{#if programa}
+											<span
+												class="text-muted-foreground absolute right-1 bottom-1 ml-auto block text-xs leading-3 font-normal"
+											>
+												{@html programa.tipo.replace(
+													/AMBOS|PAR|IMPAR|ELECTIVO/gi,
+													(m) =>
+														({
+															AMBOS: '<span class="text-emerald-500">PAR/IMPAR</span>',
+															PAR: '<span class="text-amber-500">PAR</span>',
+															IMPAR: '<span class="text-sky-400">IMPAR</span>',
+															ELECTIVO: '<span class="text-rose-400">ELECTIVO</span>'
+														})[m] ?? ''
+												)}
+											</span>
+										{/if}
 									</p>
 								</div>
 							</button>

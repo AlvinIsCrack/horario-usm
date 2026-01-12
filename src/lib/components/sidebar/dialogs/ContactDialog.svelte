@@ -1,14 +1,24 @@
+<script module>
+	let open = $state(false);
+	export const ContactDialog = {
+		open() {
+			open = true;
+		},
+		close() {
+			open = false;
+		}
+	};
+</script>
+
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 	import MingcutePaypalFill from '$lib/icons/MingcutePaypalFill.svelte';
-
-	let { open = $bindable(false) } = $props();
 </script>
 
 <DialogComponent bind:open class="max-w-sm gap-0 p-0">
-	<div class="border-b p-4 pb-3">
+	<div class="bg-card border-b p-4 pb-3">
 		<h2 class="text-lg leading-none font-bold">Contacto</h2>
 		<p class="text-muted-foreground mt-1 text-xs">
 			¿Tienes dudas, encontraste un error o quieres apoyar el proyecto?

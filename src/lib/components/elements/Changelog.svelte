@@ -4,6 +4,7 @@
 	import Teachers from '$lib/icons/teachers.svelte';
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
+	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 
 	const STORAGE_KEY = 'app_changelog_seen';
 	const EXPIRATION_DAYS = 7;
@@ -11,6 +12,11 @@
 	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
 
 	const UPDATES = {
+		'Exportar calendario, ajustes de exportación': {
+			icon: MaterialSymbolsPrint,
+			description:
+				'Se puede generar un calendario de tipo ".ics", para poder exportarlo a Google Calendar, Microsoft Outlook o iCal. Además, se ha rediseñado la funcionalidad para exportar imagenes. Ahora la vista es mucho mejor, y ofrece parámetros para personalizar el documento.'
+		},
 		'Comentarios en calificaciones de profesores': {
 			icon: MaterialSymbolsFeedback,
 			description:
@@ -20,11 +26,6 @@
 			icon: MaterialSymbolsMagicButton,
 			description:
 				'Ahora incluye mayor contexto del horario. Se añade un acceso rápido a los programas académicos de los ramos seleccionados, facilitando su descarga y adjunto para obtener recomendaciones personalizadas de alta calidad.'
-		},
-		'¡Comunidad activa!': {
-			icon: MaterialSymbolsFeedback,
-			description:
-				'Superamos las 200 calificaciones de profesores. Gracias por construir este espacio juntos; cada voto ayuda a alguien a elegir mejor su semestre.'
 		}
 	};
 

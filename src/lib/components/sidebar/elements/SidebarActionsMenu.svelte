@@ -5,7 +5,6 @@
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
-	import { exportScheduleAsImage } from '$lib/helpers/screenshot';
 
 	// Iconos
 	import MaterialSymbolsMenu from '$lib/icons/MaterialSymbolsMenu.svelte';
@@ -14,8 +13,11 @@
 	import Image from '$lib/icons/image.svelte';
 	import Save from '$lib/icons/save.svelte';
 	import Trash from '$lib/icons/trash.svelte';
-
-	let { onOpenPromptDialog } = $props();
+	import { ContactDialog } from '../dialogs/ContactDialog.svelte';
+	import { downloadICS } from '$lib/logic/export/ics';
+	import MdiCalendarExport from '$lib/icons/MdiCalendarExport.svelte';
+	import { ImageDialog } from '../dialogs/ImageDialog.svelte';
+	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
 </script>
 
 <Menu align="end">
@@ -26,21 +28,6 @@
 			</Button>
 		</Tooltip>
 	{/snippet}
-
-	<MenuItem
-		disabled={!Calendario.ramos.length}
-		onclick={() => {
-			const listado = Calendario.ramos
-				.map((r) => `${r.sigla}, PARALELO ${r.paralelo} (PROFESORES: ${r.profesor.join(', ')})`)
-				.join('\n');
-			navigator.clipboard
-				.writeText(listado)
-				.then(() => alert(`Lista copiada al portapapeles:\n"${listado}"`));
-		}}
-	>
-		<Copy class="mr-2 h-4 w-4" />
-		Copiar selección
-	</MenuItem>
 
 	<MenuItem
 		disabled={!Calendario.ramos.length}
@@ -60,17 +47,47 @@
 			const prompt = await generateAIAnalysisPrompt(context);
 			await navigator.clipboard.writeText(prompt);
 
-			// Callback al padre para abrir el dialogo visual
-			onOpenPromptDialog();
+			ContactDialog.open();
 		}}
 	>
 		<MaterialSymbolsMagicButton class="mr-2 h-4 w-4" />
 		Prompt diagnóstico IA
 	</MenuItem>
 
-	<MenuItem onclick={exportScheduleAsImage} disabled={!Calendario.ramos.length}>
+	<MenuHeader>Exportar</MenuHeader>
+
+	<MenuItem onclick={() => ImageDialog.open()} disabled={!Calendario.ramos.length}>
 		<Image class="mr-2 h-4 w-4" />
-		Exportar imagen
+		Imagen/impresión
+	</MenuItem>
+
+	<MenuItem
+		onclick={() => {
+			downloadICS();
+			toast.success('Calendario generado con éxito', {
+				description: 'Ya puedes importarlo a Google Calendar, Outlook o iCal.'
+			});
+		}}
+		disabled={!Calendario.ramos.length}
+	>
+		<MdiCalendarExport class="mr-2 h-4 w-4" />
+		Calendario
+	</MenuItem>
+
+	<MenuItem
+		disabled={!Calendario.ramos.length}
+		onclick={() => {
+			const listado = Calendario.ramos
+				.map((r) => `${r.sigla}, PARALELO ${r.paralelo} (PROFESORES: ${r.profesor.join(', ')})`)
+				.join('\n');
+			navigator.clipboard.writeText(listado);
+			toast.success('Lista copiada al portapapeles', {
+				description: `${Calendario.ramos.length} asignaturas listas para compartir o guardar.`
+			});
+		}}
+	>
+		<Copy class="mr-2 h-4 w-4" />
+		Copiar selección
 	</MenuItem>
 
 	<MenuSeparator />

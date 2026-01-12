@@ -74,6 +74,7 @@
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
 					Calendario.ramoPreview?.paralelo === ramo.paralelo}
 				{@const { creditos } = ramosCarrera[i] ?? {}}
+				{@const isLocalHover = Calendario.ramoPreview === ramo}
 
 				{#snippet ramoTooltip()}
 					<div class="max-h-200 space-y-1 overflow-y-visible p-1 text-left">
@@ -96,7 +97,7 @@
 					interactive
 					content={ramoTooltip}
 					class="bg-card/50! max-w-2xs! overflow-hidden 2xl:max-w-xs!"
-					forceVisible={Boolean(ramo.profesor.length) && highlighted}
+					forceVisible={Boolean(ramo.profesor.length) && highlighted && !isLocalHover}
 				>
 					<div
 						role="listitem"

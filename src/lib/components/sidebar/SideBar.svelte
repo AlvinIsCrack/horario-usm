@@ -39,7 +39,7 @@
 	// Componentes Refactorizados
 	import SidebarButton from './elements/SidebarButton.svelte';
 	import SidebarActionsMenu from './elements/SidebarActionsMenu.svelte';
-	import ContactDialog from './dialogs/ContactDialog.svelte';
+	import ContactDialogComponent, { ContactDialog } from './dialogs/ContactDialog.svelte';
 	import PromptDialog from './dialogs/PromptDialog.svelte';
 
 	// Ventanas y Paneles
@@ -49,9 +49,7 @@
 	import Statistics from '../elements/Statistics.svelte';
 	import SedeSelector from '../elements/SedeSelector.svelte';
 	import UserData from '../elements/UserData.svelte';
-
-	let isContactDialogOpen = $state(false);
-	let isPromptDialogOpen = $state(false);
+	import ImageDialog from './dialogs/ImageDialog.svelte';
 </script>
 
 <div
@@ -74,7 +72,7 @@
 								class="justify-center!"
 							/>
 
-							<SidebarActionsMenu onOpenPromptDialog={() => (isPromptDialogOpen = true)} />
+							<SidebarActionsMenu />
 
 							<Separator />
 
@@ -121,7 +119,7 @@
 						<Me />
 						<p
 							class="decoration-foreground/50 mt-1 cursor-pointer underline decoration-dashed opacity-50 hover:decoration-solid hover:opacity-100"
-							onclick={() => (isContactDialogOpen = true)}
+							onclick={ContactDialog.open}
 						>
 							<MaterialSymbolsFeedback class="mr-1 inline" />
 							Contacto
@@ -154,8 +152,9 @@
 		{/if}
 	</div>
 
-	<ContactDialog bind:open={isContactDialogOpen} />
-	<PromptDialog bind:open={isPromptDialogOpen} />
+	<ContactDialogComponent />
+	<PromptDialog />
+	<ImageDialog />
 </div>
 
 <style lang="postcss">

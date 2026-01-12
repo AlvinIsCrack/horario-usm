@@ -2,6 +2,11 @@ import { Días } from "$lib/types/horario";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 import { calculateDailyMetrics } from "./utils";
 
+const esBloqueFlexible = (tipo: string = '') => {
+    const t = tipo.toUpperCase();
+    return ['LAB', 'TAL', 'TER', 'LIN', 'PRA', 'AYU', 'TALLER'].some(x => t.includes(x));
+};
+
 // 2. TOPOLOGÍA DEL HORARIO (Forma, Intensidad, Fragmentación)
 export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string, number>, icons: any): StatItem[] {
     const out: StatItem[] = [];
@@ -13,52 +18,71 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
         if (v.duraciónBloques === 1) ventanasCortas++;
     }
 
-    // A.2. Compacidad Tóxica (La vejiga no perdona)
-    // Buscamos el día con la racha continua más larga SIN ventanas intermedias
-    let maxRachaSinRecreo = 0;
+    // A.2. Compacidad Tóxica (Saturación Teórica)
+    // Buscamos el día con la racha continua más larga de CÁTEDRA (Teoría pura)
+    let maxRachaTeorica = 0;
 
-    // Iteramos por día para ver "ladrillos" sólidos
+    // Iteramos por día
     Object.entries(metrics).forEach(([d, m]) => {
-        // Obtenemos los bloques del día ordenados
-        const bloquesDia = ctx.ramos.flatMap(r => r.horario)
+        // Obtenemos los bloques con su tipo
+        const bloquesDia = ctx.ramos.flatMap(r => r.horario.map(h => ({
+            bloque: h.bloque,
+            tipo: h.tipo || 'CAT'
+        })))
             .filter(b => b.dia === Number(d))
-            .map(b => b.bloque)
-            .sort((a, b) => a - b);
+            .sort((a, b) => a.bloque - b.bloque);
 
         if (bloquesDia.length === 0) return;
 
-        let currentStreak = 1;
+        let currentStreak = 0;
+
+        // Inicializamos la racha solo si el primero es teórico
+        if (!esBloqueFlexible(bloquesDia[0].tipo)) {
+            currentStreak = 1;
+        }
+
         for (let i = 0; i < bloquesDia.length - 1; i++) {
-            // Si son consecutivos (ej: 3 y 4) sumamos. 
-            // Si hay un salto (ej: 4 y 6), se rompe la racha.
-            if (bloquesDia[i + 1] === bloquesDia[i] + 1) {
-                currentStreak++;
+            const actual = bloquesDia[i];
+            const siguiente = bloquesDia[i + 1];
+
+            // 1. Verificamos continuidad temporal (bloques pegados)
+            if (siguiente.bloque === actual.bloque + 1) {
+                // 2. Verificamos continuidad del "Dolor" (Ambos deben ser Teóricos)
+                // Si pasas de Cátedra a Taller, el Taller actúa como válvula de escape.
+                if (!esBloqueFlexible(actual.tipo) && !esBloqueFlexible(siguiente.tipo)) {
+                    currentStreak++;
+                } else {
+                    // Se rompió la racha de teoría (hubo un Lab/Taller entre medio o cambiamos a uno)
+                    maxRachaTeorica = Math.max(maxRachaTeorica, currentStreak);
+                    // Si el siguiente es teórico, reiniciamos racha en 1. Si es práctico, en 0.
+                    currentStreak = !esBloqueFlexible(siguiente.tipo) ? 1 : 0;
+                }
             } else {
-                maxRachaSinRecreo = Math.max(maxRachaSinRecreo, currentStreak);
-                currentStreak = 1;
+                // Hubo una ventana de tiempo real
+                maxRachaTeorica = Math.max(maxRachaTeorica, currentStreak);
+                currentStreak = !esBloqueFlexible(siguiente.tipo) ? 1 : 0;
             }
         }
-        maxRachaSinRecreo = Math.max(maxRachaSinRecreo, currentStreak);
+        maxRachaTeorica = Math.max(maxRachaTeorica, currentStreak);
     });
 
-    // Si el horario es "demasiado" compacto
-    if (maxRachaSinRecreo >= 5) {
-        // Reemplazamos o agregamos sobre el status de "Compacto"
-        // Nota: Esto podría coexistir con "Compacto", pero es una advertencia de salud.
+    // Si el horario es "demasiado" compacto en TEORÍA
+    if (maxRachaTeorica >= 5) {
         out.push({
-            icon: icons.Warning, // O un icono de batería baja
+            icon: icons.Warning,
             label: STAT_LABELS.HORARIO,
             value: 'Asfixiante',
-            tooltip: `Tienes una racha de <b>${maxRachaSinRecreo} bloques seguidos</b> sin ni una sola ventana.<br/><span class="opacity-70 text-xs">La eficiencia es buena, pero ojo con la ausencia de una ventana estratégica.</span>`,
+            tooltip: `Detectada racha de <b>${maxRachaTeorica} bloques teóricos</b> (Cátedras) consecutivos.<br/><span class="opacity-70 text-xs">A diferencia de un taller, aquí no hay espacio para pausas activas. Tu atención caerá en picada tras el 3er bloque.</span>`,
             status: 'danger'
         });
     } else if (ctx.ventanas.length === 0) {
-        // (Tu código original de Compacto Success se mantiene aquí como else)
+        // Si es compacto pero no disparó la alerta de asfixia, es porque son Talleres o Labs (Compacto Sano)
+        // O son pocas cátedras seguidas.
         out.push({
             icon: icons.Asterisk,
             label: STAT_LABELS.HORARIO,
             value: 'Compacto',
-            tooltip: 'Sin tiempos muertos entre bloques. Máxima eficiencia de tiempo.',
+            tooltip: 'Jornada continua eficiente. Los bloques prácticos o laboratorios ayudan a mitigar la carga.',
             status: 'success'
         });
     }
@@ -70,7 +94,7 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
 
         if (ventanasCortas >= 3) {
             status = 'danger';
-            valor = 'Queso Suizo'; // Alta fragmentación
+            valor = 'Queso Suizo';
             desc = `Tienes <b>${ventanasCortas} interrupciones de un solo bloque</b> (claves de ~40-70 min).`;
         }
 

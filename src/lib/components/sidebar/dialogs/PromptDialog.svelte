@@ -1,15 +1,25 @@
+<script module>
+	let open = $state(false);
+	export const PromptDialog = {
+		open() {
+			open = true;
+		},
+		close() {
+			open = false;
+		}
+	};
+</script>
+
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import MaterialSymbolsLinkRounded from '$lib/icons/MaterialSymbolsLinkRounded.svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-
-	let { open = $bindable(false) } = $props();
 </script>
 
 <DialogComponent bind:open class="max-w-md gap-0 p-0">
-	<div class="border-b p-4 pb-3">
+	<div class="bg-card border-b p-4 pb-3">
 		<h2 class="text-lg leading-none font-bold">Diagnóstico Copiado</h2>
 		<p class="text-muted-foreground mt-1 text-xs">
 			Pégalo en tu IA favorita. Para que analice la materia específica, puedes descargar los
@@ -46,7 +56,7 @@
 		{/each}
 	</div>
 
-	<div class="bg-muted/20 border-t p-4">
+	<div class="bg-card border-t p-4">
 		<Button class="w-full" onclick={() => (open = false)}>Entendido</Button>
 	</div>
 </DialogComponent>
