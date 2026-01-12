@@ -242,7 +242,7 @@ def aggregate_professor_stats(prof_name, reviews):
     )
 
     for rev in reviews_for_comments:
-        raw_text = rev.get('summary') or rev.get('comment')
+        raw_text = rev.get('rewritten_summary') or rev.get('summary') or rev.get('comment')
         
         if is_valid_comment(raw_text):
             meta = rev.get('metadata', {})
