@@ -38,6 +38,20 @@ LEGACY_MAPPING = {
     'ghost': 1, 'burocrata': 2, 'disponible': 3, 'mentor': 5
 }
 
+def calculate_weighted_tag_score(tag_weight_sum, total_weight_sum):
+    if total_weight_sum == 0: return 0
+    
+    proportion = tag_weight_sum / total_weight_sum
+    
+    # Umbral más razonable (5%) y penalización suave en lugar de eliminar
+    threshold = 0.1
+    if proportion < threshold:
+        # Reduce el score proporcionalmente en lugar de volverlo cero
+        penalty = (proportion / threshold)
+        return (proportion * math.log1p(total_weight_sum)) * penalty
+        
+    return proportion * math.log1p(total_weight_sum)
+
 def parse_date(date_str):
     if not date_str: return None
     try:
@@ -161,6 +175,8 @@ def aggregate_professor_stats(prof_name, reviews):
     last_review_date = ""
     tag_counts = {}
 
+    tag_weighted_counts = {}
+
     for rev in active_reviews:
         meta = rev.get('metadata', {})
         fp = meta.get('fingerprint')
@@ -172,7 +188,7 @@ def aggregate_professor_stats(prof_name, reviews):
         # Peso Base (Tiempo) * Factor Entropía (Anti-Spam)
         base_w = calculate_base_weight(parse_date(date_str))
         entropy_w = entropy_factors.get(fp, 1.0)
-        
+
         final_weight = base_w * entropy_w
         total_effective_weight += final_weight
         
@@ -207,7 +223,9 @@ def aggregate_professor_stats(prof_name, reviews):
 
         tags = rev.get('activeTags', [])
         for tag in tags:
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+            # Ahora sumamos el PESO del voto, no un "1" plano.
+            # Si el voto es antiguo o spam, aporta muy poco al tag.
+            tag_weighted_counts[tag] = tag_weighted_counts.get(tag, 0.0) + final_weight
 
     # Construcción de Stats Finales
     final_stats = {}
@@ -238,8 +256,13 @@ def aggregate_professor_stats(prof_name, reviews):
             }
         else:
             final_stats[key] = None
+    
+    tag_scores = []
+    for tag, w_sum in tag_weighted_counts.items():
+        score = calculate_weighted_tag_score(w_sum, total_effective_weight)
+        tag_scores.append((tag, score))
 
-    sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+    sorted_tags = sorted(tag_scores, key=lambda x: x[1], reverse=True)[:5]
     top_tags = [t[0] for t in sorted_tags]
 
     return {

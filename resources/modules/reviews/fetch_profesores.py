@@ -1,11 +1,13 @@
-LAST_PROCESSED_ROW = 0
 import requests
 import json
 import os
 import sys
 import datetime
+import hashlib
 
-# Ajuste de Imports
+# ==========================================
+# IMPORTS
+# ==========================================
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 MODULES_DIR = os.path.dirname(CURRENT_DIR) 
 RESOURCES_DIR = os.path.dirname(MODULES_DIR)
@@ -30,18 +32,13 @@ API_URL = "https://script.google.com/macros/s/AKfycbwt3x_JzbcCvB1yUp77nJ-NuZHV08
 SECRET_TOKEN = os.getenv("SECRET_TOKEN")
 TYPES_PATH = os.path.join(BASE_DIR, "src/lib/logic/professors/types.ts")
 
-def update_script_state(new_index):
-    try:
-        file_path = os.path.abspath(__file__)
-        with open(file_path, 'r', encoding='utf-8') as f:
-            lines = f.readlines()
-        lines[0] = f"LAST_PROCESSED_ROW = {new_index}\n"
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.writelines(lines)
-        print(f"💾 Estado actualizado: LAST_PROCESSED_ROW = {new_index}")
-    except Exception as e:
-        print(f"❌ Error al guardar estado del script: {e}")
+if not SECRET_TOKEN:
+    print("No se encontró la variable de entorno SECRET_TOKEN.")
+    sys.exit(1)
 
+# ==========================================
+# UTILIDADES
+# ==========================================
 def get_types_context():
     try:
         if os.path.exists(TYPES_PATH):
@@ -67,6 +64,18 @@ def load_existing_reviews():
         except: return []
     return []
 
+def generate_review_id(fingerprint, timestamp, prof_name):
+    """Crea un hash único para evitar duplicados exactos."""
+    raw = f"{fingerprint}|{timestamp}|{prof_name}"
+    return hashlib.md5(raw.encode('utf-8')).hexdigest()
+
+def sanitize_comment(text):
+    if not isinstance(text, str): return ""
+    text = text.strip()
+    text = " ".join(text.split())
+    if len(text) < 4: return ""
+    return text[0].upper() + text[1:]
+
 def trigger_gas_analysis():
     print(f"📡 Leyendo contexto desde {TYPES_PATH}...")
     types_context = get_types_context()
@@ -82,7 +91,7 @@ def trigger_gas_analysis():
     has_changes = False
 
     try:
-        response = requests.post(API_URL, json=payload)
+        response = requests.post(API_URL, json=payload, timeout=120) 
         response.raise_for_status()
         data = response.json()
         
@@ -96,9 +105,25 @@ def trigger_gas_analysis():
                 gemini_results = data.get('gemini_result', [])
                 analysis_map = {res.get('row_index'): res for res in gemini_results}
                 
+                existing_reviews = load_existing_reviews()
+                existing_ids = set()
+                for r in existing_reviews:
+                    rid = r.get('id')
+                    if not rid and 'metadata' in r:
+                        rid = generate_review_id(
+                            r['metadata'].get('fingerprint', ''),
+                            r['metadata'].get('serverTime', ''),
+                            r.get('name', '')
+                        )
+                    if rid: existing_ids.add(rid)
+
                 new_profiles = []
                 
                 for i, row in enumerate(raw_rows):
+                    if len(row) < 6:
+                        print(f"    Fila incompleta detectada en índice {i}. Saltando.")
+                        continue
+
                     analysis = analysis_map.get(i)
                     if not analysis: continue
                     
@@ -108,22 +133,35 @@ def trigger_gas_analysis():
                         try:
                             review_payload = json.loads(row[5])
                             metrics = review_payload.get('metrics', {})
+
+                            fingerprint = row[2]
+                            server_time = row[0]
+                            prof_name = row[1]
+
+                            unique_id = generate_review_id(fingerprint, server_time, prof_name)
+                            
+                            if unique_id in existing_ids:
+                                print(f"    Saltando duplicado: {prof_name} (ID: {unique_id[:8]}...)")
+                                continue
                             
                             # Construcción del perfil de la reseña
                             profile_entry = {
+                                "id": unique_id,
                                 "name": row[1],
                                 "stats": { **metrics }, 
                                 "activeTags": review_payload.get('tags', []),
-                                "summary": review_payload.get('comment', ''),
+                                "summary": sanitize_comment(review_payload.get('comment', '')),
                                 "metadata": {
                                     "score": score,
                                     "reason": analysis.get('reason'),
                                     "addedAt": datetime.datetime.now().isoformat(),
                                     "serverTime": row[0],
-                                    "fingerprint": row[2] # Guardamos fingerprint crudo para aggregate.py
+                                    "fingerprint": row[2]
                                 }
                             }
+
                             new_profiles.append(profile_entry)
+                            existing_ids.add(unique_id)
                             print(f"   ✅ Guardada: {row[1]} (Score: {score})")
                         except Exception as e:
                             print(f"   ⚠️ Error parseando fila {i}: {e}")
@@ -131,16 +169,10 @@ def trigger_gas_analysis():
                         print(f"   🗑️ Descartada: Score bajo ({score}) - {analysis.get('reason')}")
 
                 if new_profiles:
-                    existing = load_existing_reviews()
-                    combined = existing + new_profiles
+                    combined = existing_reviews + new_profiles
                     utils.atomic_write(OUTPUT_FILE, combined)
                     print(f"\n💾 {len(new_profiles)} nuevas reseñas escritas en {OUTPUT_FILE}")
                     has_changes = True
-                
-                new_last_row = data.get('new_last_row')
-                if new_last_row:
-                    update_script_state(new_last_row)
-
             else:
                 print(f"\n💤 Todo al día. No hay reseñas nuevas.")
         else:
