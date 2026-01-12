@@ -39,15 +39,13 @@
 			const { captureSchedule } = await import('$lib/logic/export/screenshot');
 			await captureSchedule(mode);
 
-			if (mode === 'download') {
-				toast.success('Imagen guardada correctamente');
-				open = false;
-			}
+			if (mode === 'download') toast.success('Imagen guardada correctamente');
 		} catch (e) {
 			console.error(e);
 			toast.error('Ocurrió un error al generar la imagen');
 		} finally {
 			isProcessing = false;
+			open = false;
 		}
 	}
 </script>

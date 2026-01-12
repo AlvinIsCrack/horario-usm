@@ -3,6 +3,7 @@
 	import Time from '$lib/helpers/time';
 	import { TipoBloque } from '$lib/types/horario';
 	import { BLOQUE_DURATION_MINUTES } from '$lib/constants/usm';
+	import { truncate } from 'lodash';
 
 	let {
 		theme = 'light',
@@ -49,12 +50,12 @@
 		light: {
 			bg: 'bg-white!',
 			text: 'text-slate-950!',
-			border: 'border-slate-300!',
-			subtext: 'text-slate-500!',
+			border: 'border-stone-400!',
+			subtext: 'text-stone-600!',
 			gridLine: 'bg-black/10!'
 		},
 		dark: {
-			bg: 'bg-[#0f0f11]',
+			bg: 'bg-slate-950',
 			text: 'text-slate-50',
 			border: 'border-slate-800!',
 			subtext: 'text-slate-400',
@@ -154,42 +155,34 @@
 				>
 					{#if ramo && info}
 						<div
-							class="absolute inset-0 opacity-15 {theme === 'bw' ? 'bg-slate-300' : ''}"
+							class="absolute inset-0 opacity-25 {theme === 'bw' ? 'bg-slate-300' : ''}"
 							style:background-color={theme !== 'bw' ? ramo.color?.hex() : undefined}
 						></div>
 
-						<div class="relative z-10 flex w-full flex-col items-center">
+						<div
+							class="relative z-10 flex w-full -translate-y-2 scale-105 flex-col items-center px-1.5"
+						>
 							{#if nomenclature === 'detailed'}
-								<div class="text-xs leading-tight font-bold">
-									{ramo.nombre}
+								<div class="text-sm leading-3 font-bold">
+									{truncate(ramo.nombre, { length: 30 })}
 								</div>
 								<div
-									class="flex flex-wrap justify-center gap-1 text-[9px] font-medium tracking-tight uppercase opacity-80"
+									class="flex flex-wrap justify-center gap-2 text-[10px] font-medium tracking-tight uppercase opacity-80"
 								>
-									<span
-										>{ramo.sigla}
+									<span class="font-mono font-bold">{ramo.sigla} </span>
+									<span class="opacity-80">
 										{#if showParalelos}
-											<i>P{ramo.paralelo}</i>
+											PAR. {ramo.paralelo}
 										{/if}
 									</span>
-									{#if showRooms && info.sala}
-										<span class="font-bold">[{info.sala}]</span>
-									{/if}
 								</div>
 							{:else}
-								<div class="text-lg leading-none font-black tracking-tight opacity-90">
+								<div class="text-lg leading-none font-mono scale-110 font-black tracking-tight">
 									{ramo.sigla}
 								</div>
-								<div class="mt-1 flex items-center gap-1.5 text-[10px] font-medium">
+								<div class="flex items-center gap-1.5 text-[10px] font-medium">
 									{#if showParalelos}
-										<span class="opacity-70">P{ramo.paralelo}</span>
-									{/if}
-									{#if showRooms && info.sala}
-										<span
-											class="rounded {theme === 'dark'
-												? 'bg-white/10'
-												: 'bg-black/10'} px-1 font-bold">{info.sala}</span
-										>
+										<span class="tracking-tight opacity-80">PAR. {ramo.paralelo}</span>
 									{/if}
 								</div>
 							{/if}
@@ -207,6 +200,12 @@
 									{typeLabel}
 								</div>
 							{/if}
+						{/if}
+
+						{#if showRooms && info.sala}
+							<div class="absolute bottom-1 left-2 text-[10px] font-bold mix-blend-hard-light">
+								{info.sala}
+							</div>
 						{/if}
 					{/if}
 				</div>

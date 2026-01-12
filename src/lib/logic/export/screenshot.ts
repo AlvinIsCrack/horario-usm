@@ -22,7 +22,7 @@ export async function captureSchedule(mode: 'download' | 'print' = 'download') {
         link.click();
     } else {
         // Modo Impresión: Generamos un Blob y lo abrimos en ventana limpia
-        const blob = await toBlob(node, { ...options, backgroundColor: '#ffffff' });
+        const blob = await toBlob(node, { ...options });
         if (!blob) throw new Error('Error generando impresión');
 
         const url = URL.createObjectURL(blob);
