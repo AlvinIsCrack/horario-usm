@@ -13,11 +13,11 @@
 	import Image from '$lib/icons/image.svelte';
 	import Save from '$lib/icons/save.svelte';
 	import Trash from '$lib/icons/trash.svelte';
-	import { ContactDialog } from '../dialogs/ContactDialog.svelte';
 	import { downloadICS } from '$lib/logic/export/ics';
 	import MdiCalendarExport from '$lib/icons/MdiCalendarExport.svelte';
 	import { ImageDialog } from '../dialogs/ImageDialog.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
+	import { PromptDialog } from '../dialogs/PromptDialog.svelte';
 </script>
 
 <Menu align="end">
@@ -47,7 +47,7 @@
 			const prompt = await generateAIAnalysisPrompt(context);
 			await navigator.clipboard.writeText(prompt);
 
-			ContactDialog.open();
+			PromptDialog.open();
 		}}
 	>
 		<MaterialSymbolsMagicButton class="mr-2 h-4 w-4" />
