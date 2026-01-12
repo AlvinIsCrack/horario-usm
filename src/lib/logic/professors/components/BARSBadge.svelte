@@ -33,7 +33,7 @@
 			solid: 'bg-red-600'
 		},
 		{
-			solid: 'bg-slate-500'
+			solid: 'bg-slate-600'
 		},
 		{
 			solid: 'bg-slate-600'
@@ -93,40 +93,22 @@
 	></div>
 
 	<div
-		class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! opacity-40 mix-blend-color-dodge [background:url(/media/metal.png)]"
+		class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! {isExtreme
+			? 'opacity-80'
+			: 'opacity-50'} mix-blend-color-dodge [background:url(/media/metal.png)]"
 	></div>
-
-	{#if isExtreme}
-		<div
-			class="absolute top-0 left-0 z-5 size-full animate-pulse bg-white/50 mask-radial-[100%_100%] mask-radial-from-transparent mask-radial-from-10% mask-radial-to-black mask-radial-to-80% mask-radial-at-center mix-blend-plus-lighter"
-		></div>
-	{/if}
 
 	{#if currentIcon}
 		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full drop-shadow-sm/50 transition-all will-change-transform" />
+		<Icon class="relative z-10 size-full drop-shadow-sm/80 transition-all will-change-transform" />
 	{/if}
-
-	<svg class="pointer-events-none absolute h-0 w-0" aria-hidden="true">
-		<filter id="grainy-{subdimension.def.id}">
-			<feTurbulence type="fractalNoise" baseFrequency="0.97" numOctaves="1" stitchTiles="stitch" />
-			<feComponentTransfer>
-				<feFuncA type="linear" slope="1.8" />
-			</feComponentTransfer>
-		</filter>
-	</svg>
-
-	<div
-		class="grainy-overlay pointer-events-none absolute inset-0 z-6 mask-t-from-0% mask-t-to-50% opacity-80 mix-blend-multiply"
-		style="filter: url('#grainy-{subdimension.def.id}');"
-	></div>
 
 	{#if isIntermediateValue}
 		<div
 			class="absolute z-5 size-full {(roundedValue === 2 && !isInverseMetric) ||
 			(roundedValue === 4 && isInverseMetric)
-				? 'bg-amber-500'
-				: 'bg-green-400'} mix-blend-overlay"
+				? 'bg-orange-400'
+				: 'bg-teal-500'} mix-blend-overlay"
 		></div>
 	{/if}
 

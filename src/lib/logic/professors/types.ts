@@ -200,13 +200,19 @@ export interface ProfessorMeta {
     isArchived?: boolean;
 }
 
+export interface ProfessorComment {
+    text: string;
+    date: string;
+    tags: string[];
+}
+
 export interface ProfessorView {
     id: string;
     name: string;
     email: string;
-    // Ahora las stats son objetos complejos, no solo números
     stats: Record<string, MetricStats | null>;
-    tags: TagId[]; // Tags ordenados por relevancia
+    tags: TagId[];
+    comments?: ProfessorComment[];
     meta: ProfessorMeta;
 }
 

@@ -1,22 +1,14 @@
 <script lang="ts">
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import MaterialSymbolsDatabaseOff from '$lib/icons/MaterialSymbolsDatabaseOff.svelte';
-	import MaterialSymbolsExclamationRounded from '$lib/icons/MaterialSymbolsExclamationRounded.svelte';
-	import MaterialSymbolsHelpRounded from '$lib/icons/MaterialSymbolsHelpRounded.svelte';
 	import MaterialSymbolsInfo from '$lib/icons/MaterialSymbolsInfo.svelte';
-	import MaterialSymbolsInfoOutlineRounded from '$lib/icons/MaterialSymbolsInfoOutlineRounded.svelte';
 	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
-	import MaterialSymbolsQuestionMarkRounded from '$lib/icons/MaterialSymbolsQuestionMarkRounded.svelte';
-	import MaterialSymbolsVerifiedRounded from '$lib/icons/MaterialSymbolsVerifiedRounded.svelte';
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/logic/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/logic/professors/repository.svelte';
-
 	import { hasPendingReview } from '$lib/logic/reviews/api';
 	import { onMount } from 'svelte';
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
-	import MaterialSymbolsWarningRounded from '$lib/icons/MaterialSymbolsWarningRounded.svelte';
+	import MaterialSymbolsAndroidMessages from '$lib/icons/MaterialSymbolsAndroidMessages.svelte';
 
 	let {
 		id,
@@ -49,61 +41,57 @@
 		if (days < 365) return `Hace ${Math.floor(days / 30)} meses`;
 		return '+1 año';
 	}
+
+	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
+	const isSolid = $derived((renderData?.sampleMeta.reviewCount || 0) >= 5);
+	const isArchived = $derived(renderData?.sampleMeta.isArchived);
+
+	console.log(renderData);
 </script>
 
-<div class="w-full text-left">
-	<div class="bg-accent/50 -mx-4 -mt-4 rounded-t-lg p-5">
+<div class="relative h-full w-full space-y-2.5 text-left">
+	<div class="bg-accent/50 -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize">
-					{repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido'}
+					{#if renderData?.sampleMeta}
+						{#snippet tooltipContent()}
+							<p>
+								{#if isArchived}
+									Datos históricos o insuficientes para generar una estadística actual confiable.
+								{:else}
+									Nivel de confianza estadística <b>{!isSolid ? 'preliminar' : 'sólida'}</b>.
+									<br />
+									<span class="text-xs opacity-50"
+										>Basado en {renderData.sampleMeta.reviewCount} votos.</span
+									>
+								{/if}
+							</p>
+						{/snippet}
+
+						<Tooltip wrapperClass="cursor-help" content={tooltipContent}>
+							<span
+								class="underline decoration-dotted {isSolid
+									? 'decoration-sky-500/80!'
+									: isArchived
+										? 'decoration-slate-400/80!'
+										: 'decoration-orange-400/80!'} underline-offset-3 hover:decoration-solid"
+							>
+								{name}
+							</span>
+						</Tooltip>
+					{:else}
+						{name}
+					{/if}
 				</h1>
 				{#if registryProfile?.email}
 					<p class="text-xs opacity-50">{registryProfile.email}</p>
 				{/if}
 			</div>
-
-			{#if renderData?.sampleMeta}
-				{@const count = renderData.sampleMeta.reviewCount}
-				{@const isArchived = renderData.sampleMeta.isArchived}
-
-				{#snippet tooltipContent()}
-					<p>
-						{#if isArchived}
-							Datos históricos o insuficientes para generar una estadística actual confiable.
-						{:else}
-							Nivel de confianza estadística <b>{count < 5 ? 'preliminar' : 'sólida'}</b>. <br />
-							<span class="text-xs opacity-50">Basado en {count} votos.</span>
-						{/if}
-					</p>
-				{/snippet}
-
-				<Tooltip
-					wrapperClass="right-1 z-10 top-1/2 -translate-y-1/2 absolute! cursor-help"
-					content={tooltipContent}
-				>
-					<div
-						class="size-6 drop-shadow-md/100 not-hover:brightness-90 hover:brightness-110 [&_svg]:size-full
-                        {isArchived
-							? 'border-stone-500! text-stone-400'
-							: count < 5
-								? 'border-amber-500! text-amber-500 drop-shadow-amber-800'
-								: 'border-cyan-600! text-cyan-500 drop-shadow-cyan-900'}"
-					>
-						{#if isArchived}
-							<MaterialSymbolsDatabaseOff />
-						{:else if count < 5}
-							<MaterialSymbolsWarningRounded />
-						{:else}
-							<MaterialSymbolsVerifiedRounded />
-						{/if}
-					</div>
-				</Tooltip>
-			{/if}
 		</div>
 
-		{#if repoData?.campuses}
-			<div class="mt-1 flex flex-wrap gap-1">
+		<div class="flex flex-wrap gap-1">
+			{#if repoData?.campuses}
 				{#each Array.from(repoData.campuses) as sede}
 					<span
 						class="bg-primary/50 text-secondary-foreground border-secondary-foreground/10 -ml-0.5 rounded-full border px-1.5 text-[10px] select-none"
@@ -111,45 +99,35 @@
 						{sede}
 					</span>
 				{/each}
-			</div>
-		{/if}
-	</div>
-
-	{#if repoData && repoData.subjects.length > 0}
-		<div class="my-1">
-			<p class="text-muted-foreground mb-0.5 text-[10px] font-bold tracking-wider uppercase">
-				Asignaturas recientes
-			</p>
-			<div class="flex flex-wrap gap-1">
-				{#each repoData.subjects.slice(0, 4) as subject}
-					<Tooltip content={subject.name}>
-						<span
-							class="bg-accent text-muted-foreground border-border/50 rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-tight shadow-sm/50"
-						>
-							{subject.sigla}
-						</span>
-					</Tooltip>
-				{/each}
-				{#if repoData.subjects.length > 4}
-					<span class="text-muted-foreground px-1 py-0.5 text-[10px]">
+			{/if}
+			{#each repoData.subjects.slice(0, 4) as subject}
+				<Tooltip content={subject.name}>
+					<span
+						class="bg-accent text-muted-foreground border-border/50 rounded border px-1 font-mono text-xs font-bold tracking-tight shadow-sm/50"
+					>
+						{subject.sigla}
+					</span>
+				</Tooltip>
+			{/each}
+			{#if repoData.subjects.length > 4}
+				<Tooltip
+					content={repoData.subjects
+						.slice(4)
+						.map((s) => `${s.sigla} <span class="opacity-50">(${s.name})</span>`)
+						.join(', ')}
+				>
+					<span class="text-muted-foreground px-1 py-0.5 text-[10px] select-none">
 						+{repoData.subjects.length - 4} más
 					</span>
-				{/if}
-			</div>
+				</Tooltip>
+			{/if}
 		</div>
-	{:else if !repoData && !registryProfile}
-		<p class="text-muted-foreground mt-2 text-[10px] italic">
-			Sin información de asignaturas recientes.
-		</p>
-	{/if}
+	</div>
 
-	<div class="border-border -mx-4 w-[calc(100%+2rem)] border-t"></div>
-
-	{#if renderData?.meta && !renderData?.sampleMeta?.isArchived}
+	{#if renderData?.meta && !isArchived}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
 		<div
-			class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 py-1.5 xl:gap-2.5 {count <
-			5
+			class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 xl:gap-2.5 {count < 5
 				? 'opacity-90 grayscale-25'
 				: ''}"
 		>
@@ -161,59 +139,91 @@
 				</div>
 			{/each}
 		</div>
-		<div class="border-border/50 -mx-4 border-t"></div>
-	{:else if renderData?.sampleMeta?.isArchived}
+	{:else if isArchived}
 		<div class="py-6 text-center">
 			<p class="text-muted-foreground text-xs italic">
 				Datos insuficientes o muy antiguos para generar un perfil actual.
 			</p>
 		</div>
-		<div class="border-border/50 -mx-4 border-t"></div>
 	{/if}
 
 	{#if renderData && renderData.tags.length > 0}
-		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
-		<div class="my-2 flex flex-wrap gap-1 {count < 5 ? 'opacity-80 grayscale-40' : 'opacity-100'}">
+		<div class="flex flex-wrap gap-1 {!isSolid ? 'opacity-80 grayscale-40' : 'opacity-100'}">
 			{#each orderTags(renderData.tags) as tag (tag.id)}
 				<ProfessorTag {tag} />
 			{/each}
 		</div>
 	{/if}
 
+	<!-- {#if renderData?.meta}
+        <div class="mt-4 flex flex-col gap-2 border-t border-border/50 pt-3">
+            <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                <MaterialSymbolsAndroidMessages class="size-3" />
+                <span>Opiniones ({professor.comments.length})</span>
+            </div>
+
+            <div class="flex flex-col gap-2 pr-1 max-h-40 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-border/50 scrollbar-track-transparent">
+                {#each professor.comments as comment}
+                    <div class="relative group rounded-lg border border-border/40 bg-muted/20 p-2.5 transition-all hover:bg-muted/40 hover:border-border/60">
+                        <p class="text-xs italic leading-relaxed text-foreground/80 line-clamp-4">
+                            "{comment.text}"
+                        </p>
+
+                        {#snippet metaTooltip()}
+                            <div class="flex flex-col gap-1.5">
+                                <span class="text-xs font-medium text-foreground/90">
+                                    📅 {new Date(comment.date).toLocaleDateString(undefined, { dateStyle: 'long' })}
+                                </span>
+                                {#if comment.tags?.length}
+                                    <div class="flex flex-wrap gap-1 border-t border-white/10 pt-1 mt-1">
+                                        {#each comment.tags as tag}
+                                            <span class="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-medium text-primary-foreground">
+                                                {tag}
+                                            </span>
+                                        {/each}
+                                    </div>
+                                {/if}
+                            </div>
+                        {/snippet}
+
+                        <Tooltip content={metaTooltip} wrapperClass="absolute inset-0 w-full h-full cursor-help">
+                            <span class="sr-only">Detalles</span>
+                        </Tooltip>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    {/if} -->
+
+	{#if isPendingMyVote}
+		<Tooltip content="Tu reseña se ha enviado y se procesará en el próximo ciclo (~30min).">
+			<span class="animate-pulse font-bold text-emerald-600"> ● Tu voto pendiente </span>
+		</Tooltip>
+	{/if}
+
 	{#if renderData?.sampleMeta}
-		<div class="border-border bg-muted/20 -mx-4 mt-2 -mb-3 border-t px-4 py-2 select-none">
-			<div class="text-muted-foreground flex items-center justify-between text-xs">
-				<div class="flex items-center gap-2">
-					<Tooltip content="Última actualización de datos">
-						<div class="flex items-center gap-1 font-medium">
-							<MaterialSymbolsNestClockFarsightAnalogOutline class="size-4" />
-							<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
-						</div>
-					</Tooltip>
-
-					{#if isPendingMyVote}
-						<Tooltip content="Tu reseña se ha enviado y se procesará en el próximo ciclo (~30min).">
-							<span class="animate-pulse font-bold text-emerald-600"> ● Tu voto pendiente </span>
-						</Tooltip>
-					{/if}
-				</div>
-
-				{#if !renderData.sampleMeta.isArchived}
-					{#snippet tooltipContent()}
+		{#snippet tooltipContent()}
+			<div class="space-y-2 leading-tight">
+				{#if !isArchived}
+					<p>
 						Peso Efectivo: <span class="ml-1 font-mono"
 							>{renderData.sampleMeta.effectiveCount.toFixed(1)}</span
 						><br />
 						<span class="text-xs opacity-50"
 							>Votos ponderados por recencia, coherencia y validez.</span
 						>
-					{/snippet}
-					<Tooltip content={tooltipContent}>
-						<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
-							<MaterialSymbolsInfo class="size-3 scale-150" />
-						</div>
-					</Tooltip>
+					</p>
 				{/if}
+				<p class="text-xs">
+					<MaterialSymbolsNestClockFarsightAnalogOutline class="inline size-4" />
+					<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
+				</p>
 			</div>
-		</div>
+		{/snippet}
+		<Tooltip wrapperClass="absolute! opacity-50 right-0 top-0" content={tooltipContent}>
+			<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
+				<MaterialSymbolsInfo class="size-3 scale-150" />
+			</div>
+		</Tooltip>
 	{/if}
 </div>

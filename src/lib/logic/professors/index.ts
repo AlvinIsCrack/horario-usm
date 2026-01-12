@@ -107,7 +107,6 @@ export function getProfessorRenderData(input: string | ProfessorView | null) {
         hasData: hasAnyData,
         meta,
         tags: (profile.tags || []).map(tagId => getTagMetadata(tagId)),
-        // Metadata extra de la muestra (N de reviews, fecha)
         sampleMeta: profile.meta
     };
 }

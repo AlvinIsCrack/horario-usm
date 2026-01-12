@@ -142,6 +142,11 @@ def wilson_score_lower_bound(mean, count, stdev=0.0):
     lower_bound = mean - (z * sigma / math.sqrt(count))
     return max(1.0, min(5.0, lower_bound))
 
+def is_valid_comment(text):
+    if not text or not isinstance(text, str): return False
+    clean = text.strip()
+    return len(clean) >= 4
+
 def aggregate_professor_stats(prof_name, reviews):
     # ---------------------------------------------------------
     # FASE 1: DEDUPLICACIÓN (Latest Vote Wins)
@@ -226,6 +231,30 @@ def aggregate_professor_stats(prof_name, reviews):
             # Ahora sumamos el PESO del voto, no un "1" plano.
             # Si el voto es antiguo o spam, aporta muy poco al tag.
             tag_weighted_counts[tag] = tag_weighted_counts.get(tag, 0.0) + final_weight
+    
+    processed_comments = []
+    
+    # Ordenar por fecha descendente
+    reviews_for_comments = sorted(
+        active_reviews, 
+        key=lambda x: x.get('metadata', {}).get('serverTime', '') or '', 
+        reverse=True
+    )
+
+    for rev in reviews_for_comments:
+        raw_text = rev.get('summary') or rev.get('comment')
+        
+        if is_valid_comment(raw_text):
+            meta = rev.get('metadata', {})
+            processed_comments.append({
+                "text": raw_text.strip(),
+                "date": meta.get('serverTime') or meta.get('addedAt') or datetime.datetime.now().isoformat(),
+                "tags": rev.get('activeTags', []) # Contexto útil
+            })
+            
+        # Límite eficiente: Solo los 15 más recientes para no inflar el JSON
+        if len(processed_comments) >= 15:
+            break
 
     # Construcción de Stats Finales
     final_stats = {}
@@ -270,11 +299,12 @@ def aggregate_professor_stats(prof_name, reviews):
         "name": prof_name, 
         "stats": final_stats,
         "tags": top_tags,
+        "comments": processed_comments,
         "meta": {
             "reviewCount": raw_count,
             "effectiveCount": round(total_effective_weight, 1),
             "lastUpdated": last_review_date,
-            "isArchived": is_insufficient_data # Flag para UI (Gris/Opaco)
+            "isArchived": is_insufficient_data
         }
     }
 

@@ -69,13 +69,6 @@ def generate_review_id(fingerprint, timestamp, prof_name):
     raw = f"{fingerprint}|{timestamp}|{prof_name}"
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
 
-def sanitize_comment(text):
-    if not isinstance(text, str): return ""
-    text = text.strip()
-    text = " ".join(text.split())
-    if len(text) < 4: return ""
-    return text[0].upper() + text[1:]
-
 def trigger_gas_analysis():
     print(f"📡 Leyendo contexto desde {TYPES_PATH}...")
     types_context = get_types_context()
@@ -150,7 +143,6 @@ def trigger_gas_analysis():
                                 "name": row[1],
                                 "stats": { **metrics }, 
                                 "activeTags": review_payload.get('tags', []),
-                                "summary": sanitize_comment(review_payload.get('comment', '')),
                                 "metadata": {
                                     "score": score,
                                     "reason": analysis.get('reason'),
