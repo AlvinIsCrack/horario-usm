@@ -120,56 +120,277 @@ export type TagCategory = 'ESTILO' | 'EVALUACION' | 'PERSONALIDAD' | 'MATERIAL' 
 export type TagSentiment = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | 'ALERT';
 
 export interface TagDefinition {
-    id: string;
-    label: string;
-    description: string;
-    category: TagCategory;
-    sentiment: TagSentiment;
+    readonly id: Uppercase<string>;
+    readonly label: string;
+    readonly description: string;
+    readonly category: TagCategory;
+    readonly sentiment: TagSentiment;
 }
 
-export const USM_TAGS = {
-    // --- ESTILO DE ENSEÑANZA (Cualitativo) ---
-    PIZARRON_LOVER: { id: 'PIZARRON_LOVER', label: '100% Pizarra', description: 'Desarrolla toda la clase en pizarra. Ideal para tomar apuntes.', category: 'ESTILO', sentiment: 'NEUTRAL' },
-    PPT_READER: { id: 'PPT_READER', label: 'Lee Diapos', description: 'Se limita a leer literalmente el material visual.', category: 'ESTILO', sentiment: 'NEGATIVE' },
-    DISCUSION_SOCRATICA: { id: 'DISCUSION_SOCRATICA', label: 'Participativo', description: 'Basa la clase en preguntas constantes a los alumnos.', category: 'ESTILO', sentiment: 'NEUTRAL' },
-    APRENDIZAJE_ACTIVO: { id: 'APRENDIZAJE_ACTIVO', label: 'Clase Práctica', description: 'Enfoque en resolución de ejercicios durante la cátedra.', category: 'ESTILO', sentiment: 'POSITIVE' },
-    TEORICO_PURO: { id: 'TEORICO_PURO', label: 'Teórico', description: 'Enfocado en demostraciones, axiomas y fundamentos abstractos.', category: 'ESTILO', sentiment: 'NEUTRAL' },
-    CASOS_REALES: { id: 'CASOS_REALES', label: 'Casos Reales', description: 'Utiliza ejemplos de la industria o actualidad para explicar.', category: 'ESTILO', sentiment: 'POSITIVE' },
+/**
+ * Helper Identity Function para inferencia estricta.
+ * 1. Captura las keys (K) del objeto que pasamos.
+ * 2. Valida que cada propiedad [P in K] tenga un 'id' igual a P (su propia key).
+ * 3. Valida que cumpla con TagDefinition (incluyendo Uppercase).
+ * 4. Retorna el objeto tal cual, pero fuertemente tipado.
+ */
+function createStrictTags<K extends string>(
+    tags: { [P in K]: TagDefinition & { readonly id: P } }
+) {
+    return tags;
+}
+
+export const USM_TAGS = createStrictTags({
+    // --- ESTILO DE ENSEÑANZA ---
+    PIZARRON_LOVER: {
+        id: 'PIZARRON_LOVER',
+        label: 'Pizarra Intensiva',
+        description: 'Desarrolla toda la clase escribiendo en pizarra. Requiere toma de apuntes rápida y presencial.',
+        category: 'ESTILO',
+        sentiment: 'NEUTRAL'
+    },
+    PPT_READER: {
+        id: 'PPT_READER',
+        label: 'Lee Diapositivas',
+        description: 'La clase consiste mayoritariamente en la lectura literal del material visual proyectado, con bajo valor agregado.',
+        category: 'ESTILO',
+        sentiment: 'NEGATIVE'
+    },
+    DISCUSION_SOCRATICA: {
+        id: 'DISCUSION_SOCRATICA',
+        label: 'Te Interroga',
+        description: 'Mantiene la clase activa mediante preguntas directas y constantes a los estudiantes durante la cátedra.',
+        category: 'ESTILO',
+        sentiment: 'NEUTRAL'
+    },
+    APRENDIZAJE_ACTIVO: {
+        id: 'APRENDIZAJE_ACTIVO',
+        label: 'Full Ejercicios',
+        description: 'La cátedra funciona como un taller práctico. Se enfoca mayoritariamente en ejercitar y resolver problemas en clase.',
+        category: 'ESTILO',
+        sentiment: 'POSITIVE'
+    },
+    TEORICO_PURO: {
+        id: 'TEORICO_PURO',
+        label: 'Teórico',
+        description: 'Enfocado en demostraciones, axiomas y fundamentos abstractos, con menor énfasis en la aplicación práctica.',
+        category: 'ESTILO',
+        sentiment: 'NEUTRAL'
+    },
+    CASOS_REALES: {
+        id: 'CASOS_REALES',
+        label: 'Casos Reales',
+        description: 'Utiliza ejemplos de la industria, mercado o noticias de actualidad para explicar la materia.',
+        category: 'ESTILO',
+        sentiment: 'POSITIVE'
+    },
+    GAMIFICADO: {
+        id: 'GAMIFICADO',
+        label: 'Clase lúdica',
+        description: 'Usa herramientas como Kahoot, competencias o dinámicas de juego para enseñar y motivar.',
+        category: 'ESTILO',
+        sentiment: 'POSITIVE'
+    },
+    AULA_INVERTIDA: {
+        id: 'AULA_INVERTIDA',
+        label: 'Aula Invertida',
+        description: 'Debes estudiar antes de asistir. La clase es exclusiva para dudas y ejercicios, no para explicar materia.',
+        category: 'ESTILO',
+        sentiment: 'NEUTRAL'
+    },
 
     // --- PERSONALIDAD & AMBIENTE ---
-    INSPIRADOR: { id: 'INSPIRADOR', label: 'Motivador', description: 'Transmite pasión genuina que motiva a estudiar.', category: 'PERSONALIDAD', sentiment: 'POSITIVE' },
-    SARCASTICO: { id: 'SARCASTICO', label: 'Sarcástico', description: 'Uso frecuente de humor ácido o ironía.', category: 'PERSONALIDAD', sentiment: 'NEGATIVE' },
-    ANECDOTICO: { id: 'ANECDOTICO', label: 'Anecdótico', description: 'Clases ricas en historias y experiencias personales.', category: 'PERSONALIDAD', sentiment: 'NEUTRAL' },
-    CERCANO: { id: 'CERCANO', label: 'Horizontal', description: 'Trato de igual a igual, elimina la barrera jerárquica.', category: 'PERSONALIDAD', sentiment: 'POSITIVE' },
-    INTIMIDANTE: { id: 'INTIMIDANTE', label: 'Intimidante', description: 'Genera tensión o miedo a preguntar en clase.', category: 'PERSONALIDAD', sentiment: 'NEGATIVE' },
+    INSPIRADOR: {
+        id: 'INSPIRADOR',
+        label: 'Apasionado',
+        description: 'Transmite un interés genuino y contagioso por su disciplina que motiva a estudiar.',
+        category: 'PERSONALIDAD',
+        sentiment: 'POSITIVE'
+    },
+    SARCASTICO: {
+        id: 'SARCASTICO',
+        label: 'Sarcástico',
+        description: 'Uso frecuente de ironía y sarcasmo. Puede ser divertido o hiriente según la sensibilidad.',
+        category: 'PERSONALIDAD',
+        sentiment: 'ALERT'
+    },
+    ANECDOTICO: {
+        id: 'ANECDOTICO',
+        label: 'Anecdótico',
+        description: 'Clases ricas en historias personales. A veces divaga del contenido central de la materia.',
+        category: 'PERSONALIDAD',
+        sentiment: 'NEUTRAL'
+    },
+    CERCANO: {
+        id: 'CERCANO',
+        label: 'Cercano',
+        description: 'Elimina la barrera jerárquica. Es accesible, empático y genera confianza para el diálogo.',
+        category: 'PERSONALIDAD',
+        sentiment: 'POSITIVE'
+    },
+    INTIMIDANTE: {
+        id: 'INTIMIDANTE',
+        label: 'Intimidante',
+        description: 'Genera un ambiente tenso o miedo a realizar preguntas en clase por posibles reacciones.',
+        category: 'PERSONALIDAD',
+        sentiment: 'NEGATIVE'
+    },
 
     // --- EVALUACIÓN & FEEDBACK ---
-    // Eliminados: FILTRO (Cubierto por Dificultad:5), BENEVOLENTE (Cubierto por Rigor:1)
-    OPORTUNIDADES: { id: 'OPORTUNIDADES', label: 'Recuperativas', description: 'Ofrece instancias extra oficiales para mejorar notas.', category: 'EVALUACION', sentiment: 'POSITIVE' },
-    BONUS_DECIMAS: { id: 'BONUS_DECIMAS', label: 'Regala Décimas', description: 'Otorga puntos base por participación o tareas menores.', category: 'EVALUACION', sentiment: 'POSITIVE' },
-    AMBIGUO: { id: 'AMBIGUO', label: 'Pauta Confusa', description: 'Criterios de corrección subjetivos o poco claros.', category: 'EVALUACION', sentiment: 'NEGATIVE' },
-    CONTROLES_SORPRESA: { id: 'CONTROLES_SORPRESA', label: 'Sorpresas', description: 'Realiza evaluaciones sin aviso previo.', category: 'EVALUACION', sentiment: 'ALERT' },
-    FEEDBACK_DETALLADO: { id: 'FEEDBACK_DETALLADO', label: 'Buen Feedback', description: 'Entrega correcciones detalladas y formativas en las pruebas.', category: 'EVALUACION', sentiment: 'POSITIVE' },
+    OPORTUNIDADES: {
+        id: 'OPORTUNIDADES',
+        label: 'Recuperativas',
+        description: 'Suele ofrecer trabajos extra, recuperativas o instancias para mejorar notas críticas.',
+        category: 'EVALUACION',
+        sentiment: 'POSITIVE'
+    },
+    BONUS_DECIMAS: {
+        id: 'BONUS_DECIMAS',
+        label: 'Regala Décimas',
+        description: 'Otorga puntos base para pruebas por participación, asistencia o tareas menores.',
+        category: 'EVALUACION',
+        sentiment: 'POSITIVE'
+    },
+    AMBIGUO: {
+        id: 'AMBIGUO',
+        label: 'Pauta Oscura',
+        description: 'Criterios de corrección subjetivos o poco claros. Difícil entender errores o apelar nota.',
+        category: 'EVALUACION',
+        sentiment: 'NEGATIVE'
+    },
+    CONTROLES_SORPRESA: {
+        id: 'CONTROLES_SORPRESA',
+        label: 'Factor Sorpresa',
+        description: 'Realiza evaluaciones con nota sin aviso previo. Obliga a mantener el estudio continuo.',
+        category: 'EVALUACION',
+        sentiment: 'ALERT'
+    },
+    FEEDBACK_DETALLADO: {
+        id: 'FEEDBACK_DETALLADO',
+        label: 'Buen Feedback',
+        description: 'Entrega correcciones detalladas y formativas en las pruebas, explicando los errores.',
+        category: 'EVALUACION',
+        sentiment: 'POSITIVE'
+    },
+    CORRECCION_BINARIA: {
+        id: 'CORRECCION_BINARIA',
+        label: 'Todo o Nada',
+        description: 'No asigna puntaje parcial. Si el resultado final es incorrecto, la pregunta tiene 0 puntos.',
+        category: 'EVALUACION',
+        sentiment: 'NEGATIVE'
+    },
+    CORRECCION_FORMATIVA: {
+        id: 'CORRECCION_FORMATIVA',
+        label: 'Valora Desarrollo',
+        description: 'En pruebas, busca otorgar puntaje por el planteamiento y lógica, aunque el resultado final no sea exacto.',
+        category: 'EVALUACION',
+        sentiment: 'POSITIVE'
+    },
 
     // --- MATERIAL & RECURSOS ---
-    APUNTES_PROPIOS: { id: 'APUNTES_PROPIOS', label: 'Material Propio', description: 'Entrega guías o libros de su autoría de alta calidad.', category: 'MATERIAL', sentiment: 'POSITIVE' },
-    RECURSOS_INGLES: { id: 'RECURSOS_INGLES', label: 'Material en Inglés', description: 'Bibliografía o diapositivas predominantemente en inglés.', category: 'MATERIAL', sentiment: 'ALERT' },
-    CLASES_GRABADAS: { id: 'CLASES_GRABADAS', label: 'Videos', description: 'Disponibiliza grabaciones de las clases.', category: 'MATERIAL', sentiment: 'POSITIVE' },
-    SIN_MATERIAL: { id: 'SIN_MATERIAL', label: 'Sin Apuntes', description: 'No sube material de apoyo; depende 100% de lo copiado en clase.', category: 'MATERIAL', sentiment: 'NEGATIVE' },
+    APUNTES_PROPIOS: {
+        id: 'APUNTES_PROPIOS',
+        label: 'Material Propio',
+        description: 'El curso se basa en un libro o apunte de su autoría de alta calidad. No necesitas más.',
+        category: 'MATERIAL',
+        sentiment: 'POSITIVE'
+    },
+    RECURSOS_INGLES: {
+        id: 'RECURSOS_INGLES',
+        label: 'Material en Inglés',
+        description: 'Bibliografía o diapositivas predominantemente en inglés. Requiere lectura fluida.',
+        category: 'MATERIAL',
+        sentiment: 'ALERT'
+    },
+    CLASES_GRABADAS: {
+        id: 'CLASES_GRABADAS',
+        label: 'Graba Clases',
+        description: 'Disponibiliza grabaciones de video de las cátedras. Recurso fundamental para repaso y estudio asíncrono.',
+        category: 'MATERIAL',
+        sentiment: 'POSITIVE'
+    },
+    SIN_MATERIAL: {
+        id: 'SIN_MATERIAL',
+        label: 'Sin Apuntes',
+        description: 'No sube material al aula virtual. Tu éxito depende 100% de los apuntes tomados en clase.',
+        category: 'MATERIAL',
+        sentiment: 'NEGATIVE'
+    },
+    CANAL_DIGITAL: {
+        id: 'CANAL_DIGITAL',
+        label: 'Usa Discord/Slack',
+        description: 'Mantiene canales de comunicación fluidos y modernos. Respuesta rápida a dudas.',
+        category: 'MATERIAL',
+        sentiment: 'POSITIVE'
+    },
 
     // --- TRAYECTORIA ---
-    EXPERTO_INDUSTRIA: { id: 'EXPERTO_INDUSTRIA', label: 'Industrial', description: 'Amplia experiencia práctica en el sector privado.', category: 'TRAYECTORIA', sentiment: 'POSITIVE' },
-    INVESTIGADOR: { id: 'INVESTIGADOR', label: 'Científico', description: 'Enfoque académico centrado en la investigación y papers.', category: 'TRAYECTORIA', sentiment: 'NEUTRAL' },
-    MENTOR: { id: 'MENTOR', label: 'Mentor', description: 'Ofrece orientación valiosa sobre desarrollo de carrera.', category: 'TRAYECTORIA', sentiment: 'POSITIVE' },
+    EXPERTO_INDUSTRIA: {
+        id: 'EXPERTO_INDUSTRIA',
+        label: 'Enfoque Industrial',
+        description: 'Basa su enseñanza en experiencia práctica del sector privado más que en teoría.',
+        category: 'TRAYECTORIA',
+        sentiment: 'POSITIVE'
+    },
+    INVESTIGADOR: {
+        id: 'INVESTIGADOR',
+        label: 'Perfil Científico',
+        description: 'Enfoque académico riguroso centrado en investigación y papers. Alto nivel de abstracción.',
+        category: 'TRAYECTORIA',
+        sentiment: 'NEUTRAL'
+    },
+    MENTOR: {
+        id: 'MENTOR',
+        label: 'Mentor',
+        description: 'Ofrece orientación valiosa sobre desarrollo de carrera y futuro profesional.',
+        category: 'TRAYECTORIA',
+        sentiment: 'POSITIVE'
+    },
 
     // --- LOGÍSTICA & GESTIÓN ---
-    // Eliminado: PUNTUALIDAD_SUIZA (Cubierto por Puntualidad:5)
-    ASISTENCIA_LIBRE: { id: 'ASISTENCIA_LIBRE', label: 'Asistencia Libre', description: 'No controla asistencia o no es requisito para aprobar.', category: 'LOGISTICA', sentiment: 'POSITIVE' },
-    ASISTENCIA_ESTRICTA: { id: 'ASISTENCIA_ESTRICTA', label: 'Asistencia Forzosa', description: 'Control riguroso y mandatorio de la asistencia.', category: 'LOGISTICA', sentiment: 'ALERT' },
-    CORRECCION_RAPIDA: { id: 'CORRECCION_RAPIDA', label: 'Corrección Flash', description: 'Entrega notas en tiempos muy breves.', category: 'LOGISTICA', sentiment: 'POSITIVE' },
-    CORRECCION_LENTA: { id: 'CORRECCION_LENTA', label: 'Corrección Lenta', description: 'Demora excesiva (meses) en entregar notas.', category: 'LOGISTICA', sentiment: 'NEGATIVE' },
-    CAMBIOS_HORARIO: { id: 'CAMBIOS_HORARIO', label: 'Reprograma', description: 'Frecuente cambio de horarios o suspensiones de clase.', category: 'LOGISTICA', sentiment: 'NEGATIVE' }
-} as const;
+    ASISTENCIA_LIBRE: {
+        id: 'ASISTENCIA_LIBRE',
+        label: 'Asistencia Libre',
+        description: 'No controla asistencia. La responsabilidad de ir o no recae totalmente en el alumno.',
+        category: 'LOGISTICA',
+        sentiment: 'POSITIVE'
+    },
+    ASISTENCIA_ESTRICTA: {
+        id: 'ASISTENCIA_ESTRICTA',
+        label: 'Asistencia Forzosa',
+        description: 'Control riguroso. Faltar implica riesgo de reprobación por reglamento.',
+        category: 'LOGISTICA',
+        sentiment: 'ALERT'
+    },
+    CORRECCION_RAPIDA: {
+        id: 'CORRECCION_RAPIDA',
+        label: 'Corrección Flash',
+        description: 'Entrega notas en tiempos muy breves, reduciendo la ansiedad.',
+        category: 'LOGISTICA',
+        sentiment: 'POSITIVE'
+    },
+    CORRECCION_LENTA: {
+        id: 'CORRECCION_LENTA',
+        label: 'Corrección Lenta',
+        description: 'Demora excesiva en entregar notas. Genera incertidumbre crítica durante el semestre.',
+        category: 'LOGISTICA',
+        sentiment: 'NEGATIVE'
+    },
+    CAMBIOS_HORARIO: {
+        id: 'CAMBIOS_HORARIO',
+        label: 'Reprograma',
+        description: 'Frecuente cambio de horarios o suspensiones de clase. Logística impredecible.',
+        category: 'LOGISTICA',
+        sentiment: 'NEGATIVE'
+    },
+    FORMULARIO_PERMITIDO: {
+        id: 'FORMULARIO_PERMITIDO',
+        label: 'Usa Torpedo',
+        description: 'Permite uso de formulario o resumen en las pruebas. Evalúa comprensión, no memoria.',
+        category: 'LOGISTICA',
+        sentiment: 'POSITIVE'
+    },
+});
 
 export type TagId = keyof typeof USM_TAGS;
 

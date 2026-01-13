@@ -139,8 +139,6 @@
 		if (scrollContainer) scrollContainer.scrollTop = 0;
 	});
 
-	// ... [Funciones del Modal: openEvaluationModal, closeEvaluationModal, toggleTag, handleSubmit...]
-	// (MANTENLAS IGUAL, NO CAMBIAN)
 	function openEvaluationModal(prof: any) {
 		selectedProfessor = prof;
 		formValues = { metrics: getInitialMetrics(), tags: [], comment: '' };

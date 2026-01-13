@@ -6,10 +6,10 @@
 	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
 
 	const UPDATES = {
-		'Nuevas etiquetas de calificación de profesores': {
+		'Nuevas etiquetas y sistema visual de calificación': {
 			icon: RiEmotionHappyFill,
 			description:
-				'Se mejoraron los nombres y descripciones de cada nivel de nota para que se entienda exactamente qué significan, sin confusiones. También hay nuevos iconos para facilitar la lectura visual de cada categoría.'
+				'Rediseño total de la semántica y visualización de notas. Se mejoraron nombres y descripciones para eliminar ambigüedades, junto con un nuevo sistema de iconos dinámicos. Además, hay nuevas etiquetas para catalogar a los profesores.'
 		},
 		'Corrección en el desbloqueo de malla': {
 			icon: MaterialSymbolsToolsWrench,
@@ -30,9 +30,9 @@
 		// - Pausa el contador entre las 00:00 y las 06:00
 		const tracker = new SmartReadTracker({
 			storageKey: 'app_changelog_seen',
-			thresholdHours: 8,
+			thresholdHours: 4,
 			nightStartHour: 0,
-			nightEndHour: 6
+			nightEndHour: 7
 		});
 
 		// Procesamos las llaves y obtenemos cuáles son nuevas

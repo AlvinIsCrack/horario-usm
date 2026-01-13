@@ -3,11 +3,11 @@
 	import { tv } from 'tailwind-variants';
 
 	const toggle = tv({
-		base: 'group relative inline-flex items-center justify-center gap-1.5 rounded-md border text-xs font-bold transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer select-none',
+		base: 'group relative inline-flex items-center justify-center gap-1.5 rounded-md border text-xs font-bold transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer select-none shadow-sm/50',
 		variants: {
 			pressed: {
 				true: 'shadow-sm',
-				false: 'bg-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+				false: 'bg-card text-muted-foreground hover:bg-accent hover:text-accent-foreground'
 			},
 			variant: {
 				default: '',
@@ -31,17 +31,17 @@
 			{
 				pressed: false,
 				variant: 'success',
-				class: 'text-green-50 bg-green-500/10 hover:bg-green-600/30'
+				class: 'text-green-50 bg-green-500/20 hover:bg-green-600/40'
 			},
 			{
 				pressed: false,
 				variant: 'warning',
-				class: 'text-amber-50 bg-amber-500/10 hover:bg-amber-500/30'
+				class: 'text-amber-50 bg-amber-500/20 hover:bg-amber-500/40'
 			},
 			{
 				pressed: false,
 				variant: 'danger',
-				class: 'text-red-50 bg-red-500/10 hover:bg-red-500/30'
+				class: 'text-red-50 bg-red-500/20 hover:bg-red-500/40'
 			},
 
 			// --- ESTADO ACTIVO (Pressed) ---
@@ -58,7 +58,7 @@
 			{
 				pressed: true,
 				variant: 'warning',
-				class: 'bg-amber-500 text-white hover:bg-amber-600'
+				class: 'bg-amber-600 text-white hover:bg-amber-700'
 			},
 			{
 				pressed: true,

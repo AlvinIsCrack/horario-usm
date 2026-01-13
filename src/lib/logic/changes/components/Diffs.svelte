@@ -427,9 +427,9 @@
 	onMount(() => {
 		const tracker = new SmartReadTracker({
 			storageKey: 'app_diffs_seen',
-			thresholdHours: 8,
+			thresholdHours: 2,
 			nightStartHour: 0,
-			nightEndHour: 6
+			nightEndHour: 7
 		});
 
 		// Extraemos todos los timestamps de todos los grupos del historial

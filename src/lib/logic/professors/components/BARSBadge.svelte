@@ -29,6 +29,17 @@
 	import MaterialSymbolsEditSharp from '$lib/icons/MaterialSymbolsEditSharp.svelte';
 	import IcBaselineEdit from '$lib/icons/IcBaselineEdit.svelte';
 	import IcOutlineDriveFileRenameOutline from '$lib/icons/IcOutlineDriveFileRenameOutline.svelte';
+	import MdiMessageProcessing from '$lib/icons/MdiMessageProcessing.svelte';
+	import MdiMessageFlash from '$lib/icons/MdiMessageFlash.svelte';
+	import MaterialSymbolsElectricBoltRounded from '$lib/icons/MaterialSymbolsElectricBoltRounded.svelte';
+	import StreamlineJusticeHammerRemix from '$lib/icons/StreamlineJusticeHammerRemix.svelte';
+	import TablerLinkOff from '$lib/icons/TablerLinkOff.svelte';
+	import TablerLink from '$lib/icons/TablerLink.svelte';
+	import TablerLinkPlus from '$lib/icons/TablerLinkPlus.svelte';
+	import TablerHeartOff from '$lib/icons/TablerHeartOff.svelte';
+	import TablerHeartHandshake from '$lib/icons/TablerHeartHandshake.svelte';
+	import TablerHeartFilled from '$lib/icons/TablerHeartFilled.svelte';
+	import TablerFeatherFilled from '$lib/icons/TablerFeatherFilled.svelte';
 
 	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
 
@@ -80,9 +91,9 @@
 		claridad_expositiva: {
 			1: MdiMessageQuestion,
 			2: MdiMessageQuestion,
-			3: MdiAndroidMessages,
-			4: MdiAndroidMessages,
-			5: MdiAndroidMessages
+			3: MdiMessageProcessing,
+			4: MdiMessageProcessing,
+			5: MdiMessageFlash
 		},
 		gestion_tiempo: {
 			1: MaterialSymbolsAlarmOff,
@@ -95,22 +106,22 @@
 		rigor_calificatorio: {
 			1: MingcuteAngelFill,
 			2: MingcuteAngelFill,
-			3: IcOutlineDriveFileRenameOutline,
-			4: IcOutlineDriveFileRenameOutline,
-			5: IcOutlineDriveFileRenameOutline
+			3: StreamlineJusticeHammerRemix,
+			4: StreamlineJusticeHammerRemix,
+			5: StreamlineJusticeHammerRemix
 		},
 		coherencia_evaluativa: {
-			1: MdiScaleUnbalanced,
-			2: MdiScaleUnbalanced,
-			3: MaterialSymbolsBalance,
-			4: MaterialSymbolsBalance,
-			5: MaterialSymbolsBalance
+			1: TablerLinkOff,
+			2: TablerLinkOff,
+			3: TablerLink,
+			4: TablerLink,
+			5: TablerLinkPlus
 		},
 		dificultad_percibida: {
-			1: MaterialSymbolsNestEcoLeaf,
-			2: MaterialSymbolsNestEcoLeaf,
-			3: MaterialSymbolsWeight,
-			4: MaterialSymbolsWeight,
+			1: TablerFeatherFilled,
+			2: TablerFeatherFilled,
+			3: MaterialSymbolsElectricBoltRounded,
+			4: MaterialSymbolsElectricBoltRounded,
 			5: MaterialSymbolsLocalFireDepartmentRounded
 		},
 
@@ -122,11 +133,11 @@
 			5: RiEmotionLaughFill
 		},
 		accesibilidad: {
-			1: IcBaselineHeartBroken,
-			2: IcBaselineHeartBroken,
-			3: MaterialSymbolsFavorite,
-			4: MaterialSymbolsFavorite,
-			5: MaterialSymbolsFavorite
+			1: TablerHeartOff,
+			2: TablerHeartOff,
+			3: TablerHeartHandshake,
+			4: TablerHeartHandshake,
+			5: TablerHeartFilled
 		}
 	};
 
@@ -270,14 +281,15 @@
 	}
 
 	.animate-shimmer {
-		animation: shimmer 2s infinite cubic-bezier(0.15, 0.66, 0.28, 0.95);
+		animation: shimmer 2s infinite cubic-bezier(0.15, 0.65, 0.25, 1);
 		background: linear-gradient(
 			to right,
-			transparent,
-			rgba(255, 255, 255, 0.25) 20%,
-			rgba(255, 255, 255, 1) 50%,
-			rgba(255, 255, 255, 0.1) 60%,
-			transparent
+			rgba(255, 255, 255, 0.1),
+			rgba(255, 255, 255, 0.9) 25%,
+			/* Primera barra */ transparent 35%,
+			transparent 45%,
+			/* Espacio entre barras */ rgba(255, 255, 255, 0.6) 60%,
+			/* Segunda barra (más sutil) */ transparent 75%
 		);
 	}
 </style>
