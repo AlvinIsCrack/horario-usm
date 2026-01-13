@@ -1,6 +1,7 @@
-import { SAVED_HORARIOS, STORAGE_CARRERA, STORAGE_JORNADA, STORAGE_SEDE, STORAGE_SEMESTRE, STORAGE_TIEMPO_TRASLADO } from "$lib/constants/ids";
-import { generateColorForRamo } from "$lib/helpers/colors.svelte";
-import { type Ramo, Días, type Bloque, TipoBloque } from "$lib/types/horario";
+import { SAVED_HORARIOS } from "$lib/constants/ids";
+import { Config } from "$lib/logic/config/store.svelte";
+import { generateColorForRamo } from "$lib/logic/ramos/colors";
+import { type Ramo, Días, type Bloque } from "$lib/types/horario";
 import Color from "color";
 import { tick } from "svelte";
 
@@ -22,12 +23,6 @@ interface SavedHorarios {
 
 
 // --- ESTADO Y CÁLCULOS DERIVADOS REACTIVOS ---
-
-let _jornada: string = $state("");
-let _sede: string = $state("");
-let _semestre: string = $state("");
-let _carrera: string = $state("");
-let _tiempoTraslado: number = $state(60);
 
 let _ramoPreview: Ramo | undefined = $state(undefined);
 let _ramos: Ramo[] = $state([]);
@@ -124,38 +119,7 @@ let _ventanas = $derived.by(() => {
 export const Calendario = {
     init(localStorage: any) {
         _savedHorarios = localStorage.getItem(SAVED_HORARIOS) ? JSON.parse(localStorage.getItem(SAVED_HORARIOS)!) : [];
-        _sede = localStorage.getItem(STORAGE_SEDE) ?? "";
-        _jornada = localStorage.getItem(STORAGE_JORNADA) ?? "";
-        _semestre = localStorage.getItem(STORAGE_SEMESTRE) ?? "";
-        _carrera = localStorage.getItem(STORAGE_CARRERA) ?? "";
-        const savedTraslado = localStorage.getItem(STORAGE_TIEMPO_TRASLADO);
-        _tiempoTraslado = savedTraslado ? parseInt(savedTraslado) : 60;
         _initialized = true;
-    },
-
-    get sede() {
-        return _sede;
-    },
-
-    get jornada() {
-        return _jornada;
-    },
-
-    get semestre() {
-        return _semestre;
-    },
-
-    get carrera() {
-        return _carrera;
-    },
-
-    get tiempoTraslado() {
-        return _tiempoTraslado;
-    },
-
-    set tiempoTraslado(minutos: number) {
-        _tiempoTraslado = minutos;
-        localStorage.setItem(STORAGE_TIEMPO_TRASLADO, minutos.toString());
     },
 
     get ramos(): Ramo[] {
@@ -172,33 +136,6 @@ export const Calendario = {
 
     get visible() {
         return _calendarioVisible;
-    },
-
-    set sede(sede: string) {
-        if (_lockedLocation) return;
-        _sede = sede;
-        localStorage.setItem(STORAGE_SEDE, sede);
-    },
-
-    set jornada(jornada: string) {
-        if (_lockedLocation) return;
-        _jornada = jornada;
-        localStorage.setItem(STORAGE_JORNADA, jornada);
-    },
-
-    set semestre(semestre: string) {
-        if (_lockedLocation) return;
-        _semestre = semestre;
-        localStorage.setItem(STORAGE_SEMESTRE, semestre);
-    },
-
-    set ramos(nuevosRamos: Ramo[]) {
-        throw new Error("Esto no se puede usar!");
-    },
-
-    set carrera(carrera: string) {
-        _carrera = carrera;
-        localStorage.setItem(STORAGE_CARRERA, carrera);
     },
 
     get ventanas() {
@@ -300,9 +237,9 @@ export const Calendario = {
             ..._savedHorarios, [key]: {
                 version: 1,
                 meta: {
-                    sede: _sede,
-                    jornada: _jornada,
-                    semestre: _semestre,
+                    sede: Config.sede,
+                    jornada: Config.jornada,
+                    semestre: Config.semestre,
                     exportedAt: new Date()
                 },
                 ramos: _ramos.map(r => ({
@@ -324,9 +261,9 @@ export const Calendario = {
             return false;
         }
 
-        _sede = parsed.meta.sede ?? "";
-        _jornada = parsed.meta.jornada ?? "";
-        _semestre = parsed.meta.semestre ?? "";
+        Config.sede = parsed.meta.sede ?? "";
+        Config.jornada = parsed.meta.jornada ?? "";
+        Config.semestre = parsed.meta.semestre ?? "";
 
         const [, Data] = await Promise.all([
             tick(),

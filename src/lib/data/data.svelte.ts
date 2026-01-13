@@ -1,10 +1,10 @@
-import { Calendario } from "$lib/states/calendario.svelte";
 import type { Ramo, RamoPrograma, Carrera, RamoCarrera } from "$lib/types/horario";
 import _ASIGNATURAS from "./horario_asignaturas.json";
 import _CARRERAS from "./planes_carreras.json";
 import _METADATA from "./metadata.json";
 import _PROGRAMAS from "./programas_academicos.json";
 import dayjs from "dayjs";
+import { Config } from "$lib/logic/config/store.svelte";
 
 //@ts-ignore
 const ASIGNATURAS: {
@@ -134,10 +134,10 @@ const _departamentos = Array.from(
     )
 ).sort((a, b) => a.localeCompare(b, 'es')); // Orden alfabético correcto en español
 
-const _cachedRamos = $derived(ASIGNATURAS[Calendario?.sede]?.[Calendario.jornada]?.[Calendario.semestre] ?? []);
+const _cachedRamos = $derived(ASIGNATURAS[Config?.sede]?.[Config.jornada]?.[Config.semestre] ?? []);
 const _cachedCarreras = $derived(CARRERAS.filter(carrera => {
-    const sede = Calendario.sede;
-    const jornada = Calendario.jornada;
+    const sede = Config.sede;
+    const jornada = Config.jornada;
     return carrera.sede === sede && (!jornada || carrera.jornada === jornada);
 }));
 // Se reemplaza la lectura de la fecha desde ASIGNATURAS por la de METADATA

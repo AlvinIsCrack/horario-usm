@@ -13,7 +13,7 @@ export const PLAN_CUSTOM_NAMES: Record<string, string> = {
 export function fetchMallaData(planId: string): Malla {
     if (!planId) return [];
 
-    for (const carrera of planesRaw) {
+    for (const carrera of planesRaw as any) {
         for (const sedeKey in carrera['menciones/especialidades'] || {}) {
             // @ts-ignore
             const planes = carrera['menciones/especialidades'][sedeKey]?.planes;
@@ -49,8 +49,8 @@ export function getCareerOptions(sedeActual: string, jornadaActual: string) {
     const opts: { label: string; value: string; plan: string; }[] = [];
     const seenIds = new Set<string>();
 
+    //@ts-ignore
     planesRaw.forEach((carrera) => {
-        // CAMBIO: Validación inicial. Si no tiene nombre o es inválida, se salta.
         if (!carrera || !carrera.nombre) return;
 
         const menciones = carrera['menciones/especialidades'] || {};

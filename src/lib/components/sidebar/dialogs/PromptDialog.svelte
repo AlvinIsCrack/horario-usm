@@ -16,6 +16,7 @@
 	import MaterialSymbolsLinkRounded from '$lib/icons/MaterialSymbolsLinkRounded.svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
 </script>
 
 <DialogComponent bind:open class="max-w-md gap-0 p-0">
@@ -29,7 +30,7 @@
 
 	<div class="flex max-h-[50vh] flex-col gap-2 overflow-y-auto p-4">
 		{#each Calendario.ramos as ramo}
-			{@const prog = Data.getProgramaRamo(Calendario.sede, ramo.sigla)}
+			{@const prog = Data.getProgramaRamo(Config.sede, ramo.sigla)}
 
 			<Button
 				class="bg-muted/10 group flex! items-center! justify-between! {prog?.programa

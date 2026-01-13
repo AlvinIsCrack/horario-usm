@@ -18,6 +18,7 @@
 	import { ImageDialog } from '../dialogs/ImageDialog.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
 	import { PromptDialog } from '../dialogs/PromptDialog.svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
 </script>
 
 <Menu align="end">
@@ -32,14 +33,14 @@
 	<MenuItem
 		disabled={!Calendario.ramos.length}
 		onclick={async () => {
-			const tiempoNoInformado = Calendario.tiempoTraslado === -1;
-			const tiempoTraslado = tiempoNoInformado ? 60 : Calendario.tiempoTraslado;
+			const tiempoNoInformado = Config.tiempoTraslado === -1;
+			const tiempoTraslado = tiempoNoInformado ? 60 : Config.tiempoTraslado;
 
 			const context = {
 				ramos: Calendario.ramos,
-				sede: Calendario.sede,
-				jornada: Calendario.jornada,
-				semestre: Calendario.semestre,
+				sede: Config.sede,
+				jornada: Config.jornada,
+				semestre: Config.semestre,
 				tiempoTraslado: tiempoTraslado,
 				esTiempoEstimado: tiempoNoInformado,
 				ventanas: Calendario.ventanas

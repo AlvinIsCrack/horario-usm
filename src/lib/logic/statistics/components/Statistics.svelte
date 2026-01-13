@@ -11,26 +11,27 @@
 	// Importamos SOLO la fachada y los tipos necesarios
 	import { generateScheduleStatistics } from '$lib/logic/statistics/index';
 	import type { StatItem, AnalyzerContext } from '$lib/logic/statistics/types';
+	import { Config } from '$lib/logic/config/store.svelte';
 
 	let statistics: StatItem[] = $state([]);
 	// let updated = $state(false);
 
 	$effect(() => {
 		// Dependencias reactivas
-		const _ = [Calendario.ramos, SideBar.activeWindow, Calendario.tiempoTraslado];
+		const _ = [Calendario.ramos, SideBar.activeWindow, Config.tiempoTraslado];
 
 		if (SideBar.activeWindow) return;
 
 		untrack(() => {
-			const tiempoNoInformado = Calendario.tiempoTraslado === -1;
-			const TIEMPO_TRASLADO_MINS = tiempoNoInformado ? 60 : Calendario.tiempoTraslado;
+			const tiempoNoInformado = Config.tiempoTraslado === -1;
+			const TIEMPO_TRASLADO_MINS = tiempoNoInformado ? 60 : Config.tiempoTraslado;
 
 			// 1. Construcción del Contexto (Única responsabilidad del componente)
 			const context: AnalyzerContext = {
 				ramos: Calendario.ramos,
-				sede: Calendario.sede,
-				jornada: Calendario.jornada,
-				semestre: Calendario.semestre,
+				sede: Config.sede,
+				jornada: Config.jornada,
+				semestre: Config.semestre,
 				tiempoTraslado: TIEMPO_TRASLADO_MINS,
 				esTiempoEstimado: tiempoNoInformado,
 				ventanas: Calendario.ventanas

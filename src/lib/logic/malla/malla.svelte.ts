@@ -1,8 +1,8 @@
-import { onMount } from 'svelte';
 import { fetchMallaData } from './data';
 import type { Malla, RamoMalla } from './types';
 import { Calendario } from '$lib/states/calendario.svelte';
 import { Data } from '$lib/data/data.svelte';
+import { Config } from '../config/store.svelte';
 
 export class MallaState {
     _selectedSede = $state<string>('');
@@ -37,8 +37,8 @@ export class MallaState {
     // Malla procesada con lógica de bloqueos y relaciones
     currentMalla = $derived.by(() => {
         if (!this.rawMalla.length) return [];
-
         const existingSiglas = new Set(this.rawMalla.flat().map((r) => r.sigla));
+
         return this.rawMalla.map((semestre) => {
             return semestre.map((ramo) => {
                 const isChecked = this.approvedSigs.has(ramo.sigla);
@@ -48,13 +48,13 @@ export class MallaState {
                 if (!isChecked && ramo.requisitos.length > 0) {
                     const isUnlocked = ramo.requisitos.some((grupoAnd) => {
                         const validReqs = grupoAnd.filter((r) => r && r.sigla);
+                        if (validReqs.some(r => !existingSiglas.has(r.sigla))) return false;
                         if (validReqs.length === 0) return true;
 
                         return validReqs.every((reqObj) => {
-                            if (reqObj.tipo === 'CO') return true; // Co-requisitos no bloquean
+                            if (reqObj.tipo === 'CO') return true;
                             const reqSigla = reqObj.sigla;
                             if (this.approvedSigs.has(reqSigla)) return true;
-                            if (!existingSiglas.has(reqSigla)) return true;
                             return false;
                         });
                     });
@@ -138,19 +138,19 @@ export class MallaState {
             if (saved) {
                 try {
                     const data = JSON.parse(saved);
-                    this._selectedSede = data.sede || Calendario.sede;
-                    this._selectedJornada = data.jornada || Calendario.jornada;
+                    this._selectedSede = data.sede || Config.sede;
+                    this._selectedJornada = data.jornada || Config.jornada;
                     this.selectedPlanId = data.planId || '';
                     this.approvedSigs = new Set(data.approved || []);
                     this.customNames = data.customNames || {};
                 } catch (e) {
                     console.error('Error loading state', e);
-                    this._selectedSede = Calendario.sede;
-                    this._selectedJornada = Calendario.jornada;
+                    this._selectedSede = Config.sede;
+                    this._selectedJornada = Config.jornada;
                 }
             } else {
-                this._selectedSede = Calendario.sede;
-                this._selectedJornada = Calendario.jornada;
+                this._selectedSede = Config.sede;
+                this._selectedJornada = Config.jornada;
             }
         }
 

@@ -12,6 +12,7 @@
 	import { MallaState } from '$lib/logic/malla/malla.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { tick, untrack } from 'svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
 
 	// SE ELIMINÓ inputStyle porque ahora usamos clases directas
 
@@ -75,8 +76,8 @@
 	// Compatibilidad: plan seleccionado y coincidencia de Sede/Jornada
 	const isMallaCompatible = $derived(
 		!!mallaState.selectedPlanId &&
-			mallaState.selectedSede === Calendario.sede &&
-			mallaState.selectedJornada === Calendario.jornada
+			mallaState.selectedSede === Config.sede &&
+			mallaState.selectedJornada === Config.jornada
 	);
 
 	// Resetear filtro si deja de ser compatible
@@ -266,7 +267,7 @@
 		>
 			<div class="relative p-3 px-4 text-sm">
 				<p>
-					Para el semestre <span class="highlight">{Calendario.semestre}</span> hay
+					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
 				</p>
 
@@ -317,7 +318,7 @@
 				{#if items.length === 0}
 					<li class="text-muted-foreground p-4 text-sm">
 						{#if query}
-							No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Calendario.semestre},
+							No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Config.semestre},
 							y comprueba si el ramo que buscas tiene registrado horario para ese semestre.
 						{:else}
 							Escribe para empezar a filtrar ramos.
@@ -329,7 +330,7 @@
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
-						{@const programa = Data.getProgramaRamo(Calendario.sede, sigla)}
+						{@const programa = Data.getProgramaRamo(Config.sede, sigla)}
 
 						<li
 							bind:this={itemNodes[i]}

@@ -9,14 +9,14 @@
 	import Lock from '$lib/icons/lock.svelte';
 	import Warning from '$lib/icons/warning.svelte';
 	import { fade } from 'svelte/transition';
-	import Tooltip from '../../../components/ui/Tooltip.svelte';
+	import { Config } from '../store.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
 	let lockedLocation: boolean = $derived(Calendario.lockedLocation);
-	let selectedSede: string = $state(Calendario.sede);
-	let selectedJornada: string = $state(Calendario.jornada);
-	let selectedSemestre: string = $state(Calendario.semestre);
+	let selectedSede: string = $state(Config.sede);
+	let selectedJornada: string = $state(Config.jornada);
+	let selectedSemestre: string = $state(Config.semestre);
 
 	// Actualiza la jornada cuando cambia la sede
 	$effect(() => {
@@ -45,9 +45,9 @@
 	// Este efecto se ejecuta cada vez que cualquiera de las variables de estado cambian
 	$effect(() => {
 		if (lockedLocation) return;
-		Calendario.sede = selectedSede;
-		Calendario.jornada = selectedJornada;
-		Calendario.semestre = selectedSemestre;
+		Config.sede = selectedSede;
+		Config.jornada = selectedJornada;
+		Config.semestre = selectedSemestre;
 	});
 
 	let semestres = $derived(
@@ -73,7 +73,7 @@
 		(sedeMap.find(([fn]) => fn(selectedSede)) as SedeMatcher)?.[1] || 'campus_san_joaquin.jpg'
 	);
 	const isVespertina = $derived(selectedJornada === 'Vespertina');
-	const invalid = $derived(!Calendario.sede);
+	const invalid = $derived(!Config.sede);
 </script>
 
 <div class="relative h-fit w-full opacity-100 duration-400 starting:opacity-0">

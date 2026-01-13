@@ -6,9 +6,9 @@
 	import { tv } from 'tailwind-variants';
 	import Tooltip from '../../../components/ui/Tooltip.svelte';
 	import Badge from '../../../components/ui/Badge.svelte';
-	import { Calendario } from '$lib/states/calendario.svelte';
 	import { onMount } from 'svelte';
 	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
+	import { Config } from '$lib/logic/config/store.svelte';
 
 	dayjs.extend(relativeTime);
 	dayjs.locale('es');
@@ -192,8 +192,8 @@
 	}
 
 	let historial = $derived.by(() => {
-		const sede = Calendario.sede;
-		const jornada = Calendario.jornada;
+		const sede = Config.sede;
+		const jornada = Config.jornada;
 
 		if (!sede || !jornada) return [];
 
@@ -440,7 +440,7 @@
 	});
 </script>
 
-{#if Calendario.sede && Calendario.jornada}
+{#if Config.sede && Config.jornada}
 	<section
 		class={s.container({ expanded: isExpanded })}
 		onmouseenter={handleMouseEnter}
@@ -448,7 +448,7 @@
 	>
 		<div class="-mb-4 px-1">
 			<h1 class="text-foreground text-sm font-bold uppercase">
-				Cambios de siga para {Calendario.sede}
+				Cambios de siga para {Config.sede}
 			</h1>
 		</div>
 

@@ -48,7 +48,7 @@
 		size,
 		class: _class,
 		...props
-	}: HTMLSelectAttributes & {
+	}: Omit<HTMLSelectAttributes, 'size'> & {
 		items: { label?: string; value: string }[];
 		size?: keyof typeof selectTrigger.variants.size;
 	} = $props();

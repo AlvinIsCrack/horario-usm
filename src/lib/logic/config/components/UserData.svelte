@@ -1,17 +1,17 @@
 <script lang="ts">
 	import Card from '$lib/components/ui/Card.svelte';
 	import Slider from '$lib/components/ui/Slider.svelte';
-	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { fade } from 'svelte/transition';
 	import Tooltip from '../../../components/ui/Tooltip.svelte';
+	import { Config } from '../store.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
-	let value = $state(Calendario.tiempoTraslado < 0 ? 60 : Calendario.tiempoTraslado);
+	let value = $state(Config.tiempoTraslado < 0 ? 60 : Config.tiempoTraslado);
 
 	$effect(() => {
-		Calendario.tiempoTraslado = value;
+		Config.tiempoTraslado = value;
 	});
 
 	const ticks = [

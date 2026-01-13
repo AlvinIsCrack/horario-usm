@@ -4,19 +4,19 @@
 	import Card from '$lib/components/ui/Card.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { Data } from '$lib/data/data.svelte';
-	import { generateColorForRamo } from '$lib/helpers/colors.svelte';
 	import Circles from '$lib/icons/circles.svelte';
 	import Clip from '$lib/icons/clip.svelte';
 	import Ticket from '$lib/icons/ticket.svelte';
-	import { Calendario } from '$lib/states/calendario.svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
+	import { generateColorForRamo } from '$lib/logic/ramos/colors';
 
 	let { sigla }: { sigla: string } = $props();
 	const ramo = $derived(Object.values(Data.cachedRamos[sigla]).at(0));
 	const [carrera, programa] = $derived.by(() => {
 		if (!ramo) return [null, null];
 		return [
-			Data.getInfoRamoCarrera(ramo.sigla, Calendario.sede, Calendario.jornada),
-			Data.getProgramaRamo(Calendario.sede, ramo.sigla)
+			Data.getInfoRamoCarrera(ramo.sigla, Config.sede, Config.jornada),
+			Data.getProgramaRamo(Config.sede, ramo.sigla)
 		];
 	});
 </script>

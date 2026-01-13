@@ -50,6 +50,7 @@
 	import SedeSelector from '../../logic/config/components/SedeSelector.svelte';
 	import UserData from '../../logic/config/components/UserData.svelte';
 	import ImageDialog from './dialogs/ImageDialog.svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
 </script>
 
 <div
@@ -63,7 +64,7 @@
 				class="flex h-full w-full flex-col gap-2 {activeWindow ? 'pointer-events-none' : ''}"
 			>
 				<div class="h-min w-full">
-					{#if Calendario.sede}
+					{#if Config.sede}
 						<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
 							<SidebarButton
 								text="Añadir ramo"

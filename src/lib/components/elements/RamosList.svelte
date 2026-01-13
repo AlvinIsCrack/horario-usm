@@ -11,11 +11,10 @@
 	import { SideBar } from '../sidebar/SideBar.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
+	import { Config } from '$lib/logic/config/store.svelte';
 
 	const ramosCarrera: (RamoCarrera | undefined)[] = $derived(
-		Calendario.ramos.map((r) =>
-			Data.getInfoRamoCarrera(r.sigla, Calendario.sede, Calendario.jornada)
-		)
+		Calendario.ramos.map((r) => Data.getInfoRamoCarrera(r.sigla, Config.sede, Config.jornada))
 	);
 
 	// 1. Calculamos el total de SCT en una variable reactiva limpia

@@ -40,6 +40,17 @@
 	import TablerHeartHandshake from '$lib/icons/TablerHeartHandshake.svelte';
 	import TablerHeartFilled from '$lib/icons/TablerHeartFilled.svelte';
 	import TablerFeatherFilled from '$lib/icons/TablerFeatherFilled.svelte';
+	import TablerPuzzleOff from '$lib/icons/TablerPuzzleOff.svelte';
+	import MdiPuzzle from '$lib/icons/MdiPuzzle.svelte';
+	import MdiPuzzlePlus from '$lib/icons/MdiPuzzlePlus.svelte';
+	import TablerClock from '$lib/icons/TablerClock.svelte';
+	import TablerClockBolt from '$lib/icons/TablerClockBolt.svelte';
+	import TablerClockQuestion from '$lib/icons/TablerClockQuestion.svelte';
+	import TablerMessageBolt from '$lib/icons/TablerMessageBolt.svelte';
+	import TablerMessagePlus from '$lib/icons/TablerMessagePlus.svelte';
+	import TablerMessageMinus from '$lib/icons/TablerMessageMinus.svelte';
+	import TablerMessageQuestion from '$lib/icons/TablerMessageQuestion.svelte';
+	import TablerMessage from '$lib/icons/TablerMessage.svelte';
 
 	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
 
@@ -89,18 +100,18 @@
 
 	const ICON_MAP: Record<string, { 1: any; 2: any; 3: any; 4: any; 5: any }> = {
 		claridad_expositiva: {
-			1: MdiMessageQuestion,
-			2: MdiMessageQuestion,
-			3: MdiMessageProcessing,
-			4: MdiMessageProcessing,
-			5: MdiMessageFlash
+			1: TablerMessageQuestion,
+			2: TablerMessageMinus,
+			3: TablerMessage,
+			4: TablerMessagePlus,
+			5: TablerMessageBolt
 		},
 		gestion_tiempo: {
-			1: MaterialSymbolsAlarmOff,
-			2: MaterialSymbolsAlarmOff,
-			3: MaterialSymbolsAlarmOutline,
-			4: MaterialSymbolsAlarmOutline,
-			5: MaterialSymbolsAlarmOn
+			1: TablerClockQuestion,
+			2: TablerClockQuestion,
+			3: TablerClock,
+			4: TablerClock,
+			5: TablerClockBolt
 		},
 
 		rigor_calificatorio: {
@@ -111,11 +122,11 @@
 			5: StreamlineJusticeHammerRemix
 		},
 		coherencia_evaluativa: {
-			1: TablerLinkOff,
-			2: TablerLinkOff,
-			3: TablerLink,
-			4: TablerLink,
-			5: TablerLinkPlus
+			1: TablerPuzzleOff,
+			2: TablerPuzzleOff,
+			3: MdiPuzzle,
+			4: MdiPuzzle,
+			5: MdiPuzzlePlus
 		},
 		dificultad_percibida: {
 			1: TablerFeatherFilled,
