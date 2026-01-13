@@ -5,13 +5,10 @@
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/logic/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/logic/professors/repository.svelte';
 	import { hasPendingReview } from '$lib/logic/reviews/api';
-	import { onMount, tick } from 'svelte';
+	import { onMount } from 'svelte';
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
 	import { fade } from 'svelte/transition';
-	import MaterialSymbolsVerifiedRounded from '$lib/icons/MaterialSymbolsVerifiedRounded.svelte';
-	import Info from '$lib/icons/info.svelte';
-	import MaterialSymbolsVerifiedOff from '$lib/icons/MaterialSymbolsVerifiedOff.svelte';
 	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
 	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
 	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
@@ -48,11 +45,60 @@
 		return '+1 año';
 	}
 
-	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
-	const isUnrated = $derived((renderData?.sampleMeta.reviewCount ?? 0) === 0);
-	const isSolid = $derived(isUnrated ? false : (renderData?.sampleMeta.reviewCount ?? 0) >= 5);
-	const isArchived = $derived(renderData?.sampleMeta.isArchived);
+	const status = $derived.by(() => {
+		const meta = renderData?.sampleMeta;
+		// 1. Prioridad: Archivado
+		if (meta?.isArchived) return 'ARCHIVED';
 
+		const count = meta?.reviewCount ?? 0;
+		// 2. Niveles de confianza por cantidad de votos
+		if (count === 0) return 'UNRATED';
+		if (count < 3) return 'PRELIMINARY';
+		if (count < 6) return 'SOLID';
+		return 'HIGHLIGHTED'; // Nuevo nivel (6+ votos)
+	});
+
+	// [NUEVO] Configuración UI Driven (Single Source of Truth para estilos)
+	const STATUS_UI = {
+		ARCHIVED: {
+			bg: 'bg-red-500/20',
+			icon: MaterialSymbolsSearchActivityRounded,
+			iconClass: 'text-rose-500',
+			label: 'Archivado',
+			confidence: 'insuficiente'
+		},
+		UNRATED: {
+			bg: 'bg-accent',
+			icon: OcticonUnverified16,
+			iconClass: 'text-muted-foreground/50', // Más discreto que el preliminar
+			label: 'Sin datos',
+			confidence: 'nula'
+		},
+		PRELIMINARY: {
+			bg: 'bg-amber-500/20',
+			icon: OcticonUnverified16,
+			iconClass: 'text-orange-400',
+			label: 'Preliminar',
+			confidence: 'preliminar'
+		},
+		SOLID: {
+			bg: 'bg-sky-500/20',
+			icon: OcticonVerified16,
+			iconClass: 'text-cyan-500 drop-shadow-sm/100! drop-shadow-cyan-600',
+			label: 'Sólido',
+			confidence: 'sólida'
+		},
+		HIGHLIGHTED: {
+			bg: 'bg-sky-500/20',
+			icon: OcticonVerified16,
+			iconClass: 'text-white drop-shadow-sm/100! drop-shadow-white',
+			label: 'Destacado',
+			confidence: 'destacada'
+		}
+	} as const;
+	const currentUi = $derived(STATUS_UI[status]);
+
+	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
 	let commentIndex = $state(0);
 	let isPaused = $state(false);
 
@@ -70,15 +116,7 @@
 </script>
 
 <div class="relative h-full w-full space-y-2.5 text-left">
-	<div
-		class="{isSolid
-			? 'bg-sky-500/20'
-			: isArchived
-				? 'bg-red-500/20'
-				: isUnrated
-					? 'bg-accent'
-					: 'bg-amber-500/20'} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4"
-	>
+	<div class="{currentUi.bg} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize select-none">
@@ -90,13 +128,17 @@
 			</div>
 
 			{#if renderData?.sampleMeta}
+				{@const Icon = currentUi.icon}
+
 				{#snippet tooltipContent()}
 					<div class="space-y-2 leading-tight">
 						<p>
-							{#if isArchived}
+							{#if status === 'ARCHIVED'}
 								Datos históricos o insuficientes para generar una estadística actual confiable.
+							{:else if status === 'UNRATED'}
+								Aún no hay suficientes votos para generar estadísticas.
 							{:else}
-								Nivel de confianza estadística <b>{!isSolid ? 'preliminar' : 'sólida'}</b>.
+								Nivel de confianza estadística <b class="capitalize">{currentUi.confidence}</b>.
 								<br />
 								<span class="text-xs opacity-50"
 									>Basado en {renderData.sampleMeta.reviewCount} votos.</span
@@ -104,7 +146,7 @@
 							{/if}
 						</p>
 
-						{#if !isArchived}
+						{#if status !== 'ARCHIVED' && status !== 'UNRATED'}
 							<p>
 								Peso Efectivo: <span class="ml-1 font-mono"
 									>{renderData.sampleMeta.effectiveCount.toFixed(1)}</span
@@ -124,13 +166,7 @@
 					<div
 						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:drop-shadow-sm/50 [&_svg]:hover:opacity-100"
 					>
-						{#if isSolid}
-							<OcticonVerified16 class="text-cyan-500" />
-						{:else if isArchived}
-							<MaterialSymbolsSearchActivityRounded class="text-rose-500" />
-						{:else}
-							<OcticonUnverified16 class="text-orange-400" />
-						{/if}
+						<Icon class={currentUi.iconClass} />
 					</div>
 				</Tooltip>
 			{/if}
@@ -169,9 +205,7 @@
 			{/if}
 		</div>
 	</div>
-
-	{#if renderData?.meta && !isArchived}
-		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
+	{#if renderData?.meta && status !== 'ARCHIVED' && status !== 'UNRATED'}
 		<div class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 xl:gap-2.5">
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div class="flex flex-row flex-wrap gap-px">
@@ -181,7 +215,7 @@
 				</div>
 			{/each}
 		</div>
-	{:else if isArchived}
+	{:else if status === 'ARCHIVED' || status === 'UNRATED'}
 		<div class="py-6 text-center">
 			<p class="text-muted-foreground text-xs italic">
 				Datos insuficientes o muy antiguos para generar un perfil actual.

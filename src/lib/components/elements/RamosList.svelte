@@ -6,19 +6,13 @@
 	import Circles from '$lib/icons/circles.svelte';
 	import Edit from '$lib/icons/edit.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import type { RamoCarrera } from '$lib/types/horario';
 	import Badge from '../ui/Badge.svelte';
 	import { SideBar } from '../sidebar/SideBar.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
-	import { Config } from '$lib/logic/config/store.svelte';
-
-	const ramosCarrera: (RamoCarrera | undefined)[] = $derived(
-		Calendario.ramos.map((r) => Data.getInfoRamoCarrera(r.sigla, Config.sede, Config.jornada))
-	);
 
 	// 1. Calculamos el total de SCT en una variable reactiva limpia
-	const totalSCT = $derived(ramosCarrera.reduce((sum, r) => sum + (r?.creditos ?? 0), 0));
+	const totalSCT = $derived(Calendario.ramos.reduce((sum, r) => sum + (r?.creditos ?? 0), 0));
 
 	// 2. Extraemos la lógica de colores/estados de Statistics.svelte (Carga SIGA)
 	const sctStatusInfo = $derived.by(() => {
@@ -52,7 +46,7 @@
 			<div class="-mt-1">
 				<h1 class="text-sm font-normal">Ramos registrados</h1>
 				<p class="text-xs opacity-50">
-					{Calendario.ramos.filter((_, i) => ramosCarrera[i]?.creditos).length} ramos
+					{Calendario.ramos.filter((r) => r.creditos ?? 0).length} ramos
 				</p>
 			</div>
 
@@ -72,7 +66,6 @@
 				{@const highlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
 					Calendario.ramoPreview?.paralelo === ramo.paralelo}
-				{@const { creditos } = ramosCarrera[i] ?? {}}
 				{@const isLocalHover = Calendario.ramoPreview === ramo}
 
 				{#snippet ramoTooltip()}
@@ -151,10 +144,10 @@
 						<div
 							class="pointer-events-none absolute top-0 right-0 flex h-full flex-row items-end justify-end gap-1 p-1 px-2 text-right opacity-100 transition-all duration-200 group-hover:opacity-0"
 						>
-							{#if creditos}
+							{#if ramo.creditos}
 								<div class="text-xs font-medium opacity-50">
 									<p>
-										{creditos} SCT
+										{ramo.creditos} SCT
 									</p>
 								</div>
 							{/if}
