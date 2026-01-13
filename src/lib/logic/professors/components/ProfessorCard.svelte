@@ -50,7 +50,7 @@
 
 	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
 	const isUnrated = $derived((renderData?.sampleMeta.reviewCount ?? 0) === 0);
-	const isSolid = $derived(isUnrated ? false : (renderData?.sampleMeta.reviewCount ?? 0) > 5);
+	const isSolid = $derived(isUnrated ? false : (renderData?.sampleMeta.reviewCount ?? 0) >= 5);
 	const isArchived = $derived(renderData?.sampleMeta.isArchived);
 
 	let commentIndex = $state(0);

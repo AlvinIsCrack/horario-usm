@@ -21,7 +21,6 @@ export default defineConfig({
 				drop_console: true,
 				drop_debugger: true,
 				pure_funcs: ['console.info', 'console.debug', 'console.warn'],
-				passes: 3,
 				unsafe: true,
 			},
 			format: {
