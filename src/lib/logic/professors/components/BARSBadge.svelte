@@ -58,9 +58,9 @@
 		base: 'isolate overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
 		variants: {
 			dimension: {
-				didactica: 'rounded-md',
-				exigencia: 'rounded-md',
-				temperamento: 'rounded-md'
+				didactica: 'rounded-sm',
+				exigencia: 'rounded-sm',
+				temperamento: 'rounded-sm'
 			},
 			extreme: {
 				false: 'grayscale-20',
