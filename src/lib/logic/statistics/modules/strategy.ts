@@ -1,5 +1,5 @@
 import { BLOQUE_DURATION_MINUTES, getSubjectWeight } from "$lib/constants/usm";
-import { Días } from "$lib/types/horario";
+import { Días } from "../../ramos/types";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 
 // 5. ESTRATEGIA ACADÉMICA (Saturación, Demanda)

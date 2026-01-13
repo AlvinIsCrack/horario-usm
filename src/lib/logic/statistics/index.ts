@@ -70,14 +70,9 @@ export async function generateScheduleStatistics(
 
     // 1. Pre-cálculo de Créditos (SCT)
     const creditosMap: Record<string, number> = {};
-    for (const r of ramos) {
-        if (creditosMap[r.sigla] === undefined) {
-            const info =
-                Data.getInfoRamoCarrera(r.sigla, sede, jornada) ||
-                Data.getProgramaRamo(sede, r.sigla);
-            creditosMap[r.sigla] = info?.creditos || 0;
-        }
-    }
+    for (const r of ramos)
+        if (creditosMap[r.sigla] === undefined)
+            creditosMap[r.sigla] = r.creditos || 0;
 
     // 2. Ejecución del Pipeline Modular
     const icons = ICONS;

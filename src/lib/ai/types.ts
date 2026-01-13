@@ -1,7 +1,3 @@
-// src/lib/ai/types.ts
-import type { ComponentType } from 'svelte';
-
-// --- ICONOS (Importalos aquí para centralizar) ---
 import TrendingUp from '$lib/icons/trending-up.svelte';
 import TrendingDown from '$lib/icons/trending-down.svelte';
 import Activity from '$lib/icons/activity.svelte';

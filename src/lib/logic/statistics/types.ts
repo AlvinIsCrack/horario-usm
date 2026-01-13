@@ -1,7 +1,4 @@
 // --- DEFINICIONES Y TIPOS ---
-
-import type { Ramo, Días } from "$lib/types/horario";
-
 // Iconos (Agrupados para pasar al pipeline)
 import Moon from '$lib/icons/moon.svelte';
 import MaterialSymbolsNestEcoLeaf from '$lib/icons/MaterialSymbolsNestEcoLeaf.svelte';
@@ -22,6 +19,7 @@ import MaterialSymbolsMagicButton from "$lib/icons/MaterialSymbolsMagicButton.sv
 import MingcuteBrainLine from "$lib/icons/MingcuteBrainLine.svelte";
 import MajesticonsTicket from "$lib/icons/MajesticonsTicket.svelte";
 import MaterialSymbolsWeight from "$lib/icons/MaterialSymbolsWeight.svelte";
+import type { Días, Ramo } from '../ramos/types';
 
 export const ICONS = {
     Leaf: MaterialSymbolsNestEcoLeaf,

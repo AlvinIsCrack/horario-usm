@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { Bloque, Días } from '$lib/logic/ramos/types';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { TipoBloque, type Bloque, type Días } from '$lib/types/horario';
 	import BlockContent from './BlockContent.svelte';
 
 	let { día, bloque }: { día: Días; bloque: number } = $props();

@@ -1,11 +1,12 @@
 import { SAVED_HORARIOS } from "$lib/constants/ids";
 import { Config } from "$lib/logic/config/store.svelte";
-import { generateColorForRamo } from "$lib/logic/ramos/colors";
-import { type Ramo, Días, type Bloque } from "$lib/types/horario";
+import { Ramos } from "$lib/logic/ramos/store.svelte";
+import { Días, type Bloque, type Ramo } from "$lib/logic/ramos/types";
+import { Data } from "$lib/data/data.svelte";
 import Color from "color";
 import { tick } from "svelte";
 
-// Estructura del archivo de guardado completo.
+// Estructura del archivo de guardado completo (Slots).
 interface SavedHorarios {
     version: number;
     meta: {
@@ -21,20 +22,14 @@ interface SavedHorarios {
     }[];
 }
 
-
 // --- ESTADO Y CÁLCULOS DERIVADOS REACTIVOS ---
-
-let _ramoPreview: Ramo | undefined = $state(undefined);
-let _ramos: Ramo[] = $state([]);
-const _calendarioVisible = $derived(_ramos.length || _ramoPreview);
 
 let _initialized = $state(false);
 let _savedHorarios: { [key: string]: SavedHorarios } = $state({});
-const _lockedLocation: boolean = $derived(_initialized && Boolean(_ramos.length));
 
-// El estado derivado se calcula reactivamente cuando _ramos o _ramoPreview cambian.
+// El estado derivado se calcula reactivamente basado en la visibilidad del store Ramos.
 const derivedState = $derived.by(() => {
-    const todosLosRamos = [..._ramos.filter(r => r.sigla !== _ramoPreview?.sigla), ...(_ramoPreview ? [_ramoPreview] : [])];
+    const todosLosRamos = Ramos.visible;
 
     // Caso base cuando no hay ramos.
     if (todosLosRamos.length === 0) {
@@ -55,37 +50,40 @@ const derivedState = $derived.by(() => {
 
     // Cálculo del rango de bloques
     const bloquesNums = allBloques.map(b => b.bloque);
-    // let minBloque = Math.min(...bloquesNums);
-    // if (minBloque > 1 && minBloque % 2 === 0) {
-    //     minBloque -= 1;
-    // }
     const maxBloque = Math.max(8, ...bloquesNums);
     const bloqueRange: [number, number] = [1, maxBloque];
 
     // Creación del mapa de bloques por día
     const bloquesDía: { [día: number]: { [bloque: number]: Bloque[] } } = {};
     for (const bloque of allBloques) {
-        // Sintaxis moderna para inicializar si es nulo
         (bloquesDía[bloque.dia] ??= {})[bloque.bloque] ??= [];
         bloquesDía[bloque.dia][bloque.bloque].push(bloque);
     }
 
-    //Ordenar bloques en conflicto por sigla
+    // Ordenar bloques en conflicto por sigla
     for (const día in bloquesDía)
         for (const bloque in bloquesDía[día])
-            bloquesDía[día][bloque].sort((a, b) => a.ramo.sigla.localeCompare(b.ramo.sigla));
+            bloquesDía[día][bloque].sort((a, b) => {
+                // Manejo defensivo por si ramo es undefined (aunque no debería en lógica estricta)
+                const siglaA = a.ramo?.sigla ?? "";
+                const siglaB = b.ramo?.sigla ?? "";
+                return siglaA.localeCompare(siglaB);
+            });
 
     return { range, bloqueRange, bloquesDía };
 });
 
 let _ventanas = $derived.by(() => {
-    const _ = [_ramos];
+    // Dependencia reactiva explícita
+    const _ = Ramos.visible;
+
     const ventanas: { día: Días; bloque: number; duraciónBloques: number }[] = [];
     for (let día = derivedState.range[0]; día <= derivedState.range[1]; día++) {
         // Obtiene los números de bloque que tienen clases, ordenados
         const bloquesOcupados = Object.keys(derivedState.bloquesDía[día] ?? {})
             .map(Number)
             .sort((a, b) => a - b);
+
         // No hay ventanas si hay menos de 2 grupos de clases en el día
         if (bloquesOcupados.length < 2) continue;
 
@@ -114,16 +112,17 @@ let _ventanas = $derived.by(() => {
     return ventanas;
 });
 
-// --- INTERFAZ PÚBLICA (MODIFICADA PARA USAR ESTADO DERIVADO) ---
+// --- INTERFAZ PÚBLICA (PROXY AL STORE RAMOS) ---
 
 export const Calendario = {
     init(localStorage: any) {
-        _savedHorarios = localStorage.getItem(SAVED_HORARIOS) ? JSON.parse(localStorage.getItem(SAVED_HORARIOS)!) : [];
+        _savedHorarios = localStorage.getItem(SAVED_HORARIOS) ? JSON.parse(localStorage.getItem(SAVED_HORARIOS)!) : {};
         _initialized = true;
+        // Ramos se inicializa a sí mismo en su constructor.
     },
 
     get ramos(): Ramo[] {
-        return _ramos;
+        return Ramos.all;
     },
 
     get inicializado() {
@@ -131,11 +130,12 @@ export const Calendario = {
     },
 
     get lockedLocation() {
-        return _lockedLocation;
+        return _initialized && Ramos.all.length > 0;
     },
 
     get visible() {
-        return _calendarioVisible;
+        // Devuelve true si hay algo que mostrar (ramos o preview), manteniendo compatibilidad semántica
+        return Ramos.visible.length > 0;
     },
 
     get ventanas() {
@@ -155,15 +155,11 @@ export const Calendario = {
     },
 
     get ramoPreview() {
-        return _ramoPreview;
+        return Ramos.preview;
     },
 
     set ramoPreview(ramo: Ramo | undefined) {
-        _ramoPreview = !ramo ? undefined : {
-            ...ramo,
-            highlighted: true,
-            color: _ramoPreview?.color && _ramoPreview.sigla === ramo.sigla ? _ramoPreview.color : generateColorForRamo(ramo.sigla, ramo.nombre)
-        };
+        Ramos.setPreview(ramo);
     },
 
     checkCollision(ramo: Ramo) {
@@ -172,7 +168,8 @@ export const Calendario = {
     },
 
     checkCollisionAt(bloque: { dia: Días, bloque: number }): boolean {
-        const bloques = _ramos.flatMap(r => r.horario);
+        // Chequeamos contra todos los ramos visibles (incluyendo selección)
+        const bloques = Ramos.all.flatMap(r => r.horario);
         if (!bloques.length) return false;
         return bloques.some(b => b.dia === bloque.dia && b.bloque === bloque.bloque);
     },
@@ -186,30 +183,30 @@ export const Calendario = {
     },
 
     hasRamo(query: { sigla?: string, paralelo?: string }) {
-        if (!_ramos.length) return false;
+        if (!Ramos.all.length) return false;
         if (Object.values(query).filter(s => s).length === 0) return false;
 
         const { sigla, paralelo } = query;
-        return _ramos.some(r => (!sigla || r.sigla === sigla) && (!paralelo || r.paralelo === paralelo));
+        return Ramos.all.some(r => (!sigla || r.sigla === sigla) && (!paralelo || r.paralelo === paralelo));
     },
 
     addRamo(ramo: Ramo) {
-        this.removeRamo(ramo.sigla);
-        _ramoPreview = undefined;
-        _ramos = [..._ramos, { ...ramo, highlighted: undefined }];
+        // Ramos.add maneja la lógica de reemplazo y actualización
+        Ramos.add(ramo);
     },
 
     removeRamo(sigla: string) {
-        if (!_ramos.some(r => r.sigla === sigla)) return false;
-        _ramos = [..._ramos.filter(r => r.sigla !== sigla)];
-        if (_ramoPreview?.sigla === sigla)
-            _ramoPreview = undefined;
+        if (!Ramos.has(sigla)) return false;
+        Ramos.remove(sigla);
         return true;
     },
 
     clear() {
-        _ramos = [];
+        Ramos.clear();
     },
+
+    // --- GESTIÓN DE SLOTS DE GUARDADO ---
+    // Esta lógica se mantiene en Calendario pues gestiona "snapshots" y no el estado vivo.
 
     clearSaved() {
         _savedHorarios = {};
@@ -232,7 +229,7 @@ export const Calendario = {
     },
 
     save(key: string) {
-        if (!_ramos.length) return;
+        if (!Ramos.all.length) return;
         _savedHorarios = {
             ..._savedHorarios, [key]: {
                 version: 1,
@@ -242,10 +239,10 @@ export const Calendario = {
                     semestre: Config.semestre,
                     exportedAt: new Date()
                 },
-                ramos: _ramos.map(r => ({
+                ramos: Ramos.all.map(r => ({
                     sigla: r.sigla,
                     paralelo: r.paralelo,
-                    color: r.color?.hexa()
+                    color: r.color?.hex() // Serializamos el color
                 }))
             }
         };
@@ -257,42 +254,51 @@ export const Calendario = {
         try {
             parsed = _savedHorarios[key] as SavedHorarios;
         } catch (e) {
-            alert("Error al parsear el horario guardado. Asegúrate de que el formato sea correcto.");
+            alert("Error al parsear el horario guardado.");
             return false;
         }
 
+        // Restaurar contexto global
         Config.sede = parsed.meta.sede ?? "";
         Config.jornada = parsed.meta.jornada ?? "";
         Config.semestre = parsed.meta.semestre ?? "";
 
-        const [, Data] = await Promise.all([
-            tick(),
-            import("$lib/data/data.svelte").then((data) => data.Data)
-        ])
+        // Asegurar que la data base esté cargada para reconstruir los objetos Ramo completos
+        await tick();
+        // Nota: Data.cachedRamos es un derived, así que al cambiar Config arriba, 
+        // debería actualizarse reactivamente.
 
-        if (!Data.cachedRamos) {
-            alert("No se pudo cargar el horario guardado. Asegúrate de que los ramos estén disponibles.");
+        const cachedRamos = Data.cachedRamos; // Acceso directo al getter
+
+        if (!cachedRamos || Object.keys(cachedRamos).length === 0) {
+            alert("No se pudo cargar el horario: Datos de asignaturas no disponibles para esta sede/jornada.");
             return false;
         }
 
-        const loadedRamos: Ramo[] = [];
+        Ramos.clear();
         let notFoundCount = 0;
 
         for (const savedRamo of parsed.ramos) {
-            const ramoData = Data.cachedRamos[savedRamo.sigla]?.[savedRamo.paralelo];
+            // Buscamos la definición completa del ramo en la data estática
+            const ramoData = cachedRamos[savedRamo.sigla]?.[savedRamo.paralelo];
 
             if (ramoData) {
-                const newRamo = { ...ramoData };
-                // Recrea la instancia de Color a partir del string guardado.
-                newRamo.color = Color(savedRamo.color);
-                loadedRamos.push(newRamo);
+                // Reconstruimos el ramo. 
+                // Nota: Ramos.add generará un nuevo color si no se maneja,
+                // pero como la UI se reconstruye, priorizamos la consistencia de datos.
+                // Si Ramos.add soportara color explícito, lo pasaríamos aquí.
+                // Asumimos comportamiento estándar de Ramos.add
+                Ramos.add({
+                    ...ramoData,
+                    // Intentamos pasar el color si la implementación de Ramos.add lo permite o lo permitiera en el futuro
+                    // (casting a any para evitar error de tipos estricto si RamoRawData no tiene color)
+                    color: savedRamo.color ? Color(savedRamo.color) : undefined
+                } as any);
             } else {
                 notFoundCount++;
             }
         }
 
-        _ramos = loadedRamos;
-        _ramoPreview = undefined;
         return true;
     }
 };

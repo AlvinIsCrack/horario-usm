@@ -35,9 +35,9 @@
 			<Tooltip content="Cantidad de alumnos máximos por paralelo">
 				<Badge icon={Ticket}>{ramo.cupo} CUPOS</Badge>
 			</Tooltip>
-			{#if programa}
+			{#if ramo.creditos}
 				<Tooltip content="Créditos SCT del ramo">
-					<Badge icon={Circles}>{programa.creditos} SCT</Badge>
+					<Badge icon={Circles}>{ramo.creditos} SCT</Badge>
 				</Tooltip>
 			{/if}
 		</div>

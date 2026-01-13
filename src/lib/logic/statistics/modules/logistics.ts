@@ -1,6 +1,6 @@
 import { BLOQUE_DURATION_MINUTES } from "$lib/constants/usm";
 import Time from "$lib/helpers/time";
-import { Días } from "$lib/types/horario";
+import { Días } from "../../ramos/types";
 import { type AnalyzerContext, type StatItem, STAT_LABELS } from "../types";
 
 // 3. LOGÍSTICA Y REALIDAD FÍSICA (Transporte, ROC, Seguridad Invernal)

@@ -1,6 +1,6 @@
 <script lang="ts">
+	import type { Bloque } from '$lib/logic/ramos/types';
 	import RamoCard from './RamoCard.svelte';
-	import type { Bloque } from '$lib/types/horario';
 
 	let { bloques }: { bloques: Bloque[] | null } = $props();
 </script>

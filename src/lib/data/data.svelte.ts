@@ -1,10 +1,11 @@
-import type { Ramo, RamoPrograma, Carrera, RamoCarrera } from "$lib/types/horario";
+import type { RamoPrograma, Carrera, RamoCarrera } from "$lib/types/horario";
 import _ASIGNATURAS from "./horario_asignaturas.json";
 import _CARRERAS from "./planes_carreras.json";
 import _METADATA from "./metadata.json";
 import _PROGRAMAS from "./programas_academicos.json";
 import dayjs from "dayjs";
 import { Config } from "$lib/logic/config/store.svelte";
+import type { Ramo } from "$lib/logic/ramos/types";
 
 //@ts-ignore
 const ASIGNATURAS: {

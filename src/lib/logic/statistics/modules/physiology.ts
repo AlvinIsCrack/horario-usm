@@ -1,6 +1,6 @@
 import { BLOQUE_COMIDA, BLOQUE_DURATION_MINUTES } from "$lib/constants/usm";
 import Time from "$lib/helpers/time";
-import { Días } from "$lib/types/horario";
+import { Días } from "../../ramos/types";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 
 

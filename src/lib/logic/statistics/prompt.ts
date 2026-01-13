@@ -105,9 +105,7 @@ function cleanContextForAI(ctx: AnalyzerContext) {
             }
         },
         cargaAcademica: ctx.ramos.map(r => {
-            const infoPrograma = Data.getProgramaRamo(ctx.sede, r.sigla);
             const datosCurriculares = getDatosCurriculares(r.sigla);
-
             let contextoMalla = null;
             if (datosCurriculares) {
                 const { info, carrera, nivel } = datosCurriculares;
@@ -142,7 +140,7 @@ function cleanContextForAI(ctx: AnalyzerContext) {
             return {
                 sigla: r.sigla,
                 nombre: r.nombre,
-                creditosSCT: infoPrograma?.creditos || datosCurriculares?.info.creditos || 0,
+                creditosSCT: r?.creditos || datosCurriculares?.info.creditos || 0,
 
                 estrategia: {
                     esCritico: (contextoMalla?.desbloquea.length ?? 0) > 2,

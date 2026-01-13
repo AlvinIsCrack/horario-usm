@@ -7,8 +7,8 @@
 	import { fade } from 'svelte/transition';
 	import ForkSpoon from '$lib/icons/fork-spoon.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { Días } from '$lib/types/horario';
 	import Tooltip from '../ui/Tooltip.svelte';
+	import { Días } from '$lib/logic/ramos/types';
 
 	const [bloqueBegin, bloqueEnd] = $derived(Calendario.bloqueRange);
 	const [díaBegin, díaEnd] = $derived(Calendario.range);

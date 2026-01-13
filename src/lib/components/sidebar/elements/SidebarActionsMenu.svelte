@@ -19,6 +19,7 @@
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
 	import { PromptDialog } from '../dialogs/PromptDialog.svelte';
 	import { Config } from '$lib/logic/config/store.svelte';
+	import { type AnalyzerContext } from '$lib/logic/statistics/types';
 </script>
 
 <Menu align="end">
@@ -36,7 +37,7 @@
 			const tiempoNoInformado = Config.tiempoTraslado === -1;
 			const tiempoTraslado = tiempoNoInformado ? 60 : Config.tiempoTraslado;
 
-			const context = {
+			const context: AnalyzerContext = {
 				ramos: Calendario.ramos,
 				sede: Config.sede,
 				jornada: Config.jornada,

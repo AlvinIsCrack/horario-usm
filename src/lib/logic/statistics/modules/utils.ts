@@ -1,6 +1,6 @@
 import { getSubjectWeight } from "$lib/constants/usm";
 import { Data } from "$lib/data/data.svelte";
-import type { Ramo } from "$lib/types/horario";
+import type { Ramo } from "$lib/logic/ramos/types";
 
 export function calculateDailyMetrics(ramos: Ramo[], creditosMap: Record<string, number>) {
     const metrics: Record<number, { carga: number; bloques: number }> = {

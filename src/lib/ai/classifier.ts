@@ -3,7 +3,7 @@ import { NeuralNetwork } from './mini-brain';
 import { AI_CONFIG, DISTRIBUTION_LABELS, RHYTHM_LABELS, STRUCTURE_LABELS, ICONS, DESCRIPTIONS, STATUS_MAP, type StatStatus } from './types';
 import { trainModels } from './train';
 import { browser } from '$app/environment';
-import type { Ramo } from '$lib/types/horario'; // Asegúrate de que esta ruta sea correcta
+import type { Ramo } from '$lib/logic/ramos/types';
 
 const CONFIDENCE_THRESHOLD = 0.7;
 

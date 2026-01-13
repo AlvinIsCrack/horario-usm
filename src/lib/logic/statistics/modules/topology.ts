@@ -1,4 +1,4 @@
-import { Días } from "$lib/types/horario";
+import { Días } from "../../ramos/types";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 import { calculateDailyMetrics } from "./utils";
 

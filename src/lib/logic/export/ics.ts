@@ -1,7 +1,7 @@
 // src/lib/helpers/ics.ts
 import Time from '$lib/helpers/time';
 import { Calendario } from '$lib/states/calendario.svelte';
-import type { Ramo } from '$lib/types/horario';
+import type { Ramo } from '../ramos/types';
 
 // --- CONFIGURACIÓN ---
 export interface ICSOptions {

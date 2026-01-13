@@ -1,12 +1,12 @@
 <script lang="ts">
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Time from '$lib/helpers/time';
-	import { TipoBloque } from '$lib/types/horario';
 	import { BLOQUE_DURATION_MINUTES } from '$lib/constants/usm';
 	import { truncate } from 'lodash';
 
 	// Importamos la nueva función tv
 	import { scheduleStyles } from '../styles';
+	import { TipoBloque } from '$lib/logic/ramos/types';
 
 	let {
 		theme = undefined as undefined | keyof typeof scheduleStyles.variants.theme,

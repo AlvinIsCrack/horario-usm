@@ -330,7 +330,6 @@
 						{@const paralelos = Object.values(item[1])}
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
-						{@const programa = Data.getProgramaRamo(Config.sede, sigla)}
 
 						<li
 							bind:this={itemNodes[i]}
@@ -345,7 +344,7 @@
 								class={itemStyle({
 									active: highlightedIndex === i,
 									added: inHorario,
-									tipo: (programa?.tipo ?? '').toUpperCase() as any
+									tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any
 								})}
 								onmousedown={(e) => {
 									e.preventDefault();
@@ -362,11 +361,11 @@
 										>
 											{ramo.nombre}
 										</span>
-										{#if programa}
+										{#if ramo.tipoCurricular}
 											<span
 												class="text-muted-foreground absolute right-1 bottom-1 ml-auto block text-xs leading-3 font-normal"
 											>
-												{@html programa.tipo.replace(
+												{@html ramo.tipoCurricular.replace(
 													/AMBOS|PAR|IMPAR|ELECTIVO/gi,
 													(m) =>
 														({
