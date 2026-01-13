@@ -232,7 +232,10 @@
 			<p>
 				<span class="mr-1 font-medium opacity-50">{dimension.label}, {subdimension.def.label}:</span
 				>
-				<b class={color.text}>{subdimension.label}</b>.
+				<b class={color.text}>{subdimension.label}</b>
+				<span class="opacity-50"
+					>(Puntaje {isInverseMetric ? 6 - roundedValue : roundedValue}/5)</span
+				>.
 				{subdimension.def.levels[roundedValue].description}
 			</p>
 
