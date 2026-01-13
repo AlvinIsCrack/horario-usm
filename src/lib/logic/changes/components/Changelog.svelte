@@ -1,17 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import MaterialSymbolsGrid4x4 from '$lib/icons/MaterialSymbolsGrid4x4.svelte';
-	import Teachers from '$lib/icons/teachers.svelte';
-	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
-	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 	import MaterialSymbolsToolsWrench from '$lib/icons/MaterialSymbolsToolsWrench.svelte';
 	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
-
-	const STORAGE_KEY = 'app_changelog_seen';
-	const EXPIRATION_DAYS = 7;
-	const MS_IN_DAY = 24 * 60 * 60 * 1000;
-	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
+	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
 
 	const UPDATES = {
 		'Nuevas etiquetas de calificación de profesores': {
@@ -33,60 +25,34 @@
 
 	let newItems = $state(new Set<string>());
 	onMount(() => {
-		try {
-			const rawData = localStorage.getItem(STORAGE_KEY);
-			let seenData: Record<string, number> = rawData ? JSON.parse(rawData) : {};
-			const now = Date.now();
-			let hasChanges = false;
+		// Inicializamos el tracker inteligente
+		// - 8 horas de duración para considerar algo "nuevo"
+		// - Pausa el contador entre las 00:00 y las 06:00
+		const tracker = new SmartReadTracker({
+			storageKey: 'app_changelog_seen',
+			thresholdHours: 8,
+			nightStartHour: 0,
+			nightEndHour: 6
+		});
 
-			// 1. Limpieza (Garbage Collection)
-			for (const [key, timestamp] of Object.entries(seenData)) {
-				if (now - timestamp > EXPIRATION_DAYS * MS_IN_DAY) {
-					delete seenData[key];
-					hasChanges = true;
-				}
-			}
-
-			// 2. Lógica de "Lectura Progresiva"
-			const currentNewItems = new Set<string>();
-
-			for (const title of Object.keys(UPDATES)) {
-				const firstSeen = seenData[title];
-
-				if (!firstSeen) {
-					// Caso A: Nunca visto. Lo registramos ahora y aparece como nuevo.
-					currentNewItems.add(title);
-					seenData[title] = now;
-					hasChanges = true;
-				} else if (now - firstSeen < READ_THRESHOLD_MS) {
-					// Caso B: Visto hace poco (menos de 1 hora). Sigue siendo "nuevo".
-					currentNewItems.add(title);
-				}
-				// Caso C: Si pasó más de 1 hora, no se agrega a currentNewItems (aparece como leído)
-			}
-
-			newItems = currentNewItems;
-
-			if (hasChanges) {
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(seenData));
-			}
-		} catch (error) {
-			console.warn('Error accediendo a localStorage para changelog:', error);
-		}
+		// Procesamos las llaves y obtenemos cuáles son nuevas
+		newItems = tracker.process(Object.keys(UPDATES)) as Set<string>;
 	});
 </script>
 
 <div class="flex w-full max-w-xl flex-col gap-2">
 	<h1 class="mb-1 w-full border-b text-center text-lg font-medium">Novedades</h1>
-	{#each Object.entries(UPDATES) as [title, data]}
+	{#each Object.entries(UPDATES) as [title, data], i}
 		{@const isNew = newItems.has(title)}
 		<div
-			class="group flex items-center gap-3 rounded-lg p-2 px-4 transition-all duration-500 {isNew
+			class="group flex items-start gap-3 rounded-lg p-2 px-4 transition-all duration-200 {isNew
 				? 'bg-amber-600/40 hover:bg-amber-500/50'
-				: 'hover:bg-muted/10'}"
+				: 'hover:bg-muted/10'} {i > 1
+				? 'max-h-12 mask-b-from-50% hover:max-h-40 hover:mask-b-from-100%'
+				: ''}"
 		>
 			<div
-				class="flex h-6 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-120 {isNew
+				class="my-auto flex h-6 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-120 {isNew
 					? 'text-amber-300'
 					: 'text-foreground'}"
 			>
@@ -95,7 +61,7 @@
 
 			<div class="flex min-w-0 flex-col overflow-hidden text-left">
 				<div class="flex items-center gap-2">
-					<span class="decoration-foreground/50 truncate leading-none font-medium">
+					<span class="decoration-foreground/50 truncate leading-none font-medium select-none">
 						{title}
 					</span>
 					{#if isNew}
@@ -107,7 +73,7 @@
 					{/if}
 				</div>
 				<p
-					class="mt-0.5 text-xs leading-tight transition-opacity select-text {isNew
+					class="mt-0.5 text-xs leading-tight transition-all duration-200 select-none {isNew
 						? 'text-foreground opacity-90'
 						: 'text-muted-foreground group-hover:text-foreground opacity-60 group-hover:opacity-100'}"
 				>

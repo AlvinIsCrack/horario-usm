@@ -9,7 +9,7 @@
 	import Lock from '$lib/icons/lock.svelte';
 	import Warning from '$lib/icons/warning.svelte';
 	import { fade } from 'svelte/transition';
-	import Tooltip from '../ui/Tooltip.svelte';
+	import Tooltip from '../../../components/ui/Tooltip.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
@@ -125,17 +125,11 @@
 					{#if selectedSede && Data.jornadas[selectedSede]}
 						{@const disabled = Data.jornadas[selectedSede].length <= 1}
 						<div class="h-full flex-1">
-							<div class="flex flex-row items-center gap-1 text-sm">
-								<p>Jornada</p>
-								{#if disabled}
-									<Tooltip content="Solo hay una jornada disponible">
-										<Lock class="inline" />
-									</Tooltip>
-								{/if}
-							</div>
+							<p class="text-sm">Jornada</p>
 							<Select
 								{disabled}
-								class="w-full text-sm"
+								size="sm"
+								class="w-full"
 								items={Data.jornadas[selectedSede].map((jornada) => ({
 									value: jornada
 								}))}
@@ -147,8 +141,9 @@
 						<div class="h-full w-2/5">
 							<p class="text-sm">Semestre</p>
 							<Select
+								size="sm"
 								disabled={semestres.length === 1}
-								class="w-full text-sm"
+								class="w-full"
 								items={semestres.map((s) => ({ value: s }))}
 								bind:value={selectedSemestre}
 							/>

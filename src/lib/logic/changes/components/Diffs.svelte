@@ -4,10 +4,11 @@
 	import relativeTime from 'dayjs/plugin/relativeTime';
 	import 'dayjs/locale/es';
 	import { tv } from 'tailwind-variants';
-	import Tooltip from '../ui/Tooltip.svelte';
-	import Badge from '../ui/Badge.svelte';
+	import Tooltip from '../../../components/ui/Tooltip.svelte';
+	import Badge from '../../../components/ui/Badge.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { onMount } from 'svelte';
+	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
 
 	dayjs.extend(relativeTime);
 	dayjs.locale('es');
@@ -364,7 +365,7 @@
 				'flex items-baseline gap-2 px-1 text-[10px] mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
 			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-0.5',
 			cardStructural: 'rounded-md gap-3 border border-dashed px-3 py-0.5 text-xs font-medium',
-			indicador: 'h-2 w-2 rounded-full shrink-0',
+			indicador: 'h-2 w-2 rounded-full shrink-0 hover:scale-105 hover:ring-2',
 			content: 'flex min-w-0 flex-1 flex-col',
 			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
 			sigla: 'font-mono text-sm font-black tracking-wide text-foreground',
@@ -422,51 +423,20 @@
 		return 'Evento registrado';
 	}
 
-	const STORAGE_KEY = 'app_diffs_seen';
-	const EXPIRATION_DAYS = 7;
-	const MS_IN_DAY = 24 * 60 * 60 * 1000;
-	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
-
 	let newItems = $state(new Set<number>());
 	onMount(() => {
-		try {
-			const rawData = localStorage.getItem(STORAGE_KEY);
-			let seenData: Record<string, number> = rawData ? JSON.parse(rawData) : {};
-			const now = Date.now();
-			let hasChanges = false;
+		const tracker = new SmartReadTracker({
+			storageKey: 'app_diffs_seen',
+			thresholdHours: 8,
+			nightStartHour: 0,
+			nightEndHour: 6
+		});
 
-			// 1. Limpieza (Garbage Collection)
-			for (const [key, timestamp] of Object.entries(seenData)) {
-				if (now - timestamp > EXPIRATION_DAYS * MS_IN_DAY) {
-					delete seenData[key];
-					hasChanges = true;
-				}
-			}
+		// Extraemos todos los timestamps de todos los grupos del historial
+		const allTimestamps: number[] = [];
+		for (const grupo of historial) allTimestamps.push(grupo.timestamp);
 
-			// 2. Lógica de "Lectura Progresiva"
-			const currentNewItems = new Set<number>();
-
-			for (const { timestamp } of historial) {
-				const firstSeen = seenData[timestamp];
-
-				if (!firstSeen) {
-					// Caso A: Nunca visto. Lo registramos ahora y aparece como nuevo.
-					currentNewItems.add(timestamp);
-					seenData[timestamp] = now;
-					hasChanges = true;
-				} else if (now - firstSeen < READ_THRESHOLD_MS) {
-					// Caso B: Visto hace poco (menos de 1 hora). Sigue siendo "nuevo".
-					currentNewItems.add(timestamp);
-				}
-				// Caso C: Si pasó más de 1 hora, no se agrega a currentNewItems (aparece como leído)
-			}
-
-			newItems = currentNewItems;
-
-			if (hasChanges) localStorage.setItem(STORAGE_KEY, JSON.stringify(seenData));
-		} catch (error) {
-			console.warn('Error accediendo a localStorage para diffs:', error);
-		}
+		newItems = tracker.process(allTimestamps) as Set<number>;
 	});
 </script>
 

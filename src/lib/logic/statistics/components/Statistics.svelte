@@ -3,9 +3,9 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { fade } from 'svelte/transition';
 	import { untrack } from 'svelte';
-	import Card from '../ui/Card.svelte';
-	import Tooltip from '../ui/Tooltip.svelte';
-	import { SideBar } from '../sidebar/SideBar.svelte';
+	import Card from '../../../components/ui/Card.svelte';
+	import Tooltip from '../../../components/ui/Tooltip.svelte';
+	import { SideBar } from '../../../components/sidebar/SideBar.svelte';
 	import { cubicOut } from 'svelte/easing';
 
 	// Importamos SOLO la fachada y los tipos necesarios

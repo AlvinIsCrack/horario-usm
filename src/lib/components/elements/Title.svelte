@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Data } from '$lib/data/data.svelte';
 	import { fade, fly } from 'svelte/transition';
-	import Diffs from './Diffs.svelte';
-	import Changelog from './Changelog.svelte';
+	import Diffs from '../../logic/changes/components/Diffs.svelte';
+	import Changelog from '../../logic/changes/components/Changelog.svelte';
 
 	let visible = $state(false);
 	$effect(() => {
@@ -24,7 +24,7 @@
 		</div>
 
 		<div class="z-10 flex flex-col items-center justify-center">
-			<div class="text-foreground peer flex flex-col items-center">
+			<div class="text-foreground peer flex cursor-help flex-col items-center">
 				<span
 					class="mb-1 text-center text-xl font-black
 							 tracking-tight opacity-70 lg:text-3xl xl:text-4xl"

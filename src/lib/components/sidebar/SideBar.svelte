@@ -46,9 +46,9 @@
 	import RamoWindow from './windows/RamoWindow.svelte';
 	import SavedHorariosWindow from './windows/SavedHorariosWindow.svelte';
 	import RamosList from '../elements/RamosList.svelte';
-	import Statistics from '../elements/Statistics.svelte';
-	import SedeSelector from '../elements/SedeSelector.svelte';
-	import UserData from '../elements/UserData.svelte';
+	import Statistics from '../../logic/statistics/components/Statistics.svelte';
+	import SedeSelector from '../../logic/config/components/SedeSelector.svelte';
+	import UserData from '../../logic/config/components/UserData.svelte';
 	import ImageDialog from './dialogs/ImageDialog.svelte';
 </script>
 

@@ -6,7 +6,7 @@
 
 	// Estilos del Trigger (Botón principal)
 	const selectTrigger = tv({
-		base: 'flex w-full items-center justify-between rounded-md border border-input bg-input px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer',
+		base: 'flex w-full items-center justify-between rounded-md border border-input bg-input ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer transition-all',
 		variants: {
 			open: {
 				true: 'ring-2 ring-ring ring-offset-2'
@@ -14,7 +14,14 @@
 			disabled: {
 				false: '',
 				true: 'cursor-not-allowed opacity-50'
+			},
+			size: {
+				default: 'h-10 px-3 py-2 text-sm',
+				sm: 'h-8 px-2 text-xs rounded-sm gap-1'
 			}
+		},
+		defaultVariants: {
+			size: 'default'
 		}
 	});
 
@@ -38,10 +45,12 @@
 		value = $bindable(''),
 		items,
 		disabled = false,
+		size,
 		class: _class,
 		...props
 	}: HTMLSelectAttributes & {
 		items: { label?: string; value: string }[];
+		size?: keyof typeof selectTrigger.variants.size;
 	} = $props();
 
 	// Estado interno
@@ -82,7 +91,7 @@
 		aria-expanded={open}
 		aria-haspopup="listbox"
 		tabindex={disabled ? -1 : 0}
-		class={selectTrigger({ open, disabled: disabled ?? false, class: _class as string })}
+		class={selectTrigger({ open, size, disabled: disabled ?? false, class: _class as string })}
 		onclick={() => !disabled && (open = !open)}
 		onkeydown={(e) => {
 			if (!disabled && (e.key === 'Enter' || e.key === ' ')) {

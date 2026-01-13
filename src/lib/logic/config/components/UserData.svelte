@@ -4,7 +4,7 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { fade } from 'svelte/transition';
-	import Tooltip from '../ui/Tooltip.svelte';
+	import Tooltip from '../../../components/ui/Tooltip.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
