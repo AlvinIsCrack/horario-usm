@@ -291,7 +291,7 @@ def aggregate_professor_stats(prof_name, reviews):
         score = calculate_weighted_tag_score(w_sum, total_effective_weight)
         tag_scores.append((tag, score))
 
-    sorted_tags = sorted(tag_scores, key=lambda x: x[1], reverse=True)[:5]
+    sorted_tags = sorted(tag_scores, key=lambda x: x[1], reverse=True)[:8]
     top_tags = [t[0] for t in sorted_tags]
 
     return {
