@@ -25,6 +25,8 @@
 	import TablerMessageMinus from '$lib/icons/TablerMessageMinus.svelte';
 	import TablerMessageQuestion from '$lib/icons/TablerMessageQuestion.svelte';
 	import TablerMessage from '$lib/icons/TablerMessage.svelte';
+	import MdiWeightKilogram from '$lib/icons/MdiWeightKilogram.svelte';
+	import StreamlineUltimateEmojiAngryFaceHornsDemonBold from '$lib/icons/StreamlineUltimateEmojiAngryFaceHornsDemonBold.svelte';
 
 	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
 
@@ -93,7 +95,7 @@
 			2: MingcuteAngelFill,
 			3: StreamlineJusticeHammerRemix,
 			4: StreamlineJusticeHammerRemix,
-			5: StreamlineJusticeHammerRemix
+			5: StreamlineUltimateEmojiAngryFaceHornsDemonBold
 		},
 		coherencia_evaluativa: {
 			1: TablerPuzzleOff,
@@ -106,8 +108,8 @@
 			1: TablerFeatherFilled,
 			2: TablerFeatherFilled,
 			3: MaterialSymbolsElectricBoltRounded,
-			4: MaterialSymbolsElectricBoltRounded,
-			5: MaterialSymbolsLocalFireDepartmentRounded
+			4: MdiWeightKilogram,
+			5: MdiWeightKilogram
 		},
 
 		estabilidad_emocional: {
