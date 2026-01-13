@@ -1,7 +1,3 @@
-
-
-import type { ColorInstance } from "color";
-
 export interface Metadata {
     version: number;
     status: string;
@@ -67,14 +63,14 @@ export interface RequisitoFicha {
 
 export interface RamoCarrera {
     nombre: string;
+    creditos: number;
+    departamento: string;
     horas: {
         teoricas: number;
         practicas: number;
         laboratorios: number;
         ayudantias: number;
     };
-    creditos: number;
-    departamento: string;
     requisitos: RequisitoFicha[][];
     equivalencias: RequisitoFicha[][];
 }

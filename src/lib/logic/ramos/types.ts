@@ -1,3 +1,4 @@
+import type { RequisitoFicha } from "$lib/types/horario";
 import type { ColorInstance } from "color";
 
 export enum Días {
@@ -51,8 +52,18 @@ export interface Ramo {
     tipoCurricular?: "IMPAR" | "PAR" | "AMBOS" | "ELECTIVO"; // Derivado del programa
     cupo?: number;
 
+    horas?: {
+        teoricas: number;
+        practicas: number;
+        laboratorios: number;
+        ayudantias: number;
+    };
+    requisitos?: RequisitoFicha[][];
+    equivalencias?: RequisitoFicha[][];
+
     // Información específica de la carrera (si aplica)
-    requisitos?: string[]; // Simplificado o estructura compleja según necesites
+    // requisitos?: string[];
+    // conflict?: boolean;
 }
 
 // Tipos auxiliares para la carga de datos (Legacy/Data mapping)

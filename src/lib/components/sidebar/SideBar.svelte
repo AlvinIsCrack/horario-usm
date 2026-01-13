@@ -39,8 +39,9 @@
 	// Componentes Refactorizados
 	import SidebarButton from './elements/SidebarButton.svelte';
 	import SidebarActionsMenu from './elements/SidebarActionsMenu.svelte';
-	import ContactDialogComponent, { ContactDialog } from './dialogs/ContactDialog.svelte';
-	import PromptDialog from './dialogs/PromptDialog.svelte';
+	import ContactDialogComponent from './dialogs/ContactDialog.svelte';
+	import PromptDialogComponent from './dialogs/PromptDialog.svelte';
+	import ImageDialogComponent from './dialogs/ImageDialog.svelte';
 
 	// Ventanas y Paneles
 	import RamoWindow from './windows/RamoWindow.svelte';
@@ -49,8 +50,8 @@
 	import Statistics from '../../logic/statistics/components/Statistics.svelte';
 	import SedeSelector from '../../logic/config/components/SedeSelector.svelte';
 	import UserData from '../../logic/config/components/UserData.svelte';
-	import ImageDialog from './dialogs/ImageDialog.svelte';
 	import { Config } from '$lib/logic/config/store.svelte';
+	import { ContactState } from '$lib/logic/dialogs/state.svelte';
 </script>
 
 <div
@@ -120,7 +121,7 @@
 						<Me />
 						<p
 							class="decoration-foreground/50 mt-1 cursor-pointer underline decoration-dashed opacity-50 hover:decoration-solid hover:opacity-100"
-							onclick={ContactDialog.open}
+							onclick={ContactState.open}
 						>
 							<MaterialSymbolsFeedback class="mr-1 inline" />
 							Contacto
@@ -154,8 +155,8 @@
 	</div>
 
 	<ContactDialogComponent />
-	<PromptDialog />
-	<ImageDialog />
+	<PromptDialogComponent />
+	<ImageDialogComponent />
 </div>
 
 <style lang="postcss">

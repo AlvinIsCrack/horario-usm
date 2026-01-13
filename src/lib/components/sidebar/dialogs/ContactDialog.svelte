@@ -1,23 +1,12 @@
-<script module>
-	let open = $state(false);
-	export const ContactDialog = {
-		open() {
-			open = true;
-		},
-		close() {
-			open = false;
-		}
-	};
-</script>
-
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 	import MingcutePaypalFill from '$lib/icons/MingcutePaypalFill.svelte';
+	import { ContactState } from '$lib/logic/dialogs/state.svelte';
 </script>
 
-<DialogComponent bind:open class="max-w-sm gap-0 p-0">
+<DialogComponent bind:open={ContactState.isOpen} class="max-w-sm gap-0 p-0">
 	<div class="bg-card border-b p-4 pb-3">
 		<h2 class="text-lg leading-none font-bold">Contacto</h2>
 		<p class="text-muted-foreground mt-1 text-xs">
@@ -33,7 +22,7 @@
 					'https://docs.google.com/forms/d/e/1FAIpQLSeKxJ4idy0vEZSqC_Ew5siparx6Lxy8kvP2ixWKBGc0Lwm6Jg/viewform?usp=dialog',
 					'_blank'
 				);
-				open = false;
+				ContactState.close();
 			}}
 		>
 			<MaterialSymbolsFeedback class="text-muted-foreground size-5" />
@@ -48,7 +37,7 @@
 			class="justify-start gap-3"
 			onclick={() => {
 				window.open('https://paypal.me/LuccaE', '_blank');
-				open = false;
+				ContactState.close();
 			}}
 		>
 			<MingcutePaypalFill class="text-muted-foreground size-5" />

@@ -15,11 +15,10 @@
 	import Trash from '$lib/icons/trash.svelte';
 	import { downloadICS } from '$lib/logic/export/ics';
 	import MdiCalendarExport from '$lib/icons/MdiCalendarExport.svelte';
-	import { ImageDialog } from '../dialogs/ImageDialog.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
-	import { PromptDialog } from '../dialogs/PromptDialog.svelte';
 	import { Config } from '$lib/logic/config/store.svelte';
 	import { type AnalyzerContext } from '$lib/logic/statistics/types';
+	import { ImageState, PromptState } from '$lib/logic/dialogs/state.svelte';
 </script>
 
 <Menu align="end">
@@ -49,7 +48,7 @@
 			const prompt = await generateAIAnalysisPrompt(context);
 			await navigator.clipboard.writeText(prompt);
 
-			PromptDialog.open();
+			PromptState.open();
 			toast.success('Prompt pegado al portapepeles de tu dispositivo', {
 				description: 'Pega o pulsa CTRL+V en el teclado para pegar el contenido.'
 			});
@@ -61,7 +60,12 @@
 
 	<MenuHeader>Exportar</MenuHeader>
 
-	<MenuItem onclick={() => ImageDialog.open()} disabled={!Calendario.ramos.length}>
+	<MenuItem
+		onclick={() => {
+			ImageState.open();
+		}}
+		disabled={!Calendario.ramos.length}
+	>
 		<Image class="mr-2 h-4 w-4" />
 		Imagen/impresión
 	</MenuItem>

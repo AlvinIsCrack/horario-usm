@@ -14,7 +14,7 @@
 	let { toast, index }: { toast: ToastProps; index: number } = $props();
 
 	const toastVariants = tv({
-		base: 'group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md p-4 pr-8 shadow-lg transition-all hover:scale-[1.02] border-2 border-foreground/50! [&_svg]:scale-180',
+		base: 'group pointer-events-auto relative flex justify-between w-full items-center space-x-4 overflow-hidden rounded-sm shadow-md/50 p-2 pr-10 pl-4 transition-all hover:scale-[1.02] border border-foreground/50! [&_svg]:scale-180',
 		variants: {
 			variant: {
 				default: 'border-border bg-background text-foreground',
@@ -46,7 +46,7 @@
 	class={toastVariants({ variant: toast.type })}
 >
 	{#if Icon}
-		<div class="mt-0.5 shrink-0 opacity-80">
+		<div class="opacity-90 mix-blend-plus-lighter">
 			<Icon class="size-4" />
 		</div>
 	{/if}

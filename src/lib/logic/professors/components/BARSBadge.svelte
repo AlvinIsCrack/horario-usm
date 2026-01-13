@@ -58,9 +58,9 @@
 		base: 'isolate overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
 		variants: {
 			dimension: {
-				didactica: 'rounded-sm',
-				exigencia: 'rounded-sm',
-				temperamento: 'rounded-sm'
+				didactica: 'rounded-md',
+				exigencia: 'rounded-md',
+				temperamento: 'rounded-md'
 			},
 			extreme: {
 				false: 'grayscale-20',
@@ -158,11 +158,11 @@
 	const currentIcon = $derived(ICON_MAP[subdimension.def.id][roundedValue]);
 	const isExtreme = $derived([1, 5].includes(roundedValue));
 
-	function getBarColor(score: number) {
-		let idx = score - 1;
-		if (isInverseMetric) idx = 4 - idx;
-		return PALETTE[idx].solid.split(' ')[0];
-	}
+	// function getBarColor(score: number) {
+	// 	let idx = score - 1;
+	// 	if (isInverseMetric) idx = 4 - idx;
+	// 	return PALETTE[idx].solid.split(' ')[0];
+	// }
 
 	const color = $derived.by(() => {
 		let scoreIndex = roundedValue - 1;
@@ -171,21 +171,15 @@
 	});
 </script>
 
-<div class={base({ dimension: dimension.id, extreme: isExtreme })}>
-	<div
-		style:box-shadow="inset 0 1.5px 1px #fffa;"
-		class="absolute top-0 left-0 size-full rounded-[inherit] mask-b-from-10% mask-b-to-150% {color.solid}"
-	></div>
-
-	<div
-		class="absolute top-0 left-0 z-5 size-full bg-cover! bg-center! {isExtreme
-			? 'opacity-80'
-			: 'opacity-50'} mix-blend-color-dodge [background:url(/media/metal.png)]"
-	></div>
-
+<div
+	class={base({ dimension: dimension.id, extreme: isExtreme })}
+	style:--badge-bg="var(--color-{color.solid.replace('bg-', '')})"
+	class:is-extreme={isExtreme}
+	class:custom-card={true}
+>
 	{#if currentIcon}
 		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full drop-shadow-sm/80 transition-all will-change-transform" />
+		<Icon class="relative z-10 size-full drop-shadow-xs/100 transition-all will-change-transform" />
 	{/if}
 
 	{#if isExtreme}
@@ -195,50 +189,6 @@
 	{/if}
 
 	{#snippet tooltipContent()}
-		{#snippet histogram()}
-			{@const dist = subdimension.stats.distribution}
-			{@const maxVal = Math.max(...Object.values(dist).map(Number)) || 1}
-
-			<div class="my-4 mt-5 flex h-20 w-full items-end justify-between gap-1.5 select-none">
-				{#each [1, 2, 3, 4, 5] as score}
-					{@const count = dist[score] ?? 0}
-					{@const percent = count > 0 ? Math.max(15, (count / maxVal) * 100) : 4}
-					{@const isCurrent = roundedValue === score}
-
-					<div
-						class="group/bar relative flex h-full w-full flex-col items-center justify-end gap-1"
-					>
-						{#if count > 0}
-							<span
-								class="absolute -top-5 text-[10px] font-bold {isCurrent
-									? 'opacity-100'
-									: 'opacity-40'}"
-							>
-								{count}
-							</span>
-						{/if}
-
-						<div class="flex h-full w-full items-end justify-center mask-b-from-80%">
-							<div
-								class="h-[var(--h)] w-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(.08,.96,.49,1)] starting:h-0 {getBarColor(
-									score
-								)} {count > 0 ? 'opacity-100' : 'bg-white opacity-20'}"
-								style:--h="{percent}%"
-							></div>
-						</div>
-
-						<span
-							class="font-mono text-[10px] leading-none tracking-tighter {isCurrent
-								? 'scale-105 font-medium text-white'
-								: 'text-muted-foreground/80 scale-90'}"
-						>
-							{subdimension.def.levels[score].label}
-						</span>
-					</div>
-				{/each}
-			</div>
-		{/snippet}
-
 		<div class="items-center justify-center space-y-1 text-left leading-tight">
 			<p>
 				<span class="mr-1 font-medium opacity-50">{dimension.label}, {subdimension.def.label}:</span
@@ -249,9 +199,6 @@
 				>.
 				{subdimension.def.levels[roundedValue].description}
 			</p>
-
-			<!-- {@render histogram()} -->
-
 			<p class="mt-2 text-xs opacity-50">
 				<b>{subdimension.def.label}:</b>
 				{subdimension.def.description}
@@ -268,6 +215,44 @@
 </div>
 
 <style>
+	/* Usamos el contenedor principal para las capas de fondo */
+	.custom-card {
+		--badge-bg: '';
+		background-color: transparent; /* Evita conflicto con el fondo de Tailwind */
+		position: relative;
+	}
+
+	/* CAPA 1: Color Sólido y Máscara (Reemplaza al primer div absoluto) */
+	.custom-card::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background-color: var(--badge-bg); /* Hereda de clases text- o se puede usar var */
+		box-shadow: inset 0 1.5px 1px rgba(255, 250, 250, 0.6);
+		mask-image: linear-gradient(to bottom, black 10%, transparent 150%);
+		-webkit-mask-image: linear-gradient(to bottom, black 10%, transparent 150%);
+		z-index: 0;
+	}
+
+	/* CAPA 2: Textura de Metal y Mezcla (Reemplaza al segundo div absoluto) */
+	.custom-card::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 5;
+		background-image: url('/media/metal.png');
+		background-size: cover;
+		background-position: center;
+		mix-blend-mode: color-dodge;
+		opacity: 0.5;
+		pointer-events: none;
+	}
+
+	.custom-card.is-extreme::after {
+		opacity: 0.8;
+	}
+
 	@keyframes shimmer {
 		0% {
 			transform: translateX(-150%) skewX(-20deg);
@@ -288,22 +273,16 @@
 		}
 	}
 
-	.grainy-overlay {
-		/* Mantiene el tamaño pero el contenido es generado por el filtro */
-		width: 100%;
-		height: 100%;
-	}
-
 	.animate-shimmer {
 		animation: shimmer 2s infinite cubic-bezier(0.15, 0.65, 0.25, 1);
 		background: linear-gradient(
 			to right,
 			rgba(255, 255, 255, 0.1),
 			rgba(255, 255, 255, 0.9) 25%,
-			/* Primera barra */ transparent 35%,
+			transparent 35%,
 			transparent 45%,
-			/* Espacio entre barras */ rgba(255, 255, 255, 0.6) 60%,
-			/* Segunda barra (más sutil) */ transparent 75%
+			rgba(255, 255, 255, 0.6) 60%,
+			transparent 75%
 		);
 	}
 </style>

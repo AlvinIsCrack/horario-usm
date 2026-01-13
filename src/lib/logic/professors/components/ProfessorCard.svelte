@@ -11,6 +11,10 @@
 	import { fade } from 'svelte/transition';
 	import MaterialSymbolsVerifiedRounded from '$lib/icons/MaterialSymbolsVerifiedRounded.svelte';
 	import Info from '$lib/icons/info.svelte';
+	import MaterialSymbolsVerifiedOff from '$lib/icons/MaterialSymbolsVerifiedOff.svelte';
+	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
+	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
+	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
 
 	let {
 		id,
@@ -45,7 +49,8 @@
 	}
 
 	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
-	const isSolid = $derived((renderData?.sampleMeta.reviewCount || 0) >= 5);
+	const isUnrated = $derived((renderData?.sampleMeta.reviewCount ?? 0) === 0);
+	const isSolid = $derived(isUnrated ? false : (renderData?.sampleMeta.reviewCount ?? 0) > 5);
 	const isArchived = $derived(renderData?.sampleMeta.isArchived);
 
 	let commentIndex = $state(0);
@@ -65,7 +70,15 @@
 </script>
 
 <div class="relative h-full w-full space-y-2.5 text-left">
-	<div class="bg-accent/50 relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
+	<div
+		class="{isSolid
+			? 'bg-sky-500/20'
+			: isArchived
+				? 'bg-red-500/20'
+				: isUnrated
+					? 'bg-accent'
+					: 'bg-amber-500/20'} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4"
+	>
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize select-none">
@@ -108,13 +121,15 @@
 					</div>
 				{/snippet}
 				<Tooltip wrapperClass="absolute! right-0 top-0 -m-0.5" content={tooltipContent}>
-					<div class="cursor-help transition-opacity">
+					<div
+						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:drop-shadow-sm/50 [&_svg]:hover:opacity-100"
+					>
 						{#if isSolid}
-							<MaterialSymbolsVerifiedRounded
-								class="size-4 scale-150 text-cyan-500 opacity-80 hover:opacity-100"
-							/>
+							<OcticonVerified16 class="text-cyan-500" />
+						{:else if isArchived}
+							<MaterialSymbolsSearchActivityRounded class="text-rose-500" />
 						{:else}
-							<Info class="size-4 scale-150 opacity-30 hover:opacity-60" />
+							<OcticonUnverified16 class="text-orange-400" />
 						{/if}
 					</div>
 				</Tooltip>

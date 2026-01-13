@@ -135,7 +135,76 @@ const _departamentos = Array.from(
     )
 ).sort((a, b) => a.localeCompare(b, 'es')); // Orden alfabético correcto en español
 
-const _cachedRamos = $derived(ASIGNATURAS[Config?.sede]?.[Config.jornada]?.[Config.semestre] ?? []);
+const _PROGRAMAS_LOOKUP: Record<string, Record<string, (RamoPrograma & { departamento: string })>> = {};
+
+for (const [sede, deptos] of Object.entries(PROGRAMAS)) {
+    _PROGRAMAS_LOOKUP[sede] ??= {};
+    for (const [depto, ramos] of Object.entries(deptos as Record<string, RamoPrograma[]>)) {
+        for (const ramo of ramos) {
+            _PROGRAMAS_LOOKUP[sede][ramo.sigla] = { ...ramo, departamento: depto };
+        }
+    }
+}
+
+const _cachedRamos = $derived.by(() => {
+    // Acceso seguro a la estructura raw
+    const rawSemester = ASIGNATURAS[Config.sede]?.[Config.jornada]?.[Config.semestre];
+    if (!rawSemester) return {};
+
+    // Pre-calcular mapa de ramos de la carrera actual (si existe) para obtener créditos específicos
+    // Esto evita iterar carreras por cada ramo del semestre
+    const carreraMap: Record<string, RamoCarrera> = {};
+    if (Config.carrera) {
+        const carrera = _cachedCarreras.find(c => c.nombre === Config.carrera);
+        if (carrera) {
+            // Aplanamos la malla de la carrera para búsqueda rápida por sigla
+            Object.values(carrera["menciones/especialidades"]).forEach(mencion => {
+                Object.values(mencion.planes).forEach(plan => {
+                    plan.malla.forEach(semestre => {
+                        Object.assign(carreraMap, semestre);
+                    });
+                });
+            });
+        }
+    }
+
+    const hydrated: typeof rawSemester = {};
+
+    for (const [sigla, paralelos] of Object.entries(rawSemester)) {
+        hydrated[sigla] = {};
+
+        // 1. Obtener info base del programa (Departamento, Tipo, Créditos Genéricos)
+        // Intentamos sede actual, fallback a 'Campus + Sede' (ej: Santiago -> Campus Santiago)
+        const infoPrograma = _PROGRAMAS_LOOKUP[Config.sede]?.[sigla] ??
+            _PROGRAMAS_LOOKUP[`Campus ${Config.sede}`]?.[sigla];
+
+        // 2. Obtener info específica de carrera (Créditos prioritarios)
+        const infoCarrera = carreraMap[sigla];
+
+        // 3. Resolver valores finales
+        const creditos = infoCarrera?.creditos ?? infoPrograma?.creditos;
+        const horas = infoCarrera?.horas;
+        const requisitos = infoCarrera?.requisitos;
+        const equivalencias = infoCarrera?.equivalencias;
+        const departamento = infoPrograma?.departamento;
+        const tipoCurricular = infoPrograma?.tipo;
+
+        for (const [paralelo, ramoRaw] of Object.entries(paralelos)) {
+            hydrated[sigla][paralelo] = {
+                ...ramoRaw,
+                horas,
+                requisitos,
+                equivalencias,
+                creditos,
+                departamento,
+                tipoCurricular,
+            };
+        }
+    }
+
+    return hydrated;
+});
+
 const _cachedCarreras = $derived(CARRERAS.filter(carrera => {
     const sede = Config.sede;
     const jornada = Config.jornada;
@@ -183,23 +252,7 @@ export const Data = {
      * o undefined si no se encuentra.
      */
     getProgramaRamo(sede: string, sigla: string): (RamoPrograma & { departamento: string }) | undefined {
-        let sedeData = PROGRAMAS[sede];
-        sedeData ??= PROGRAMAS['Campus ' + sede];
-        if (!sedeData) {
-            return undefined;
-        }
-
-        for (const [departamento, ramos] of Object.entries(sedeData)) {
-            const ramoEncontrado = ramos.find(ramo => ramo.sigla === sigla);
-            if (ramoEncontrado) {
-                return {
-                    ...ramoEncontrado,
-                    departamento: departamento,
-                };
-            }
-        }
-
-        return undefined;
+        return _PROGRAMAS_LOOKUP[sede]?.[sigla] ?? _PROGRAMAS_LOOKUP[`Campus ${sede}`]?.[sigla];
     },
 
     get sedes(): string[] {

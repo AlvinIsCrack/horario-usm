@@ -1,7 +1,9 @@
 import { Config } from "$lib/logic/config/store.svelte";
 import { Data } from "$lib/data/data.svelte";
-import { generateColorForRamo } from "./colors"; // Asumo que moverás o importarás esto aquí
+import { generateColorForRamo, resetColorPool } from "./colors"; // Asumo que moverás o importarás esto aquí
 import type { Ramo, RamoRawData } from "./types";
+import { RamoRawSchema } from "$lib/data/schemas";
+import { toast } from "$lib/components/ui/sonner/ctx.svelte";
 
 class RamosManager {
     // Estado interno: Lista cruda de ramos seleccionados (mínima info necesaria)
@@ -40,65 +42,52 @@ class RamosManager {
     // --- LÓGICA DE HIDRATACIÓN (DDD) ---
 
     /**
-     * Toma un array de ramos base y los "hidrata" cruzando datos
-     * con Data (global) y Config (contexto usuario).
+     * Mapea los ramos seleccionados contra la Single Source of Truth (Data.cachedRamos).
+     * Esto asegura que siempre tengamos la info más fresca (créditos, conflictos, requisitos)
+     * calculada reactivamente en Data.
      */
     private hydrateRamos(ramos: Ramo[]): Ramo[] {
         return ramos.map(ramo => {
-            // 1. Obtener info base del Programa (Sede + Sigla) -> Tipo (Par/Impar) y Departamento
-            const infoPrograma = Data.getProgramaRamo(Config.sede, ramo.sigla);
+            // Buscamos la versión "oficial" y fresca en Data
+            // Nota: Data.cachedRamos ya depende de Config.carrera, Config.sede, etc.
+            const freshData = Data.cachedRamos[ramo.sigla]?.[ramo.paralelo];
 
-            // 2. Obtener info específica de la Carrera (Créditos, Malla)
-            // Buscamos en las carreras cacheadas (filtradas por sede/jornada en Data)
-            // aquella que coincida con la carrera seleccionada en Config.
-            let infoCarrera = undefined;
-
-            if (Config.carrera) {
-                const carreraActual = Data.cachedCarreras.find(c => c.nombre === Config.carrera);
-
-                if (carreraActual) {
-                    // Búsqueda profunda en la malla de la carrera
-                    // Nota: Podríamos optimizar esto en Data, pero aquí mantenemos la lógica encapsulada.
-                    outerLoop:
-                    for (const mencion of Object.values(carreraActual["menciones/especialidades"])) {
-                        for (const plan of Object.values(mencion.planes)) {
-                            for (const semestre of plan.malla) {
-                                if (semestre[ramo.sigla]) {
-                                    infoCarrera = semestre[ramo.sigla];
-                                    break outerLoop;
-                                }
-                            }
-                        }
-                    }
-                }
+            if (freshData) {
+                return {
+                    ...freshData,
+                    // Preservamos el estado de UI local que no viene de la BD (color, highlight)
+                    color: ramo.color ?? generateColorForRamo(ramo.sigla, ramo.sigla + ramo.nombre),
+                    highlighted: ramo.highlighted,
+                    // Si hubiese lógica de conflictos calculada en Data, la heredamos aquí
+                    // conflict: freshData.conflict 
+                };
             }
 
-            // 3. Fusión de datos (Prioridad: Carrera > Programa > Ramo Base)
-            // Si no hay info de carrera, usamos la del programa (créditos genéricos).
-            const creditos = infoCarrera?.creditos ?? infoPrograma?.creditos;
-
-            return {
-                ...ramo,
-                // Si ya tiene color (guardado/asignado), lo mantiene, sino undefined (la UI decidirá o se asigna al añadir)
-                color: ramo.color,
-                departamento: infoPrograma?.departamento ?? ramo.departamento, // Fallback al raw si existe
-                tipoCurricular: infoPrograma?.tipo,
-                creditos: creditos, // Puede ser undefined
-                // Aquí podrías añadir más campos derivados como requisitos
-            };
+            // Fallback robusto: Si por alguna razón el ramo no está en el cache actual
+            // (ej: cargaste un horario guardado de otro semestre/sede), devolvemos la data guardada.
+            // Opcional: Podrías marcarlo visualmente como "Desincronizado".
+            return ramo;
         });
     }
 
     // --- ACCIONES ---
 
     add(ramoRaw: RamoRawData) {
-        // Evitar duplicados por sigla
-        this.remove(ramoRaw.sigla);
+        // Esto protege contra datos corruptos que vengan de Data o LocalStorage manipulado
+        const parseResult = RamoRawSchema.safeParse(ramoRaw);
+
+        if (!parseResult.success) {
+            console.error("Error de validación al agregar ramo:", parseResult.error);
+            toast.error("Error de validación al agregar ramo", { description: "Revisa consola para más detalles." })
+            return;
+        }
+
+        const validRamo = parseResult.data;
+        this.remove(validRamo.sigla);
 
         const newRamo: Ramo = {
-            ...ramoRaw,
-            // Asignar color persistente al momento de agregar
-            color: generateColorForRamo(ramoRaw.sigla, ramoRaw.nombre),
+            ...validRamo,
+            color: generateColorForRamo(validRamo.sigla, validRamo.nombre),
             highlighted: false
         };
 
@@ -120,12 +109,14 @@ class RamosManager {
             return;
         }
 
-        // Si el ramo ya existe en la selección, usamos su color existente para el preview
+        const parseResult = RamoRawSchema.safeParse(ramo);
+        if (!parseResult.success) return;
+
         const existing = this._selectedRamos.find(r => r.sigla === ramo.sigla);
         const color = existing?.color ?? generateColorForRamo(ramo.sigla, ramo.nombre);
 
         this._previewRamo = {
-            ...ramo,
+            ...parseResult.data,
             color,
             highlighted: true
         };
@@ -137,6 +128,7 @@ class RamosManager {
 
     clear() {
         this._selectedRamos = [];
+        resetColorPool();
     }
 }
 

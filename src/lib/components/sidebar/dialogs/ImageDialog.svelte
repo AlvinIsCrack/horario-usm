@@ -1,17 +1,3 @@
-<script module>
-	let open = $state(false);
-
-	// Singleton Pattern para control global
-	export const ImageDialog = {
-		open() {
-			open = true;
-		},
-		close() {
-			open = false;
-		}
-	};
-</script>
-
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
@@ -20,6 +6,7 @@
 	import MdiDownload from '$lib/icons/save.svelte';
 	import ExportableSchedule from '$lib/logic/export/components/ExportableSchedule.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
+	import { ImageState } from '$lib/logic/dialogs/state.svelte';
 
 	let theme = $state<string>('Papel');
 	let nomenclature = $state<'detailed' | 'codes'>('detailed');
@@ -43,12 +30,12 @@
 			toast.error('Ocurrió un error al generar la imagen');
 		} finally {
 			isProcessing = false;
-			open = false;
+			ImageState.close();
 		}
 	}
 </script>
 
-<DialogComponent bind:open class="max-w-5xl! gap-0 p-0">
+<DialogComponent bind:open={ImageState.isOpen} class="max-w-5xl! gap-0 p-0">
 	<div class="bg-card flex w-full shrink-0 items-center justify-between border-b p-4 pb-3">
 		<div>
 			<h2 class="text-lg leading-none font-bold">Exportar Horario</h2>
