@@ -9,27 +9,27 @@ export const EVALUATION_DIMENSIONS = {
             claridad: {
                 id: 'claridad_expositiva',
                 label: 'Claridad',
-                description: 'Eficacia en la transmisión y simplificación de conceptos.',
+                description: 'Mide la capacidad de síntesis y la elocuencia del docente. Se enfoca en qué tan bien logra aterrizar conceptos abstractos y si el flujo de la clase permite tomar apuntes coherentes sin lagunas de información.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Confuso', description: 'Explicaciones desordenadas o ininteligibles.' },
-                    2: { label: 'Denso', description: 'Dificultad para simplificar contenidos complejos.' },
-                    3: { label: 'Adecuado', description: 'Transmisión clara de la materia estándar.' },
-                    4: { label: 'Eficaz', description: 'Facilita el aprendizaje con recursos y orden.' },
-                    5: { label: 'Magistral', description: 'Claridad absoluta y dominio del ritmo didáctico.' }
+                    1: { label: 'Confuso', description: 'Explicaciones desordenadas que dificultan el seguimiento de la clase.' },
+                    2: { label: 'Denso', description: 'Contenidos explicados de forma compleja o poco cercana.' },
+                    3: { label: 'Adecuado', description: 'Transmisión correcta de los contenidos del curso.' },
+                    4: { label: 'Eficaz', description: 'Facilita más la comprensión con explicaciones bien estructuradas.' },
+                    5: { label: 'Impecable', description: 'Explicaciones excepcionales que hacen simple incluso lo más difícil.' }
                 }
             },
             puntualidad: {
                 id: 'gestion_tiempo',
                 label: 'Puntualidad',
-                description: 'Cumplimiento de los horarios de inicio y término.',
+                description: 'Evalúa el respeto por el tiempo del bloque horario. Considera tanto la hora de llegada como la de salida, y si el profesor utiliza el tiempo de clase de manera eficiente o si suele extenderse más allá del timbre.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Impuntual', description: 'Retrasos recurrentes o inasistencias sin aviso.' },
-                    2: { label: 'Inconsistente', description: 'Puntualidad variable.' },
-                    3: { label: 'Correcto', description: 'Suele iniciar y terminar en la hora establecida.' },
-                    4: { label: 'Riguroso', description: 'Respeto estricto por el cronograma de cátedra.' },
-                    5: { label: 'Exacto', description: 'Puntualidad milimétrica en cada sesión.' }
+                    1: { label: 'Impuntual', description: 'Retrasos constantes o inasistencias sin previo aviso.' },
+                    2: { label: 'Irregular', description: 'La puntualidad es variable y difícil de predecir.' },
+                    3: { label: 'Cumplidor', description: 'Suele iniciar y terminar sus clases a la hora acordada.' },
+                    4: { label: 'Confiable', description: 'Mantiene un respeto constante por el tiempo de los alumnos.' },
+                    5: { label: 'Ejemplar', description: 'Puntualidad perfecta; aprovecha el tiempo de inicio a fin.' }
                 }
             }
         }
@@ -41,40 +41,39 @@ export const EVALUATION_DIMENSIONS = {
             rigor: {
                 id: 'rigor_calificatorio',
                 label: 'Rigor',
-                description: 'Severidad en la evaluación y rigor en la corrección.',
-                type: 'BARS',
+                description: 'Se refiere exclusivamente a la vara de medición en las evaluaciones. No mide lo difícil del examen, sino qué tan estricta es la corrección (ej: si descuenta mucho por errores de forma, redacción o unidades en un resultado correcto).', type: 'BARS',
                 levels: {
-                    1: { label: 'Benevolente', description: 'Criterios de corrección extremadamente flexibles.' },
-                    2: { label: 'Laxo', description: 'Tiende a favorecer al estudiante en la revisión.' },
-                    3: { label: 'Objetivo', description: 'Se ciñe estrictamente a la pauta de corrección.' },
-                    4: { label: 'Severo', description: 'Nivel de detalle y exigencia elevado.' },
-                    5: { label: 'Punitivo', description: 'Exigencia extrema, margen nulo de error.' }
+                    1: { label: 'Barco', description: 'Criterios de evaluación muy flexibles y permisivos.' },
+                    2: { label: 'Flexible', description: 'Tiende a priorizar el avance del alumno sobre el detalle.' },
+                    3: { label: 'Estándar', description: 'Corrección equilibrada basada estrictamente en la pauta.' },
+                    4: { label: 'Exigente', description: 'Nivel de detalle elevado; requiere precisión en las respuestas.' },
+                    5: { label: 'Extremo', description: 'Margen de error nulo; evaluación inflexible y meticulosa.' }
                 }
             },
             coherencia: {
                 id: 'coherencia_evaluativa',
                 label: 'Coherencia',
-                description: 'Relación entre los contenidos dictados y las evaluaciones.',
+                description: 'Mide la "honestidad" del examen respecto a la cátedra. Evalúa si los problemas de las evaluaciones siguen la línea de los ejemplos vistos en pizarra o si, por el contrario, el profesor sorprende con ejercicios de una naturaleza distinta.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Desconectado', description: 'Evalúa temas no tratados en las sesiones.' },
-                    2: { label: 'Olimpiada', description: 'Dificultad muy superior a lo ejercitado en clase.' },
-                    3: { label: 'Equilibrado', description: 'Evaluación coherente con la instrucción entregada.' },
-                    4: { label: 'Alineado', description: 'Evaluaciones predecibles según lo visto en cátedra.' },
-                    5: { label: 'Trivial', description: 'Nivel de evaluación inferior al estándar académico.' }
+                    1: { label: 'Incoherente', description: 'Evalúa temas que no se trataron o que se vieron superficialmente.' },
+                    2: { label: 'Desfasado', description: 'La dificultad de las pruebas es muy superior a lo ejercitado en clase.' },
+                    3: { label: 'Equilibrado', description: 'Evaluaciones acordes a la materia y ejemplos vistos en cátedra.' },
+                    4: { label: 'Alineado', description: 'Existe una conexión clara y directa entre la clase y la evaluación.' },
+                    5: { label: 'Predecible', description: 'Las evaluaciones no presentan sorpresas; se ciñen a lo estrictamente visto, y pueden llegar a ser más fáciles gracias al profesor.' }
                 }
             },
             dificultad: {
                 id: 'dificultad_percibida',
                 label: 'Dificultad',
-                description: 'Complejidad intrínseca de la asignatura bajo su tutela.',
+                description: 'Mide la carga total que impone el profesor. Incluye la complejidad de las tareas, la profundidad de los temas abordados y cuántas horas semanales extra demanda el curso para no quedar "atrás" respecto a su ritmo.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Trivial', description: 'Contenidos de fácil asimilación.' },
-                    2: { label: 'Accesible', description: 'Carga académica ligera.' },
-                    3: { label: 'Moderada', description: 'Requiere estudio constante y dedicación.' },
-                    4: { label: 'Desafiante', description: 'Complejidad elevada, alta carga de trabajo.' },
-                    5: { label: 'Extrema', description: 'Asignatura con alta tasa de reprobación histórica.' }
+                    1: { label: 'Simplificador', description: 'Reduce la complejidad del ramo al mínimo esfuerzo necesario.' },
+                    2: { label: 'Abordable', description: 'Maneja una carga razonable que permite llevar el ramo al día.' },
+                    3: { label: 'Estándar', description: 'Exige la dedicación justa que el programa del ramo requiere.' },
+                    4: { label: 'Intenso', description: 'Eleva la carga de trabajo; sus explicaciones o tareas exigen un plus de tiempo.' },
+                    5: { label: 'Abrumador', description: 'Su enfoque hace que el ramo sea extremadamente difícil de superar.' }
                 }
             }
         }
@@ -86,27 +85,27 @@ export const EVALUATION_DIMENSIONS = {
             estabilidad: {
                 id: 'estabilidad_emocional',
                 label: 'Estabilidad',
-                description: 'Manejo de la dinámica y ambiente de aula.',
+                description: 'Evalúa el "clima" que el docente proyecta en el aula. Mide su manejo de grupo y su temple emocional ante situaciones de estrés, interrupciones, dudas o desacuerdos, impactando directamente en la comodidad del alumno para participar.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Volátil', description: 'Reacciones hostiles o erráticas ante el curso.' },
-                    2: { label: 'Irritable', description: 'Baja tolerancia a dudas o interrupciones.' },
-                    3: { label: 'Profesional', description: 'Trato correcto, neutro y formal.' },
-                    4: { label: 'Afable', description: 'Mantiene un clima ameno y de respeto mutuo.' },
-                    5: { label: 'Estoico', description: 'Dominio total del ambiente y seguridad absoluta.' }
+                    1: { label: 'Hostil', description: 'Reacciones agresivas o erráticas que generan tensión en el curso.' },
+                    2: { label: 'Intolerante', description: 'Baja paciencia ante dudas, errores o interrupciones.' },
+                    3: { label: 'Neutral', description: 'Mantiene un trato formal, serio y estrictamente profesional.' },
+                    4: { label: 'Cercano', description: 'Fomenta un clima ameno, respetuoso y abierto al diálogo.' },
+                    5: { label: 'Seguro', description: 'Transmite confianza y dominio absoluto de la dinámica del grupo.' }
                 }
             },
             accesibilidad: {
                 id: 'accesibilidad',
                 label: 'Disposición',
-                description: 'Calidad del apoyo y contacto fuera del horario de clases.',
+                description: 'Evalúa la facilidad de contacto y la voluntad de ayuda fuera de la cátedra. Considera la rapidez en responder correos, la disponibilidad en horarios de consulta y la apertura para revisar casos particulares o dudas de materia.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Inubicable', description: 'No responde correos ni consultas digitales.' },
-                    2: { label: 'Burocrático', description: 'Respuesta lenta, deriva a ayudantes o syllabus.' },
-                    3: { label: 'Disponible', description: 'Responde dudas con tiempos razonables.' },
-                    4: { label: 'Accesible', description: 'Responde dudas con prontitud y buena disposición.' },
-                    5: { label: 'Mentor', description: 'Preocupación activa por el progreso del alumno.' }
+                    1: { label: 'Inubicable', description: 'No responde correos ni atiende consultas fuera de la clase.' },
+                    2: { label: 'Distante', description: 'Respuesta muy lenta; suele derivar a ayudantes o al programa del curso.' },
+                    3: { label: 'Disponible', description: 'Responde consultas en tiempos razonables y de forma correcta.' },
+                    4: { label: 'Atento', description: 'Responde con prontitud y muestra interés por resolver dudas.' },
+                    5: { label: 'Comprometido', description: 'Preocupación constante y activa por el progreso académico del alumno.' }
                 }
             }
         }

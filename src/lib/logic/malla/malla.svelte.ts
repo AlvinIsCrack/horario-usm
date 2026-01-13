@@ -39,8 +39,6 @@ export class MallaState {
         if (!this.rawMalla.length) return [];
 
         const existingSiglas = new Set(this.rawMalla.flat().map((r) => r.sigla));
-        const isSiglaCode = /^[A-Z]{1,4}\d{1,5}(?:[A-Z]|[-_][A-Z0-9]+)?/;
-
         return this.rawMalla.map((semestre) => {
             return semestre.map((ramo) => {
                 const isChecked = this.approvedSigs.has(ramo.sigla);
@@ -56,7 +54,7 @@ export class MallaState {
                             if (reqObj.tipo === 'CO') return true; // Co-requisitos no bloquean
                             const reqSigla = reqObj.sigla;
                             if (this.approvedSigs.has(reqSigla)) return true;
-                            if (!existingSiglas.has(reqSigla)) return !isSiglaCode.test(reqSigla); // Externos
+                            if (!existingSiglas.has(reqSigla)) return true;
                             return false;
                         });
                     });
@@ -98,8 +96,7 @@ export class MallaState {
                                 if (req.tipo === 'CO') return true;
                                 if (req.sigla === this.hoverSig) return true;
                                 if (this.approvedSigs.has(req.sigla)) return true;
-                                // @ts-ignore
-                                if (!existingSiglas.has(req.sigla)) return !isSiglaCode.test(req.sigla);
+                                if (!existingSiglas.has(req.sigla)) return true;
                                 return false;
                             });
                         });

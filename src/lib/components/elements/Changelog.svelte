@@ -5,6 +5,8 @@
 	import MaterialSymbolsMagicButton from '$lib/icons/MaterialSymbolsMagicButton.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
+	import MaterialSymbolsToolsWrench from '$lib/icons/MaterialSymbolsToolsWrench.svelte';
+	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
 
 	const STORAGE_KEY = 'app_changelog_seen';
 	const EXPIRATION_DAYS = 7;
@@ -12,20 +14,20 @@
 	const READ_THRESHOLD_MS = 1 * 60 * 60 * 1000;
 
 	const UPDATES = {
+		'Nuevas etiquetas de calificación de profesores': {
+			icon: RiEmotionHappyFill,
+			description:
+				'Se mejoraron los nombres y descripciones de cada nivel de nota para que se entienda exactamente qué significan, sin confusiones. También hay nuevos iconos para facilitar la lectura visual de cada categoría.'
+		},
+		'Corrección en el desbloqueo de malla': {
+			icon: MaterialSymbolsToolsWrench,
+			description:
+				'Ahora el sistema identifica correctamente los ramos equivalentes o alternativos. Ya no se te bloquearán asignaturas por no cursar una versión de un ramo que no corresponde a tu carrera. ¡Gracias por avisarrrr!'
+		},
 		'Exportar calendario, ajustes de exportación': {
 			icon: MaterialSymbolsPrint,
 			description:
 				'Se puede generar un calendario de tipo ".ics", para poder exportarlo a Google Calendar, Microsoft Outlook o iCal. Además, se ha rediseñado la funcionalidad para exportar imagenes. Ahora la vista es mucho mejor, y ofrece parámetros para personalizar el documento.'
-		},
-		'Comentarios en calificaciones de profesores': {
-			icon: MaterialSymbolsFeedback,
-			description:
-				'Finalmente se pueden visualizar y leer las opiniones escritas por los sansanos para cada profesor.'
-		},
-		'Mejora del prompt para IA': {
-			icon: MaterialSymbolsMagicButton,
-			description:
-				'Ahora incluye mayor contexto del horario. Se añade un acceso rápido a los programas académicos de los ramos seleccionados, facilitando su descarga y adjunto para obtener recomendaciones personalizadas de alta calidad.'
 		}
 	};
 

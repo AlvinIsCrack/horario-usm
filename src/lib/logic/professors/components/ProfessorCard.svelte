@@ -9,6 +9,8 @@
 	import BARSBadge from './BARSBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
 	import { fade } from 'svelte/transition';
+	import MaterialSymbolsVerifiedRounded from '$lib/icons/MaterialSymbolsVerifiedRounded.svelte';
+	import Info from '$lib/icons/info.svelte';
 
 	let {
 		id,
@@ -66,36 +68,8 @@
 	<div class="bg-accent/50 relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
-				<h1 class="text-foreground leading-tight font-medium capitalize">
-					{#if renderData?.sampleMeta}
-						{#snippet tooltipContent()}
-							<p>
-								{#if isArchived}
-									Datos históricos o insuficientes para generar una estadística actual confiable.
-								{:else}
-									Nivel de confianza estadística <b>{!isSolid ? 'preliminar' : 'sólida'}</b>.
-									<br />
-									<span class="text-xs opacity-50"
-										>Basado en {renderData.sampleMeta.reviewCount} votos.</span
-									>
-								{/if}
-							</p>
-						{/snippet}
-
-						<Tooltip wrapperClass="cursor-help" content={tooltipContent}>
-							<span
-								class="underline decoration-dotted {isSolid
-									? 'decoration-sky-500/80!'
-									: isArchived
-										? 'decoration-slate-400/80!'
-										: 'decoration-orange-400/80!'} underline-offset-3 hover:decoration-solid"
-							>
-								{name}
-							</span>
-						</Tooltip>
-					{:else}
-						{name}
-					{/if}
+				<h1 class="text-foreground leading-tight font-medium capitalize select-none">
+					{name}
 				</h1>
 				{#if registryProfile?.email}
 					<p class="text-xs opacity-50">{registryProfile.email}</p>
@@ -105,6 +79,18 @@
 			{#if renderData?.sampleMeta}
 				{#snippet tooltipContent()}
 					<div class="space-y-2 leading-tight">
+						<p>
+							{#if isArchived}
+								Datos históricos o insuficientes para generar una estadística actual confiable.
+							{:else}
+								Nivel de confianza estadística <b>{!isSolid ? 'preliminar' : 'sólida'}</b>.
+								<br />
+								<span class="text-xs opacity-50"
+									>Basado en {renderData.sampleMeta.reviewCount} votos.</span
+								>
+							{/if}
+						</p>
+
 						{#if !isArchived}
 							<p>
 								Peso Efectivo: <span class="ml-1 font-mono"
@@ -121,9 +107,15 @@
 						</p>
 					</div>
 				{/snippet}
-				<Tooltip wrapperClass="absolute! opacity-50 right-0 top-0" content={tooltipContent}>
-					<div class="cursor-help opacity-60 transition-opacity hover:opacity-100">
-						<MaterialSymbolsInfo class="size-3 scale-150" />
+				<Tooltip wrapperClass="absolute! right-0 top-0 -m-0.5" content={tooltipContent}>
+					<div class="cursor-help transition-opacity">
+						{#if isSolid}
+							<MaterialSymbolsVerifiedRounded
+								class="size-4 scale-150 text-cyan-500 opacity-80 hover:opacity-100"
+							/>
+						{:else}
+							<Info class="size-4 scale-150 opacity-30 hover:opacity-60" />
+						{/if}
 					</div>
 				</Tooltip>
 			{/if}
@@ -165,11 +157,7 @@
 
 	{#if renderData?.meta && !isArchived}
 		{@const count = renderData.sampleMeta?.reviewCount ?? 0}
-		<div
-			class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 xl:gap-2.5 {count < 5
-				? 'opacity-90 grayscale-25'
-				: ''}"
-		>
+		<div class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 xl:gap-2.5">
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div class="flex flex-row flex-wrap gap-px">
 					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
@@ -187,7 +175,7 @@
 	{/if}
 
 	{#if renderData && renderData.tags.length > 0}
-		<div class="flex flex-wrap gap-1 {!isSolid ? 'opacity-80 grayscale-40' : 'opacity-100'}">
+		<div class="flex flex-wrap gap-1">
 			{#each orderTags(renderData.tags) as tag (tag.id)}
 				<ProfessorTag {tag} />
 			{/each}
@@ -239,10 +227,9 @@
 						</p>
 
 						<div
-							class="text-muted-foreground -mx-3 flex items-center justify-between space-x-2 border-t border-white/10 px-3 pt-2 text-[10px]"
+							class="text-muted-foreground -mx-3 flex items-center justify-between space-x-2 border-t border-white/10 px-3 pt-2 text-xs"
 						>
-							<span class="text-nowrap">📅 {new Date(activeComment.date).toLocaleDateString()}</span
-							>
+							<span class="text-nowrap">{new Date(activeComment.date).toLocaleDateString()}</span>
 							<!-- {#if activeComment.tags?.length}
 									<div class="flex gap-1">
 										{#each activeComment.tags.slice(0, 3) as tag}
