@@ -95,7 +95,7 @@
 			2: MingcuteAngelFill,
 			3: StreamlineJusticeHammerRemix,
 			4: StreamlineJusticeHammerRemix,
-			5: StreamlineUltimateEmojiAngryFaceHornsDemonBold
+			5: StreamlineJusticeHammerRemix
 		},
 		coherencia_evaluativa: {
 			1: TablerPuzzleOff,
@@ -113,7 +113,7 @@
 		},
 
 		estabilidad_emocional: {
-			1: MdiEmoticonAngry,
+			1: StreamlineUltimateEmojiAngryFaceHornsDemonBold,
 			2: RiEmotionUnhappyFill,
 			3: RiEmotionNormalFill,
 			4: RiEmotionHappyFill,

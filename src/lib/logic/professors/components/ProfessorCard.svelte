@@ -84,16 +84,16 @@
 		SOLID: {
 			bg: 'bg-sky-500/20',
 			icon: OcticonVerified16,
-			iconClass: 'text-cyan-500 drop-shadow-sm/100! drop-shadow-cyan-600',
-			label: 'Sólido',
-			confidence: 'sólida'
+			iconClass: 'text-cyan-400 drop-shadow-sm/100! drop-shadow-cyan-500',
+			label: 'Confiable',
+			confidence: 'confiable'
 		},
 		HIGHLIGHTED: {
-			bg: 'bg-sky-500/20',
+			bg: 'bg-fuchsia-500/20',
 			icon: OcticonVerified16,
-			iconClass: 'text-white drop-shadow-sm/100! drop-shadow-white',
-			label: 'Destacado',
-			confidence: 'destacada'
+			iconClass: 'text-fuchsia-400 drop-shadow-sm/100! drop-shadow-fuchsia-600',
+			label: 'Sólido',
+			confidence: 'sólido'
 		}
 	} as const;
 	const currentUi = $derived(STATUS_UI[status]);
@@ -138,7 +138,7 @@
 							{:else if status === 'UNRATED'}
 								Aún no hay suficientes votos para generar estadísticas.
 							{:else}
-								Nivel de confianza estadística <b class="capitalize">{currentUi.confidence}</b>.
+								Nivel de confianza estadística: <b>{currentUi.confidence}</b>.
 								<br />
 								<span class="text-xs opacity-50"
 									>Basado en {renderData.sampleMeta.reviewCount} votos.</span
