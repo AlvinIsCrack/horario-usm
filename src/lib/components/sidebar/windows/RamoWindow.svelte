@@ -53,13 +53,6 @@
 
 <div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
 	{#if !edit}
-		<div>
-			Busca y escoge el ramo
-			<p class="text-xs opacity-50">
-				Escribe para buscar entre los ramos disponibles. Puedes escribir la sigla o palabras del
-				nombre del ramo.
-			</p>
-		</div>
 		{#await import('../../elements/RamoSearch.svelte') then { default: RamoSearch }}
 			<div class="mt-1 flex flex-col gap-1">
 				<p class="text-muted-foreground text-xs font-bold uppercase">Ramo</p>

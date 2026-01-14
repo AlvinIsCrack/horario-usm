@@ -6,7 +6,6 @@
 </script>
 
 <div class="flex h-full w-full flex-col gap-2 overflow-y-auto">
-	<p>Horarios guardados</p>
 	{#if Calendario.hasSaved()}
 		{#each Calendario.getSaved() as key (key)}
 			<button

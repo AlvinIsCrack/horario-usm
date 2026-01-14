@@ -1,9 +1,21 @@
+<script module>
+	class ProfessorStateManager {
+		reset() {
+			this.query = '';
+			this.selectedDepto = '';
+			this.selectedSede = '';
+		}
+
+		query = $state('');
+		selectedSede = $state('ALL');
+		selectedDepto = $state('ALL');
+	}
+
+	export const ProfessorPageState = new ProfessorStateManager();
+</script>
+
 <script lang="ts">
 	import { professorRepo } from '$lib/logic/professors/repository.svelte';
-
-	// Iconos y UI Components
-	import Search from '$lib/icons/search.svelte';
-	import SelectUI from '$lib/components/ui/Select.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Slider from '$lib/components/ui/Slider.svelte';
@@ -11,7 +23,6 @@
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import Loader from '$lib/icons/loader.svelte';
 
-	import { base } from '$app/paths';
 	import { submitReview, type ReviewPayload } from '$lib/logic/reviews/api';
 	import type { TagId, TagCategory, TagDefinition } from '$lib/logic/professors/types';
 	import {
@@ -20,19 +31,34 @@
 		TAG_CATEGORY_DESCRIPTIONS
 	} from '$lib/logic/professors/types';
 	import { orderTags } from '$lib/logic/professors';
-	import { Data } from '$lib/data/data.svelte';
 	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import { checkTextQuality } from '$lib/logic/reviews/quality';
 
-	let query = $state('');
-	let selectedSede = $state('ALL');
-	let selectedDepto = $state('ALL');
+	// Nuevas importaciones para integración con Sidebar
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import ProfessorsWindow from '$lib/components/sidebar/windows/ProfessorsWindow.svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+
+	// Configuración de la Sidebar al montar
+	onMount(() => {
+		SidebarState.open(
+			ProfessorsWindow,
+			{},
+			{ title: 'Profesores', description: 'Repositorio de profesores' }
+		);
+	});
+
+	onDestroy(() => {
+		SidebarState.reset();
+		ProfessorPageState.reset();
+	});
 
 	// --- VIRTUALIZACIÓN / SCROLL INFINITO ---
 	let renderLimit = $state(20);
 	const BATCH_SIZE = 20;
-	let scrollContainer: HTMLElement; // Referencia al contenedor para resetear scroll
+	let scrollContainer: HTMLElement;
 
 	// --- ESTADO DEL MODAL DE EVALUACIÓN ---
 	let isModalOpen = $state(false);
@@ -40,7 +66,6 @@
 	let isSubmitting = $state(false);
 	let submissionError = $state<string | null>(null);
 
-	// --- ACCIÓN DE INTERSECCIÓN (Para cargar más al hacer scroll) ---
 	function viewport(element: HTMLElement) {
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -49,7 +74,7 @@
 				}
 			},
 			{ rootMargin: '200px' }
-		); // Carga antes de llegar al final
+		);
 
 		observer.observe(element);
 		return {
@@ -92,47 +117,34 @@
 		comment: ''
 	});
 
-	const sedeOptions = [
-		{ value: 'ALL', label: 'Todas las Sedes' },
-		{ value: 'Viña del Mar', label: 'Viña del Mar' },
-		{ value: 'Valparaíso', label: 'Valparaíso' },
-		{ value: 'San Joaquín', label: 'San Joaquín' },
-		{ value: 'Vitacura', label: 'Vitacura' },
-		{ value: 'Concepción', label: 'Concepción' }
-	];
-
-	const deptoOptions = [
-		{ value: 'ALL', label: 'Todos los Deptos.' },
-		...Data.departamentos.map((d) => ({
-			value: d,
-			label: d[0].toUpperCase() + d.slice(1).toLowerCase()
-		}))
-	];
-
-	// 1. RESULTADOS COMPLETOS (Filtrados)
+	// 1. RESULTADOS COMPLETOS (Filtrados usando estado global)
 	const allResults = $derived(
-		professorRepo.search(query, { sede: selectedSede, depto: selectedDepto }).filter((p) => {
-			const n = p.name.toUpperCase().trim();
-			const isInvalid =
-				n.includes('SIN PROFESOR') ||
-				n.startsWith('NN') ||
-				n.includes('POR ASIGNAR') ||
-				n.includes('NO ASIGNADO') ||
-				n.length < 3;
-			return !isInvalid;
-		})
+		professorRepo
+			.search(ProfessorPageState.query, {
+				sede: ProfessorPageState.selectedSede,
+				depto: ProfessorPageState.selectedDepto
+			})
+			.filter((p) => {
+				const n = p.name.toUpperCase().trim();
+				const isInvalid =
+					n.includes('SIN PROFESOR') ||
+					n.startsWith('NN') ||
+					n.includes('POR ASIGNAR') ||
+					n.includes('NO ASIGNADO') ||
+					n.length < 3;
+				return !isInvalid;
+			})
 	);
 
 	// 2. RESULTADOS VISIBLES (Virtualizados)
 	const visibleResults = $derived(allResults.slice(0, renderLimit));
 
 	// 3. RESETEO INTELIGENTE
-	// Cuando cambian los filtros, reseteamos el límite y el scroll
 	$effect(() => {
-		// Dependencias que disparan el reset
-		query;
-		selectedSede;
-		selectedDepto;
+		// Dependencias que disparan el reset (desde el estado global)
+		ProfessorPageState.query;
+		ProfessorPageState.selectedSede;
+		ProfessorPageState.selectedDepto;
 
 		// Reset
 		renderLimit = BATCH_SIZE;
@@ -174,7 +186,6 @@
 			cancelText: 'Cancelar',
 			variant: 'primary'
 		});
-
 		if (!confirmed) return;
 
 		isSubmitting = true;
@@ -260,7 +271,6 @@
 
 	let quality = $derived(checkTextQuality(formValues.comment));
 	let isLowQuality = $derived(quality.isLowQuality);
-
 	let footerStatus = $derived(
 		formValues.comment.trim().length === 0
 			? {
@@ -288,82 +298,10 @@
 </script>
 
 <div class="flex h-full w-full flex-col">
-	<header class="bg-card z-20 border-b p-5 px-8 shadow-sm">
-		<div class="flex flex-row items-center justify-between gap-6">
-			<div class="w-full flex-1 space-y-1 self-start md:w-auto md:self-auto">
-				<div class="flex items-center gap-2">
-					<a
-						aria-label="index"
-						href="{base}/"
-						class="text-muted-foreground hover:text-primary hover:bg-primary/10 -ml-2 flex items-center justify-center rounded-full p-1.5 transition-colors"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							class="size-6"
-						>
-							<path d="m15 18-6-6 6-6" />
-						</svg>
-					</a>
-					<h1 class="text-primary text-3xl font-black tracking-tight uppercase">
-						Repositorio Docente
-					</h1>
-				</div>
-				<p class="text-muted-foreground pl-1 text-xs font-medium">
-					Explora, filtra y encuentra profesores históricos.
-				</p>
-			</div>
-
-			<div class="flex w-full max-w-1/2 flex-1 flex-row items-end gap-4">
-				<div class="flex flex-1 flex-col gap-1">
-					<p class="text-muted-foreground text-xs font-bold uppercase">Búsqueda</p>
-					<div class="relative">
-						<Search
-							class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-						/>
-						<input
-							bind:value={query}
-							type="text"
-							placeholder="Buscar nombre o ramo..."
-							class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm focus-visible:ring-1 focus-visible:outline-none"
-						/>
-					</div>
-				</div>
-				<div class="flex w-full flex-1 flex-row gap-2">
-					<div class="flex flex-1 flex-col gap-1">
-						<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
-						<SelectUI
-							items={sedeOptions}
-							bind:value={selectedSede}
-							placeholder="Todas"
-							class="w-full"
-						/>
-					</div>
-					<div class="flex flex-1 flex-col gap-1">
-						<p class="text-muted-foreground text-xs font-bold uppercase">Departamento</p>
-						<SelectUI
-							items={deptoOptions}
-							bind:value={selectedDepto}
-							placeholder="Todos"
-							class="w-full"
-						/>
-					</div>
-				</div>
-			</div>
-		</div>
-	</header>
-
 	<div class="mx-auto w-full max-w-4xl space-y-4 p-6 pb-2">
 		<div class="text-muted-foreground flex items-center justify-between px-1 text-xs">
 			<span>Mostrando {allResults.length} profesores</span>
-			{#if query}<span>Resultados para "{query}"</span>{/if}
+			{#if ProfessorPageState.query}<span>Resultados para "{ProfessorPageState.query}"</span>{/if}
 		</div>
 	</div>
 
@@ -463,7 +401,7 @@
 													{subDef.label}
 												</label>
 											</Tooltip>
-											<SelectUI
+											<Select
 												items={Object.entries(subDef.options).map(([key, option]) => ({
 													value: key,
 													//@ts-ignore
@@ -563,6 +501,7 @@
 					<textarea
 						id="review-comment"
 						class="bg-background ring-offset-background flex min-h-[100px] w-full rounded-md border px-3 py-2 text-sm transition-all duration-300 focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50
+    
         {isLowQuality
 							? 'border-amber-500! focus-visible:border-amber-500! focus-visible:ring-amber-500/50'
 							: 'border-input! focus-visible:ring-ring'}"

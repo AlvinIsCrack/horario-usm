@@ -112,9 +112,36 @@ let _ventanas = $derived.by(() => {
     return ventanas;
 });
 
-// --- INTERFAZ PÚBLICA (PROXY AL STORE RAMOS) ---
+// 1. Definir la interfaz explícita (puedes ubicarla antes de 'export const Calendario')
+interface CalendarioStore {
+    init(localStorage: any): void;
+    readonly ramos: Ramo[];
+    readonly inicializado: boolean;
+    readonly lockedLocation: boolean;
+    readonly visible: boolean;
+    readonly ventanas: { día: Días; bloque: number; duraciónBloques: number }[];
+    readonly range: [Días, Días];
+    readonly bloqueRange: [number, number];
+    readonly bloqueRangeDifference: number;
+    ramoPreview: Ramo | undefined;
+    checkCollision(ramo: Ramo): boolean;
+    checkCollisionAt(bloque: { dia: Días, bloque: number }): boolean;
+    getBloques(día: Días, bloque: number): Bloque[] | null;
+    getAllBloquesDía(día: Días): { [bloque: number]: Bloque[] } | null;
+    hasRamo(query: { sigla?: string, paralelo?: string }): boolean;
+    addRamo(ramo: Ramo): void;
+    removeRamo(sigla: string): boolean;
+    clear(): void;
+    clearSaved(): void;
+    hasSaved(): boolean;
+    removeSaved(key: string): boolean;
+    getSaved(): string[];
+    save(key: string): void;
+    load(key: string): Promise<boolean>;
+}
 
-export const Calendario = {
+// 2. Asignar la interfaz y añadir los tipos de retorno a los métodos
+export const Calendario: CalendarioStore = {
     init(localStorage: any) {
         _savedHorarios = localStorage.getItem(SAVED_HORARIOS) ? JSON.parse(localStorage.getItem(SAVED_HORARIOS)!) : {};
         _initialized = true;

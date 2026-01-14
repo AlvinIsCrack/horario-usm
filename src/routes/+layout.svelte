@@ -4,6 +4,8 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import DialogRenderer from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import Toaster from '$lib/components/ui/sonner/Toaster.svelte';
+	import { page } from '$app/state';
+	import { fade } from 'svelte/transition';
 
 	$effect(() => {
 		Calendario.init(localStorage);
@@ -16,8 +18,22 @@
 	<title>Horario USM</title>
 </svelte:head>
 
-<div role="application" class="relative h-full w-full overflow-hidden">
-	{@render children()}
+<div role="application" class="flex size-full flex-row overflow-hidden">
+	{#await import('$lib/components/sidebar/SideBar.svelte') then { default: SideBar }}
+		<SideBar />
+	{/await}
+
+	<div class="relative size-full overflow-hidden">
+		{#key page.url.pathname}
+			<div
+				in:fade={{ duration: 100, delay: 200 }}
+				out:fade={{ duration: 100 }}
+				class="absolute inset-0 top-0 left-0 size-full"
+			>
+				{@render children()}
+			</div>
+		{/key}
+	</div>
 </div>
 
 <DialogRenderer />

@@ -31,11 +31,13 @@
 	import Statistics from '../../logic/statistics/components/Statistics.svelte';
 	import SedeSelector from '../../logic/config/components/SedeSelector.svelte';
 	import UserData from '../../logic/config/components/UserData.svelte';
+	import MaterialSymbolsCalculate from '$lib/icons/MaterialSymbolsCalculate.svelte';
+	import MaterialSymbolsArrowLeftAlt from '$lib/icons/MaterialSymbolsArrowLeftAlt.svelte';
 </script>
 
 <div
 	id="main-sidebar"
-	class="bg-sidebar text-sidebar-foreground relative h-full overflow-hidden p-4"
+	class="bg-sidebar text-sidebar-foreground relative h-full max-w-xs! overflow-hidden p-4"
 >
 	<div in:fade={{ delay: 500, duration: 500 }} class="isolate h-full w-full">
 		<div
@@ -48,7 +50,16 @@
 					<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
 						<SidebarButton
 							text="Añadir ramo"
-							onclick={() => SidebarState.open(RamoWindow)}
+							onclick={() => {
+								SidebarState.open(
+									RamoWindow,
+									{},
+									{
+										title: 'Añadir ramo',
+										description: 'Planificar tu horario'
+									}
+								);
+							}}
 							Icon={Add}
 							class="justify-center!"
 						/>
@@ -60,8 +71,17 @@
 						{#if !Calendario.visible}
 							<div class="flex flex-1 flex-col gap-[inherit]">
 								<SidebarButton
-									text="Horarios guardados"
-									onclick={() => SidebarState.open(SavedHorariosWindow)}
+									text="Horarios"
+									onclick={() => {
+										SidebarState.open(
+											SavedHorariosWindow,
+											{},
+											{
+												title: 'Horarios guardados',
+												description: 'Guardados localmente'
+											}
+										);
+									}}
 									Icon={Horario}
 									variant="secondary"
 								/>
@@ -77,6 +97,12 @@
 									Icon={Teachers}
 									variant="secondary"
 								/>
+								<!-- <SidebarButton
+									text="Calculadora promedios"
+									onclick={() => goto(`${base}/optimizador`)}
+									Icon={MaterialSymbolsCalculate}
+									variant="secondary"
+								/> -->
 							</div>
 						{/if}
 					</div>
@@ -116,17 +142,30 @@
 				class="bg-sidebar-accent text-sidebar-accent-foreground absolute top-0 left-0 z-10 flex h-full w-full min-w-full flex-col items-end gap-2 p-4"
 				transition:fly={{ x: '-100%', opacity: 1, easing: circOut, duration: 300 }}
 			>
-				<Button
-					class="aspect-square h-min w-auto bg-destructive/50! hover:bg-destructive/80!"
-					variant="outlined"
-					disabled={SidebarState.isLocked}
-					onclick={() => {
-						SidebarState.close();
-						Calendario.ramoPreview = undefined;
-					}}
+				<div
+					class="bg-card -mx-4 -mt-4 mb-2 flex w-[calc(100%+2rem)] flex-row items-center justify-between p-4 shadow-sm"
 				>
-					<Add class="scale-150 rotate-45" />
-				</Button>
+					<div class="flex flex-1 flex-col items-start justify-center pr-4 text-left">
+						{#if SidebarState.title}
+							<h1 class="-mb-0.5 font-semibold">{SidebarState.title}</h1>
+						{/if}
+						{#if SidebarState.description}
+							<p class="text-sm opacity-50">{SidebarState.description}</p>
+						{/if}
+					</div>
+					<Button
+						class="bg-card/50! hover:bg-accent/80! aspect-square h-min w-auto"
+						variant="outlined"
+						disabled={SidebarState.isLocked}
+						onclick={() => {
+							SidebarState.close();
+							goto(base + '/');
+							Calendario.ramoPreview = undefined;
+						}}
+					>
+						<MaterialSymbolsArrowLeftAlt class="scale-150" />
+					</Button>
+				</div>
 
 				<Window {...SidebarState.props} />
 			</div>

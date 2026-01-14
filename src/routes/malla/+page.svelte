@@ -1,28 +1,41 @@
-<script lang="ts">
-	import { base } from '$app/paths';
-	import { Data } from '$lib/data/data.svelte';
+<script module>
+	class MallaStateManager {
+		malla?: MallaState;
+	}
 
+	export const MallaPageState = new MallaStateManager();
+</script>
+
+<script lang="ts">
 	// Importaciones de lógica modularizada
 	import { MallaState } from '$lib/logic/malla/malla.svelte';
-	import { getCareerOptions } from '$lib/logic/malla/data';
 	import { getCenter, generatePath, romanize } from '$lib/logic/malla/visuals';
 	import { cardStyles } from '$lib/logic/malla/styles';
 	import type { Connection, RamoMalla } from '$lib/logic/malla/types';
 
 	// UI Components
-	import PlanSearch from '$lib/components/elements/PlanSearch.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import { draw, fade } from 'svelte/transition';
+	import { draw } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import Lock from '$lib/icons/lock.svelte';
-	import Select from '$lib/components/ui/Select.svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import MallaWindow from '$lib/components/sidebar/windows/MallaWindow.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 
 	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
-	// Usamos el estado derivado de mallaState directamente
-	let careerOptions = $derived(
-		getCareerOptions(mallaState.selectedSede, mallaState.selectedJornada)
-	);
+	onMount(() => {
+		SidebarState.open(
+			MallaWindow,
+			{},
+			{ title: 'Malla Interactiva', description: 'Planifica tu trayectoria académica de forma visual e interactiva' }
+		);
+		MallaPageState.malla = mallaState;
+	})
+
+	onDestroy(() => {
+		SidebarState.reset();
+		MallaPageState.malla = undefined;
+	});
 
 	// --- Lógica de Interacción (Visual + Eventos) ---
 	function handleRamoClick(ramo: RamoMalla) {
@@ -110,106 +123,6 @@
 </script>
 
 <div class="flex h-screen w-full flex-col overflow-hidden">
-	<header class="bg-card z-20 border-b p-5 px-8 shadow-sm">
-		<div class="flex flex-col items-center justify-between gap-20 md:flex-row">
-			<div class="w-full space-y-1 self-start md:w-auto md:self-auto">
-				<div class="flex items-center gap-2">
-					<a
-						href="{base}/"
-						class="text-muted-foreground hover:text-primary hover:bg-primary/10 -ml-2 flex items-center justify-center rounded-full p-1.5 transition-colors"
-						aria-label="Volver al inicio"
-					>
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							width="24"
-							height="24"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							class="size-6"
-						>
-							<path d="m15 18-6-6 6-6" />
-						</svg>
-					</a>
-					<h1 class="text-primary text-3xl font-black tracking-tight uppercase">
-						Malla Interactiva
-					</h1>
-				</div>
-
-				<p class="text-muted-foreground pl-1 text-xs font-medium">
-					Planifica tu trayectoria académica de forma visual e interactiva.
-				</p>
-			</div>
-
-			<div class="flex flex-[0.5] items-center justify-center gap-2">
-				{#if mallaState.selectedPlanId}
-					<span class="text-muted-foreground text-sm">
-						<span class="text-foreground">{mallaState.stats.percent}% completado</span> • {mallaState
-							.stats.creditos} SCT
-					</span>
-				{/if}
-			</div>
-
-			<div class="relative flex max-w-1/2 flex-1 flex-row items-end gap-4">
-				{#if mallaState.hoverSig}
-					<div
-						transition:fade={{ duration: 200 }}
-						class="text-muted-foreground bg-card absolute z-20 flex h-full w-full flex-wrap items-end justify-end gap-x-4 gap-y-1 pt-1 text-[10px] font-bold select-none md:text-xs"
-					>
-						<div class="flex items-center gap-1.5">
-							<span class="size-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"
-							></span>
-							<span>Pre-requisito</span>
-						</div>
-						<div class="flex items-center gap-1.5">
-							<span class="size-2 rounded-full bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.6)]"
-							></span>
-							<span>Co-requisito</span>
-						</div>
-						<div class="flex items-center gap-1.5">
-							<span class="size-2 rounded-full bg-lime-500 shadow-[0_0_6px_rgba(132,204,22,0.6)]"
-							></span>
-							<span>Desbloqueo Parcial</span>
-						</div>
-						<div class="flex items-center gap-1.5">
-							<span class="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]"
-							></span>
-							<span>Desbloqueo Directo</span>
-						</div>
-					</div>
-				{/if}
-
-				<div class="flex min-w-[100px] flex-1 flex-col gap-1">
-					<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
-					<Select
-						placeholder="Selecciona..."
-						class="w-full"
-						items={Data.sedes.map((s) => ({ value: s }))}
-						bind:value={mallaState.selectedSede}
-					/>
-				</div>
-
-				<div class="flex min-w-[100px] flex-1 flex-col gap-1">
-					<p class="text-muted-foreground text-xs font-bold uppercase">Jornada</p>
-					<Select
-						placeholder="Diurna"
-						class="w-full"
-						items={Data.jornadasCarreras[mallaState.selectedSede]?.map((j) => ({ value: j })) || []}
-						bind:value={mallaState.selectedJornada}
-					/>
-				</div>
-
-				<div class="flex flex-[2] flex-col gap-1">
-					<p class="text-muted-foreground text-xs font-bold uppercase">Carrera</p>
-					<PlanSearch items={careerOptions} bind:value={mallaState.selectedPlanId} />
-				</div>
-			</div>
-		</div>
-	</header>
-
 	<main
 		onmouseleave={() => (mallaState.hoverSig = null)}
 		class="relative flex-1 overflow-auto p-3.5"

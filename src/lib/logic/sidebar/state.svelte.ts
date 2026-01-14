@@ -3,6 +3,9 @@ import { type Component, tick } from 'svelte';
 type WindowProps = Record<string, any>;
 
 class SidebarManager {
+    private _title = $state('');
+    private _description = $state('');
+
     // Estado reactivo
     private _activeWindow = $state<Component | null>(null);
     private _windowProps = $state<WindowProps>({});
@@ -27,14 +30,24 @@ class SidebarManager {
         return this._isTransitioning;
     }
 
+    get title() {
+        return this._title;
+    }
+
+    get description() {
+        return this._description;
+    }
+
     /**
      * Abre una nueva ventana en el sidebar.
      * Si ya hay una abierta, la reemplaza suavemente.
      */
-    async open(component: Component, props: WindowProps = {}) {
+    async open(component: Component, props: WindowProps = {}, params: { title?: string; description?: string; } = {}) {
         if (this._activeWindow === component) return; // Evitar recargas innecesarias
 
         this._isTransitioning = true;
+        this._title = '';
+        this._description = '';
 
         // Si ya había una ventana, esperamos un tick para limpiar el estado anterior si es necesario
         // (aunque Svelte maneja el reemplazo, esto asegura que props se limpien)
@@ -45,6 +58,8 @@ class SidebarManager {
 
         this._windowProps = props;
         this._activeWindow = component;
+        this._title = params?.title ?? '';
+        this._description = params?.description ?? '';
 
         // Liberamos el lock después de un breve delay técnico para permitir montaje
         setTimeout(() => {
