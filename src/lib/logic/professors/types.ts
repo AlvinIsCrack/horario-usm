@@ -8,15 +8,30 @@ export const EVALUATION_DIMENSIONS = {
         sub_dimensions: {
             claridad: {
                 id: 'claridad_expositiva',
-                label: 'Claridad',
-                description: 'Mide la capacidad de síntesis y la elocuencia del docente. Se enfoca en qué tan bien logra aterrizar conceptos abstractos y si el flujo de la clase permite tomar apuntes coherentes sin lagunas de información.',
+                label: 'Didáctica',
+                description: 'Evalúa la capacidad de síntesis y oratoria del profesor. Mide su talento para aterrizar conceptos abstractos y si su relato permite tomar apuntes coherentes sin dejar lagunas de información.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Confuso', description: 'Explicaciones desordenadas que dificultan el seguimiento de la clase.' },
-                    2: { label: 'Denso', description: 'Contenidos explicados de forma compleja o poco cercana.' },
-                    3: { label: 'Adecuado', description: 'Transmisión correcta de los contenidos del curso.' },
-                    4: { label: 'Eficaz', description: 'Facilita más la comprensión con explicaciones bien estructuradas.' },
-                    5: { label: 'Impecable', description: 'Explicaciones excepcionales que hacen simple incluso lo más difícil.' }
+                    1: {
+                        label: 'Confuso',
+                        description: 'El profesor divaga o se desordena al explicar; carece de hilo conductor, lo que hace casi imposible seguir la clase.'
+                    },
+                    2: {
+                        label: 'Denso',
+                        description: 'El profesor complica lo simple; da vueltas innecesarias o utiliza un lenguaje poco accesible que dificulta la comprensión fluida.'
+                    },
+                    3: {
+                        label: 'Correcto',
+                        description: 'El profesor transmite la materia de forma ordenada y lineal; cumple con exponer los contenidos de manera entendible.'
+                    },
+                    4: {
+                        label: 'Pedagógico',
+                        description: 'El profesor facilita activamente el aprendizaje; estructura muy bien sus ideas y utiliza analogías o ejemplos que ayudan a "aterrizar" la teoría.'
+                    },
+                    5: {
+                        label: 'Magistral',
+                        description: 'El profesor tiene un don para la enseñanza; su oratoria y claridad mental logran que incluso los conceptos más difíciles parezcan simples de entender.'
+                    }
                 }
             },
             puntualidad: {
@@ -40,27 +55,58 @@ export const EVALUATION_DIMENSIONS = {
         sub_dimensions: {
             rigor: {
                 id: 'rigor_calificatorio',
-                label: 'Rigor',
-                description: 'Se refiere exclusivamente a la vara de medición en las evaluaciones. No mide lo difícil del examen, sino qué tan estricta es la corrección (ej: si descuenta mucho por errores de forma, redacción o unidades en un resultado correcto).', type: 'BARS',
+                label: 'Severidad',
+                description: 'Se refiere exclusivamente a la vara de medición en las evaluaciones. No mide lo difícil del examen, sino qué tan estricta es la corrección (ej: si descuenta mucho por errores de forma, redacción o unidades en un resultado correcto).',
+                type: 'BARS',
                 levels: {
-                    1: { label: 'Barco', description: 'Criterios de evaluación muy flexibles y permisivos.' },
-                    2: { label: 'Flexible', description: 'Tiende a priorizar el avance del alumno sobre el detalle.' },
-                    3: { label: 'Estándar', description: 'Corrección equilibrada basada estrictamente en la pauta.' },
-                    4: { label: 'Exigente', description: 'Nivel de detalle elevado; requiere precisión en las respuestas.' },
-                    5: { label: 'Extremo', description: 'Margen de error nulo; evaluación inflexible y meticulosa.' }
+                    1: {
+                        label: 'Benevolente',
+                        description: 'El profesor corrige con "mano blanda"; suele pasar por alto errores evidentes y otorga puntaje generoso por procedimientos parciales o la mera intención.'
+                    },
+                    2: {
+                        label: 'Comprensivo',
+                        description: 'El profesor prioriza el fondo sobre la forma; valora que el alumno haya entendido el concepto central y no descuenta por errores menores de detalle.'
+                    },
+                    3: {
+                        label: 'Objetivo',
+                        description: 'El profesor se ciñe estrictamente a la pauta; corrige de manera neutral, validando lo correcto y descontando lo incorrecto sin buscar la quinta pata al gato.'
+                    },
+                    4: {
+                        label: 'Exigente',
+                        description: 'El profesor exige precisión técnica total; descuenta puntaje por errores de notación, unidades, ortografía o redacción, aunque el resultado numérico sea correcto.'
+                    },
+                    5: {
+                        label: 'Estricto',
+                        description: 'El profesor busca la perfección absoluta; su corrección no admite matices y penaliza severamente cualquier desviación mínima de la respuesta esperada, anulando el puntaje.'
+                    }
                 }
             },
             coherencia: {
                 id: 'coherencia_evaluativa',
                 label: 'Coherencia',
-                description: 'Mide la "honestidad" del examen respecto a la cátedra. Evalúa si los problemas de las evaluaciones siguen la línea de los ejemplos vistos en pizarra o si, por el contrario, el profesor sorprende con ejercicios de una naturaleza distinta.',
+                description: 'Mide la "honestidad" académica entre lo enseñado y lo evaluado. Analiza si la materia y los ejemplos vistos en cátedra son representativos de lo que finalmente se pregunta en las evaluaciones.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Incoherente', description: 'Evalúa temas que no se trataron o que se vieron superficialmente.' },
-                    2: { label: 'Desfasado', description: 'La dificultad de las pruebas es muy superior a lo ejercitado en clase.' },
-                    3: { label: 'Equilibrado', description: 'Evaluaciones acordes a la materia y ejemplos vistos en cátedra.' },
-                    4: { label: 'Alineado', description: 'Existe una conexión clara y directa entre la clase y la evaluación.' },
-                    5: { label: 'Predecible', description: 'Las evaluaciones no presentan sorpresas; se ciñen a lo estrictamente visto, y pueden llegar a ser más fáciles gracias al profesor.' }
+                    1: {
+                        label: 'Incoherente',
+                        description: 'El contenido visto en clases es irrelevante o insuficiente para resolver las evaluaciones.'
+                    },
+                    2: {
+                        label: 'Desfasado',
+                        description: 'Los ejercicios o temas abordados son mucho más simples que la realidad que se enfrenta en la prueba.'
+                    },
+                    3: {
+                        label: 'Equilibrado',
+                        description: 'Lo enseñado en pizarra cubre adecuadamente la complejidad requerida en las evaluaciones.'
+                    },
+                    4: {
+                        label: 'Alineado',
+                        description: 'Sintonía total: la cátedra entrega rigurosamente todas las herramientas y la complejidad necesaria para resolver el examen sin problemas.'
+                    },
+                    5: {
+                        label: 'Predecible',
+                        description: 'El docente "pautea" la prueba en clases: repite ejercicios textuales o anticipa los temas, haciendo que la evaluación resulte más fácil de abordar.'
+                    }
                 }
             },
             dificultad: {
@@ -69,11 +115,11 @@ export const EVALUATION_DIMENSIONS = {
                 description: 'Mide la carga total que impone el profesor. Incluye la complejidad de las tareas, la profundidad de los temas abordados y cuántas horas semanales extra demanda el curso para no quedar "atrás" respecto a su ritmo.',
                 type: 'BARS',
                 levels: {
-                    1: { label: 'Simplificador', description: 'Reduce la complejidad del ramo al mínimo esfuerzo necesario.' },
-                    2: { label: 'Abordable', description: 'Maneja una carga razonable que permite llevar el ramo al día.' },
-                    3: { label: 'Estándar', description: 'Exige la dedicación justa que el programa del ramo requiere.' },
-                    4: { label: 'Intenso', description: 'Eleva la carga de trabajo; sus explicaciones o tareas exigen un plus de tiempo.' },
-                    5: { label: 'Abrumador', description: 'Su enfoque hace que el ramo sea extremadamente difícil de superar.' }
+                    1: { label: 'Simplificador', description: 'Se reduce la exigencia al mínimo; con su gestión, aprobar requiere muy poco esfuerzo académico.' },
+                    2: { label: 'Facilitador', description: 'El profesor hace el ramo muy llevadero; flexibiliza plazos o contenidos para que la carga se sienta ligera.' },
+                    3: { label: 'Estándar', description: 'Se pide lo justo y necesario; mantiene un ritmo de trabajo acorde al programa sin regalar ni sobrecargar.' },
+                    4: { label: 'Intenso', description: 'Se eleva la vara; el estilo del profesor demanda del alumno una dedicación extra y un estudio disciplinado para cumplir sus estándares.' },
+                    5: { label: 'Extremo', description: 'El profesor impone una carga de trabajo desproporcionada; sus requerimientos son tan altos que suelen comprometer el rendimiento en otros ramos.' }
                 }
             }
         }
