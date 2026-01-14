@@ -8,7 +8,7 @@
 
 <Tooltip content={tag.description}>
 	<Badge
-		class="h-5 cursor-help px-1.5! text-[10px] font-normal saturate-120! select-none hover:brightness-120! hover:saturate-80!"
+		class="cursor-help px-2! py-px! text-[10px] border-white/20! font-normal saturate-120! select-none hover:brightness-150!"
 		variant={{
 			NEUTRAL: 'default',
 			ALERT: 'warning',
@@ -16,6 +16,6 @@
 			NEGATIVE: 'danger'
 		}[tag.sentiment] as any}
 	>
-		<span class="opacity-80 mix-blend-plus-lighter">{tag.label}</span>
+		<span class="text-shadow-sm/100 mix-blend-plus-lighter">{tag.label}</span>
 	</Badge>
 </Tooltip>

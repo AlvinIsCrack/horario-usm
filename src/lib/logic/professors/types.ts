@@ -14,23 +14,23 @@ export const EVALUATION_DIMENSIONS = {
                 levels: {
                     1: {
                         label: 'Confuso',
-                        description: 'El profesor divaga o se desordena al explicar; carece de hilo conductor, lo que hace casi imposible seguir la clase.'
+                        description: 'Divaga o se desordena al explicar; carece de hilo conductor, haciendo casi imposible entender.'
                     },
                     2: {
                         label: 'Denso',
-                        description: 'El profesor complica lo simple; da vueltas innecesarias o utiliza un lenguaje poco accesible que dificulta la comprensión fluida.'
+                        description: 'Complica lo simple; da vueltas innecesarias o utiliza un lenguaje poco accesible que dificulta la comprensión.'
                     },
                     3: {
                         label: 'Correcto',
-                        description: 'El profesor transmite la materia de forma ordenada y lineal; cumple con exponer los contenidos de manera entendible.'
+                        description: 'Transmite la materia de forma ordenada y lineal; cumple con exponer los contenidos de manera entendible.'
                     },
                     4: {
                         label: 'Pedagógico',
-                        description: 'El profesor facilita activamente el aprendizaje; estructura muy bien sus ideas y utiliza analogías o ejemplos que ayudan a "aterrizar" la teoría.'
+                        description: 'Facilita activamente el aprendizaje; estructura muy bien sus ideas y utiliza analogías o ejemplos que ayudan a "aterrizar" la teoría.'
                     },
                     5: {
                         label: 'Magistral',
-                        description: 'El profesor tiene un don para la enseñanza; su oratoria y claridad mental logran que incluso los conceptos más difíciles parezcan simples de entender.'
+                        description: 'Hay don para la enseñanza; su oratoria y claridad mental logran que incluso los conceptos más difíciles parezcan simples de entender.'
                     }
                 }
             },
@@ -61,23 +61,23 @@ export const EVALUATION_DIMENSIONS = {
                 levels: {
                     1: {
                         label: 'Benevolente',
-                        description: 'El profesor corrige con "mano blanda"; suele pasar por alto errores evidentes y otorga puntaje generoso por procedimientos parciales o la mera intención.'
+                        description: 'Corrección de tipo "mano blanda"; suele pasar por alto errores evidentes y otorga puntaje generoso por procedimientos parciales o la mera intención.'
                     },
                     2: {
                         label: 'Comprensivo',
-                        description: 'El profesor prioriza el fondo sobre la forma; valora que el alumno haya entendido el concepto central y no descuenta por errores menores de detalle.'
+                        description: 'Prioriza el fondo sobre la forma; valora que el alumno haya entendido el concepto central y no descuenta por errores menores de detalle.'
                     },
                     3: {
                         label: 'Objetivo',
-                        description: 'El profesor se ciñe estrictamente a la pauta; corrige de manera neutral, validando lo correcto y descontando lo incorrecto sin buscar la quinta pata al gato.'
+                        description: 'Evalúa objetivamente acorde a la pauta; corrige de manera neutral, validando lo correcto y descontando lo incorrecto sin buscar la quinta pata al gato.'
                     },
                     4: {
                         label: 'Exigente',
-                        description: 'El profesor exige precisión técnica total; descuenta puntaje por errores de notación, unidades, ortografía o redacción, aunque el resultado numérico sea correcto.'
+                        description: 'Se exige precisión técnica total; descuenta puntaje por errores de notación, unidades, ortografía o redacción, aunque el resultado numérico sea correcto.'
                     },
                     5: {
                         label: 'Estricto',
-                        description: 'El profesor busca la perfección absoluta; su corrección no admite matices y penaliza severamente cualquier desviación mínima de la respuesta esperada, anulando el puntaje.'
+                        description: 'Busca la perfección absoluta en las evaluaciones; su corrección no admite matices y penaliza severamente cualquier desviación mínima de la respuesta esperada, anulando el puntaje.'
                     }
                 }
             },
@@ -89,7 +89,7 @@ export const EVALUATION_DIMENSIONS = {
                 levels: {
                     1: {
                         label: 'Incoherente',
-                        description: 'El contenido visto en clases es irrelevante o insuficiente para resolver las evaluaciones.'
+                        description: 'Lo visto en clases es irrelevante o insuficiente para resolver las evaluaciones.'
                     },
                     2: {
                         label: 'Desfasado',
