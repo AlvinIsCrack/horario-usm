@@ -334,41 +334,19 @@
 			.reverse();
 	});
 
-	let isExpanded = $state(true);
-	let leaveTimer: ReturnType<typeof setTimeout>;
-
-	$effect(() => {
-		const timer = setTimeout(() => {
-			isExpanded = false;
-		}, 2000);
-		return () => clearTimeout(timer);
-	});
-
-	function handleMouseEnter() {
-		clearTimeout(leaveTimer);
-		isExpanded = true;
-	}
-
-	function handleMouseLeave() {
-		leaveTimer = setTimeout(() => {
-			isExpanded = false;
-		}, 450);
-	}
-
 	// --- Estilos ---
 	const diffs = tv({
 		slots: {
-			container:
-				'mx-auto will-change-contents flex w-full max-w-fit flex-col gap-4 pb-10 transition-all duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]',
+			container: 'mx-auto flex h-full w-full max-w-2xl flex-col gap-4',
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
-				'flex items-baseline gap-2 px-1 text-[10px] mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
+				'flex items-baseline gap-2 px-1 text-sm mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
 			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-0.5',
 			cardStructural: 'rounded-md gap-3 border border-dashed px-3 py-0.5 text-xs font-medium',
 			indicador: 'h-2 w-2 rounded-full shrink-0 hover:scale-105 hover:ring-2',
 			content: 'flex min-w-0 flex-1 flex-col',
 			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
-			sigla: 'font-mono text-sm font-black tracking-wide text-foreground',
+			sigla: 'font-mono text-base font-black tracking-wide text-foreground',
 			nombre: 'truncate text-xs font-medium text-foreground/70',
 			badgesRow: 'flex flex-wrap gap-1',
 			alertaTexto: 'truncate text-xs font-normal text-muted-foreground/80',
@@ -384,10 +362,6 @@
 			structType: {
 				ALERTA: { cardStructural: 'border-rose-500/50 bg-rose-500/10 text-rose-600' },
 				INFO: { cardStructural: 'border-blue-500/50 bg-blue-500/10 text-blue-600' }
-			},
-			expanded: {
-				true: { container: 'max-h-100 opacity-100' },
-				false: { container: 'max-h-30 opacity-60! scale-90' }
 			},
 			new: {
 				false: {},
@@ -423,6 +397,8 @@
 		return 'Evento registrado';
 	}
 
+	let { hasNewEvents = $bindable(false) } = $props();
+
 	let newItems = $state(new Set<number>());
 	onMount(() => {
 		const tracker = new SmartReadTracker({
@@ -437,27 +413,19 @@
 		for (const grupo of historial) allTimestamps.push(grupo.timestamp);
 
 		newItems = tracker.process(allTimestamps) as Set<number>;
+		if (newItems.size > 0) hasNewEvents = true;
 	});
 </script>
 
 {#if Config.sede && Config.jornada}
-	<section
-		role="log"
-		class={s.container({ expanded: isExpanded })}
-		onmouseenter={handleMouseEnter}
-		onmouseleave={handleMouseLeave}
-	>
-		<div class="-mb-4 px-1">
-			<h1 class="text-foreground text-sm font-bold uppercase">
+	<section role="log" class={s.container({})}>
+		<div class="-mb-4 w-full px-1">
+			<h1 class="text-foreground text-xl font-bold uppercase">
 				Cambios de siga para {Config.sede}
 			</h1>
 		</div>
 
-		<div
-			class="scroller h-full overflow-y-auto {isExpanded
-				? 'mask-b-from-95% mask-b-to-100%'
-				: 'overflow-hidden mask-b-from-60% mask-b-to-100%'}"
-		>
+		<div class="scroller h-full overflow-y-auto mask-b-from-95% mask-b-to-100%">
 			{#each historial as grupo (grupo.timestamp)}
 				<div class={s.grupoWrapper()}>
 					<header class={s.header()}>
@@ -484,59 +452,59 @@
 							{:else}
 								{@const status = getStatus(item)}
 
-								<div class={s.card({ new: newItems.has(grupo.timestamp) })}>
-									<Tooltip content={getStatusTooltip(item)}>
+								<Tooltip content={getStatusTooltip(item)}>
+									<div class={s.card({ new: newItems.has(grupo.timestamp) })}>
 										<div class={s.indicador({ status })}></div>
-									</Tooltip>
 
-									<div class={s.content()}>
-										<div class={s.filaPrincipal()}>
-											<span class={s.sigla()}>{item.sigla}</span>
-											<span class={s.nombre()}>{item.nombre}</span>
+										<div class={s.content()}>
+											<div class={s.filaPrincipal()}>
+												<span class={s.sigla()}>{item.sigla}</span>
+												<span class={s.nombre()}>{item.nombre}</span>
+											</div>
+
+											<div class={s.badgesRow()}>
+												{#if item.alertas.length > 0}
+													<span class={s.alertaTexto({ status })}>{item.alertas[0]}</span>
+													{#if item.alertas.length > 1}
+														<Tooltip content={item.alertas.slice(1).join('\n')}>
+															<Badge
+																class="bg-muted/50 text-muted-foreground hover:bg-muted h-4 cursor-help px-1 py-0 text-[9px]"
+															>
+																+{item.alertas.length - 1}
+															</Badge>
+														</Tooltip>
+													{/if}
+												{/if}
+											</div>
 										</div>
 
-										<div class={s.badgesRow()}>
-											{#if item.alertas.length > 0}
-												<span class={s.alertaTexto({ status })}>{item.alertas[0]}</span>
-												{#if item.alertas.length > 1 && isExpanded}
-													<Tooltip content={item.alertas.slice(1).join('\n')}>
-														<Badge
-															class="bg-muted/50 text-muted-foreground hover:bg-muted h-4 cursor-help px-1 py-0 text-[9px]"
+										<div class={s.stats()}>
+											{#if item.cupoDelta !== 0}
+												<Tooltip content="Variación de Cupos">
+													<div class="flex flex-col items-end leading-none">
+														<span
+															class="font-bold {item.cupoDelta > 0
+																? 'text-emerald-500'
+																: 'text-rose-500'}"
 														>
-															+{item.alertas.length - 1}
-														</Badge>
-													</Tooltip>
-												{/if}
+															{item.cupoDelta > 0 ? '+' : ''}{item.cupoDelta}
+														</span>
+														<span class="text-muted-foreground text-[9px] uppercase">Cupos</span>
+													</div>
+												</Tooltip>
+											{/if}
+											{#if item.cupoAperturas > 0}
+												<Tooltip content="Se han abierto nuevos cupos en paralelos cerrados">
+													<Badge
+														class="border-emerald-500/20 bg-emerald-500/15 text-[9px] text-emerald-600 hover:bg-emerald-500/25"
+													>
+														OPEN
+													</Badge>
+												</Tooltip>
 											{/if}
 										</div>
 									</div>
-
-									<div class={s.stats()}>
-										{#if item.cupoDelta !== 0}
-											<Tooltip content="Variación de Cupos">
-												<div class="flex flex-col items-end leading-none">
-													<span
-														class="font-bold {item.cupoDelta > 0
-															? 'text-emerald-500'
-															: 'text-rose-500'}"
-													>
-														{item.cupoDelta > 0 ? '+' : ''}{item.cupoDelta}
-													</span>
-													<span class="text-muted-foreground text-[9px] uppercase">Cupos</span>
-												</div>
-											</Tooltip>
-										{/if}
-										{#if item.cupoAperturas > 0}
-											<Tooltip content="Se han abierto nuevos cupos en paralelos cerrados">
-												<Badge
-													class="border-emerald-500/20 bg-emerald-500/15 text-[9px] text-emerald-600 hover:bg-emerald-500/25"
-												>
-													OPEN
-												</Badge>
-											</Tooltip>
-										{/if}
-									</div>
-								</div>
+								</Tooltip>
 							{/if}
 						{/each}
 					</div>
