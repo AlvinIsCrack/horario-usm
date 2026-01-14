@@ -45,10 +45,10 @@
 
 	<div class="flex flex-1 flex-col overflow-hidden lg:flex-row">
 		<div class="bg-card flex w-full flex-1 shrink-0 flex-col gap-6 border-r p-5">
-			<div class="space-y-2">
+			<div class="space-y-2 text-left">
 				<h3 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">Formato</h3>
 				<div class="space-y-2">
-					<label class="text-sm font-medium">Modo de Etiquetas</label>
+					<h1 class="text-sm font-medium">Modo de Etiquetas</h1>
 					<div class="grid grid-cols-2 gap-2">
 						<Button
 							variant="ghost"
@@ -77,7 +77,7 @@
 				</div>
 
 				<div class="space-y-2">
-					<label class="text-sm font-medium">Tema</label>
+					<h1 class="text-sm font-medium">Tema</h1>
 					<div class="bg-muted flex rounded-lg p-1">
 						{#each ['Papel', 'Pastel', 'Tinta'] as t}
 							<button

@@ -2,7 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Location from '$lib/icons/location.svelte';
-	import { SideBar } from '../sidebar/SideBar.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 	import CornerBadge from '../ui/CornerBadge.svelte';
 	import { TipoBloque, type Bloque } from '$lib/logic/ramos/types';
 
@@ -27,8 +27,8 @@
 	<div class="relative h-full w-full">
 		{#if visible}
 			<div
-				onmouseenter={() => !SideBar.activeWindow && (Calendario.ramoPreview = ramo)}
-				onmouseleave={() => !SideBar.activeWindow && (Calendario.ramoPreview = undefined)}
+				onmouseenter={() => !SidebarState.isOpen && (Calendario.ramoPreview = ramo)}
+				onmouseleave={() => !SidebarState.isOpen && (Calendario.ramoPreview = undefined)}
 				transition:fly
 				class="ring-border border-input absolute flex h-full w-full flex-col justify-between ring {esCátedra
 					? 'rounded-lg'

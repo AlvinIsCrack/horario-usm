@@ -1,15 +1,14 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import { Data } from '$lib/data/data.svelte';
 	import Add from '$lib/icons/add.svelte';
 	import Circles from '$lib/icons/circles.svelte';
 	import Edit from '$lib/icons/edit.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Badge from '../ui/Badge.svelte';
-	import { SideBar } from '../sidebar/SideBar.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 
 	// 1. Calculamos el total de SCT en una variable reactiva limpia
 	const totalSCT = $derived(Calendario.ramos.reduce((sum, r) => sum + (r?.creditos ?? 0), 0));
@@ -120,7 +119,7 @@
 									variant="secondary"
 									size="icon"
 									onclick={() =>
-										SideBar.setActiveWindow(RamoWindow, {
+										SidebarState.open(RamoWindow, {
 											edit: {
 												sigla: ramo.sigla,
 												paralelo: ramo.paralelo

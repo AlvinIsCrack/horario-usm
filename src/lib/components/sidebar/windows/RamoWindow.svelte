@@ -3,7 +3,7 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { tick, untrack } from 'svelte';
-	import { SideBar } from '../SideBar.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import RamoSummary from '../../elements/RamoSummary.svelte';
 	import ParaleloOption from '../../elements/ParaleloOption.svelte';
@@ -42,7 +42,7 @@
 
 	const inHorario = $derived(Calendario.hasRamo({ sigla: selectedRamo }));
 
-	let ramoSearch: HTMLInputElement | undefined = undefined;
+	let ramoSearch: HTMLInputElement | undefined = $state(undefined);
 	$effect(() => {
 		if (ramoSearch) {
 			ramoSearch.focus();
@@ -61,7 +61,7 @@
 			</p>
 		</div>
 		{#await import('../../elements/RamoSearch.svelte') then { default: RamoSearch }}
-			<div class="flex flex-col gap-1 mt-1">
+			<div class="mt-1 flex flex-col gap-1">
 				<p class="text-muted-foreground text-xs font-bold uppercase">Ramo</p>
 				<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
 			</div>
@@ -112,7 +112,7 @@
 			if (!Calendario.ramoPreview) return;
 			Calendario.addRamo({ ...Calendario.ramoPreview });
 			await tick();
-			SideBar.closeActiveWindow();
+			SidebarState.close();
 		}}>{inHorario ? 'Reemplazar' : 'Añadir'} ramo</Button
 	>
 </div>

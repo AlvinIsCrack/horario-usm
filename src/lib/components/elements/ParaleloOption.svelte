@@ -1,11 +1,9 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
-	import Separator from '$lib/components/ui/Separator.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
+	import type { Ramo } from '$lib/logic/ramos/types';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import type { Ramo } from '$lib/types/horario';
-	// import HorarioMiniRender from './HorarioMiniRender.svelte';
 
 	let {
 		selected = false,
@@ -23,10 +21,6 @@
 </script>
 
 <div class="{disabled ? 'pointer-events-none opacity-40 grayscale' : ''} flex w-full">
-	<!-- {#snippet paraleloRender()}
-		<HorarioMiniRender bloques={paralelo.horario} />
-	{/snippet} -->
-	<!-- <Tooltip content={paraleloRender} wrapperClass="inline w-full h-full" position="right"> -->
 	<Button
 		class="relative flex w-full items-center gap-3 border p-3
                 {!selected
@@ -74,5 +68,4 @@
 			{/each}
 		</div>
 	</Button>
-	<!-- </Tooltip> -->
 </div>

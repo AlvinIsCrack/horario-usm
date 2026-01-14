@@ -5,22 +5,21 @@
 	import { untrack } from 'svelte';
 	import Card from '../../../components/ui/Card.svelte';
 	import Tooltip from '../../../components/ui/Tooltip.svelte';
-	import { SideBar } from '../../../components/sidebar/SideBar.svelte';
 	import { cubicOut } from 'svelte/easing';
 
 	// Importamos SOLO la fachada y los tipos necesarios
 	import { generateScheduleStatistics } from '$lib/logic/statistics/index';
 	import type { StatItem, AnalyzerContext } from '$lib/logic/statistics/types';
 	import { Config } from '$lib/logic/config/store.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 
 	let statistics: StatItem[] = $state([]);
 	// let updated = $state(false);
 
 	$effect(() => {
 		// Dependencias reactivas
-		const _ = [Calendario.ramos, SideBar.activeWindow, Config.tiempoTraslado];
-
-		if (SideBar.activeWindow) return;
+		const _ = [Calendario.ramos, SidebarState.activeWindow, Config.tiempoTraslado];
+		if (SidebarState.activeWindow) return;
 
 		untrack(() => {
 			const tiempoNoInformado = Config.tiempoTraslado === -1;

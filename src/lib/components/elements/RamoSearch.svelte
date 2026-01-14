@@ -293,7 +293,7 @@
 				{/await}
 
 				{#if isMallaCompatible}
-					<div
+					<button
 						transition:slide={{ axis: 'y' }}
 						class="w-full py-2"
 						onmousedown={(e) => e.preventDefault()}
@@ -304,7 +304,7 @@
 							class="w-full"
 							placeholder="Filtrar búsqueda..."
 						/>
-					</div>
+					</button>
 				{/if}
 				<div
 					class="border-border relative bottom-0 mt-auto w-full translate-y-2 scale-x-200 border-b"

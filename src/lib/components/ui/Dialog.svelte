@@ -73,7 +73,8 @@
 		aria-hidden="true"
 	></div>
 
-	<div
+	<button
+		tabindex={0}
 		use:portal={'dialogs-portal'}
 		transition:scale={{ start: 0.95, duration: 150, easing: cubicOut }}
 		class="{contentStyle()} {_class}"
@@ -83,5 +84,5 @@
 		onclick={(e) => e.stopPropagation()}
 	>
 		{@render children?.()}
-	</div>
+	</button>
 {/if}

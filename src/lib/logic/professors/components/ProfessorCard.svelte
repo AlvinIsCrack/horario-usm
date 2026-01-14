@@ -12,7 +12,6 @@
 	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
 	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
 	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
-	import { max } from 'lodash';
 
 	let {
 		id,
@@ -225,12 +224,19 @@
 	{/if}
 
 	{#if renderData && renderData.tags.length > 0}
-		{@const tags = renderData.tags}
-		{@const scores = tags.map((t) => t.score ?? 0).sort()}
+		{@const sortedTags = [...renderData.tags].sort((a, b) => b.score - a.score)}
+		{@const topTags = sortedTags.slice(0, 5)}
+		{@const maxScore = topTags[0]?.score || 1}
+		{@const minScore = topTags[topTags.length - 1]?.score || 0}
+
+		{@const hasSignificantVariation = (maxScore - minScore) / maxScore > 0.2}
 
 		<div class="flex flex-wrap gap-1">
-			{#each orderTags(tags) as tag (tag.id)}
-				<ProfessorTag {tag} heavy={scores.slice(0, 3).includes(tag.score)} />
+			{#each orderTags(topTags) as tag (tag.id)}
+				{@const weight = tag.score / maxScore}
+				{@const isHeavy = hasSignificantVariation && Math.pow(weight, 2) > 0.6}
+
+				<ProfessorTag {tag} heavy={isHeavy} />
 			{/each}
 		</div>
 	{/if}

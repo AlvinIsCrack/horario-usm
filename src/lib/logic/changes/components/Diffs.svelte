@@ -442,6 +442,7 @@
 
 {#if Config.sede && Config.jornada}
 	<section
+		role="log"
 		class={s.container({ expanded: isExpanded })}
 		onmouseenter={handleMouseEnter}
 		onmouseleave={handleMouseLeave}

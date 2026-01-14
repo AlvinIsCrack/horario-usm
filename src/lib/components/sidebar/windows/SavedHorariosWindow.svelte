@@ -2,7 +2,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Add from '$lib/icons/add.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { SideBar } from '../SideBar.svelte';
+	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
 </script>
 
 <div class="flex h-full w-full flex-col gap-2 overflow-y-auto">
@@ -12,7 +12,7 @@
 			<button
 				type="button"
 				class="bg-popover text-popover-foreground hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer flex-row items-center justify-between rounded-lg border px-3 py-2"
-				onclick={async () => (await Calendario.load(key)) && SideBar.closeActiveWindow()}
+				onclick={async () => (await Calendario.load(key)) && SidebarState.close()}
 			>
 				<p class="w-full truncate text-sm" title={key}>{key}</p>
 				<Button

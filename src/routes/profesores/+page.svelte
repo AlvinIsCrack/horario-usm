@@ -293,6 +293,7 @@
 			<div class="w-full flex-1 space-y-1 self-start md:w-auto md:self-auto">
 				<div class="flex items-center gap-2">
 					<a
+						aria-label="index"
 						href="{base}/"
 						class="text-muted-foreground hover:text-primary hover:bg-primary/10 -ml-2 flex items-center justify-center rounded-full p-1.5 transition-colors"
 					>
@@ -483,7 +484,7 @@
 						class="bg-background/95 sticky top-0 z-10 -mx-6 mb-4 flex items-center justify-between px-6 py-3 transition-all"
 					>
 						<div>
-							<label class="text-sm font-medium">Etiquetas Descriptivas</label>
+							<h1 class="text-sm font-medium">Etiquetas Descriptivas</h1>
 							<p class="text-muted-foreground text-xs">
 								Seleccione los atributos que mejor describan al docente.
 							</p>
