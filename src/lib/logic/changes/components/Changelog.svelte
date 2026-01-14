@@ -1,11 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 	import MaterialSymbolsToolsWrench from '$lib/icons/MaterialSymbolsToolsWrench.svelte';
 	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
 	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
 
 	const UPDATES = {
+		'Corrección de topes al imprimir o generar imagen': {
+			icon: MaterialSymbolsToolsWrench,
+			description:
+				'Ahora se muestran bien los topes de horario en el documento generado para motivos de impresión o visualización.'
+		},
 		'Nuevas etiquetas y sistema visual de calificación': {
 			icon: RiEmotionHappyFill,
 			description:
@@ -15,11 +19,6 @@
 			icon: MaterialSymbolsToolsWrench,
 			description:
 				'Ahora el sistema identifica correctamente los ramos equivalentes o alternativos. Ya no se te bloquearán asignaturas por no cursar una versión de un ramo que no corresponde a tu carrera. ¡Gracias por avisarrrr!'
-		},
-		'Exportar calendario, ajustes de exportación': {
-			icon: MaterialSymbolsPrint,
-			description:
-				'Se puede generar un calendario de tipo ".ics", para poder exportarlo a Google Calendar, Microsoft Outlook o iCal. Además, se ha rediseñado la funcionalidad para exportar imagenes. Ahora la vista es mucho mejor, y ofrece parámetros para personalizar el documento.'
 		}
 	};
 

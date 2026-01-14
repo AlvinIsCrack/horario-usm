@@ -4,10 +4,6 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import DialogRenderer from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import Toaster from '$lib/components/ui/sonner/Toaster.svelte';
-	import dayjs from 'dayjs';
-
-	import 'dayjs/locale/es';
-	dayjs.locale('es');
 
 	$effect(() => {
 		Calendario.init(localStorage);
