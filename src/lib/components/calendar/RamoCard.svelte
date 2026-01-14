@@ -84,7 +84,7 @@
 					class="{esCátedra ? 'rounded-br-lg' : ''} text-xs! xl:text-sm!"
 					icon={Location}
 				>
-					{bloqueObject.sala.replace(/san joaqu.n/gi, '').replace(/(?:-|_)\s+$/g, '')}
+					{bloqueObject.sala}
 				</CornerBadge>
 			{/if}
 		{/if}

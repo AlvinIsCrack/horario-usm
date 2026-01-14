@@ -39,7 +39,7 @@
 		base: 'fixed inset-0 pointer-events-auto bg-black/60'
 	});
 	const contentStyle = tv({
-		base: 'fixed left-[50%] top-[50%] pointer-events-auto grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background shadow-lg duration-200 rounded-xl overflow-hidden md:w-full'
+		base: 'fixed left-[50%] text-left top-[50%] pointer-events-auto grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] border bg-background shadow-lg duration-200 rounded-xl overflow-hidden md:w-full'
 	});
 
 	function handleKeydown(e: KeyboardEvent) {

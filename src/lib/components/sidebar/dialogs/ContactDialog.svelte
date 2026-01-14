@@ -15,6 +15,11 @@
 	</div>
 
 	<div class="flex flex-col gap-3 p-4">
+		<div class="pointer-events-none my-4 w-full place-items-center space-y-1">
+			<img class="h-30 w-auto rounded-md" src="/media/meowl.gif" alt="Meowl" />
+			<h1 class="font-mono">lukka</h1>
+		</div>
+
 		<Button
 			class="justify-start gap-3"
 			onclick={() => {

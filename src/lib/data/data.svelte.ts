@@ -192,6 +192,7 @@ const _cachedRamos = $derived.by(() => {
         for (const [paralelo, ramoRaw] of Object.entries(paralelos)) {
             hydrated[sigla][paralelo] = {
                 ...ramoRaw,
+                horario: [...ramoRaw.horario].map(h => ({ ...h, sala: h.sala.replace(/san joaqu.n/gi, '').replace(/((?:-|_)\s+$|^\s+(?:-|_))/g, '') })),
                 horas,
                 requisitos,
                 equivalencias,

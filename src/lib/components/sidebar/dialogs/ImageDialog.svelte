@@ -7,9 +7,10 @@
 	import ExportableSchedule from '$lib/logic/export/components/ExportableSchedule.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
 	import { ImageState } from '$lib/logic/dialogs/state.svelte';
+	import ToggleGroup from '$lib/components/ui/ToggleGroup.svelte';
 
 	let theme = $state<string>('Papel');
-	let nomenclature = $state<'detailed' | 'codes'>('detailed');
+	let nomenclature = $state<'detailed' | 'compact' | 'minimum'>('detailed');
 	let showRooms = $state(true);
 	let showHeader = $state(true);
 	let showParalelos = $state(true);
@@ -47,50 +48,35 @@
 		<div class="bg-card flex w-full flex-1 shrink-0 flex-col gap-6 border-r p-5">
 			<div class="space-y-2 text-left">
 				<h3 class="text-muted-foreground text-xs font-bold tracking-wider uppercase">Formato</h3>
-				<div class="space-y-2">
+				<div class="space-y-1">
 					<h1 class="text-sm font-medium">Modo de Etiquetas</h1>
-					<div class="grid grid-cols-2 gap-2">
-						<Button
-							variant="ghost"
-							class={nomenclature === 'detailed'
-								? 'bg-primary! text-primary-foreground! cursor-default!'
-								: 'bg-background! hover:bg-accent!'}
-							onclick={() => (nomenclature = 'detailed')}
-						>
-							Completo
-						</Button>
-						<Button
-							variant="ghost"
-							class={nomenclature === 'codes'
-								? 'bg-primary! text-primary-foreground! cursor-default!'
-								: 'bg-background! hover:bg-accent!'}
-							onclick={() => (nomenclature = 'codes')}
-						>
-							Compacto
-						</Button>
-					</div>
+					<ToggleGroup
+						items={[
+							{ value: 'detailed', label: 'Completo' },
+							{ value: 'compact', label: 'Compacto' },
+							{ value: 'minimum', label: 'Mínimo' }
+						]}
+						bind:value={nomenclature}
+						justified={true}
+						nullable={false}
+					/>
 					<p class="text-muted-foreground text-xs leading-tight">
 						{nomenclature === 'detailed'
 							? 'Muestra el nombre completo dentro de cada bloque.'
-							: 'Muestra solo siglas grandes y añade una leyenda al inicio.'}
+							: nomenclature === 'compact'
+								? 'Muestra el nombre reducido dentro de cada bloque.'
+								: 'Muestra solo siglas grandes y añade una leyenda al inicio.'}
 					</p>
 				</div>
 
-				<div class="space-y-2">
+				<div class="space-y-1">
 					<h1 class="text-sm font-medium">Tema</h1>
-					<div class="bg-muted flex rounded-lg p-1">
-						{#each ['Papel', 'Pastel', 'Tinta'] as t}
-							<button
-								class="flex-1 rounded-md px-3 py-1 text-xs font-medium capitalize transition-all {theme ===
-								t
-									? 'bg-background text-foreground shadow'
-									: 'text-muted-foreground hover:text-foreground hover:cursor-pointer'}"
-								onclick={() => (theme = t)}
-							>
-								{t}
-							</button>
-						{/each}
-					</div>
+					<ToggleGroup
+						items={['Papel', 'Tinta']}
+						bind:value={theme}
+						justified={true}
+						nullable={false}
+					/>
 				</div>
 			</div>
 

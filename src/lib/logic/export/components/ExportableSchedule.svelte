@@ -2,17 +2,17 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Time from '$lib/helpers/time';
 	import { BLOQUE_DURATION_MINUTES } from '$lib/constants/usm';
-	import { truncate } from 'lodash';
 
 	// Importamos la nueva función tv
 	import { scheduleStyles } from '../styles';
 	import { TipoBloque } from '$lib/logic/ramos/types';
+	import { formatCourseName } from '$lib/logic/ramos/formatter';
 
 	let {
 		theme = undefined as undefined | keyof typeof scheduleStyles.variants.theme,
 		showRooms = true,
 		showClassType = true,
-		nomenclature = 'detailed',
+		nomenclature = 'detailed' as 'detailed' | 'compact' | 'minimum',
 		showHeader = true,
 		showParalelos = true,
 		showBloqueEnd = true
@@ -59,7 +59,7 @@
 			</div>
 		{/if}
 
-		{#if nomenclature === 'codes'}
+		{#if nomenclature === 'minimum'}
 			<div class="mx-8 grid flex-1 grid-cols-2 gap-x-6 gap-y-1 self-end">
 				{#each Calendario.ramos as ramo}
 					<div class="flex items-baseline gap-2 text-[10px] leading-tight {styles.dashedBorder()}">
@@ -109,54 +109,103 @@
 			</div>
 
 			{#each activeDaysIndices as dia}
-				{@const ramo = Calendario.ramos.find((r) =>
-					r.horario.some((h) => h.dia === dia && h.bloque === bloque)
-				)}
-				{@const info = ramo?.horario.find((h) => h.dia === dia && h.bloque === bloque)}
+				{@const cellBloques = Calendario.getBloques(dia, bloque) || []}
+				{@const isCollision = cellBloques.length > 1}
 
-				<div class={styles.cell()}>
-					{#if ramo && info}
-						<div class={styles.overlay()} style:background-color={ramo.color?.hex() ?? ''}></div>
+				<div class="{styles.cell({})} p-0 {cellBloques.length ? 'bg-none! bg-[unset]!' : ''}">
+					{#if cellBloques.length}
+						{#if cellBloques.length < 3}
+							<div class="relative z-0 flex h-full w-full">
+								{#each cellBloques as info}
+									{@const ramo = info.ramo}
 
-						<div class="relative z-10 mb-2 flex w-full scale-105 flex-col items-center px-1.5">
-							{#if nomenclature === 'detailed'}
-								<div class="text-base leading-4 font-bold">
-									{truncate(ramo.nombre, { length: 30 })}
-								</div>
-								<div
-									class="flex flex-wrap justify-center gap-2 text-xs font-medium tracking-tight uppercase opacity-80"
-								>
-									<span class="font-mono font-bold">{ramo.sigla} </span>
-									<span class="opacity-80">
-										{#if showParalelos}
-											PAR. {ramo.paralelo}
+									<div
+										class="relative flex max-w-full flex-1 flex-col items-center justify-center p-1 text-center"
+									>
+										{#if ramo}
+											<div
+												class={styles.overlay()}
+												style:background-color={ramo.color?.hex() ?? ''}
+											></div>
+
+											<div class="relative z-10 mb-2 flex w-full flex-col items-center p-0.5">
+												{#if ['detailed', 'compact'].includes(nomenclature)}
+													<div
+														class="text-base leading-none font-bold text-ellipsis whitespace-normal"
+													>
+														{nomenclature === 'detailed'
+															? ramo.nombre
+															: formatCourseName(ramo.nombre)}
+													</div>
+													<div
+														class="flex flex-wrap justify-center gap-1 text-xs font-medium tracking-tight uppercase opacity-80"
+													>
+														<span class="font-mono font-bold">{ramo.sigla} </span>
+														{#if showParalelos}
+															<span class="opacity-80">P{ramo.paralelo}</span>
+														{/if}
+													</div>
+												{:else}
+													<div
+														class="scale-110 font-mono leading-none font-black tracking-tight {isCollision
+															? 'text-lg'
+															: 'text-2xl'}"
+													>
+														{ramo.sigla}
+													</div>
+													<div class="-mt-1 flex items-center gap-1.5 text-sm font-medium">
+														{#if showParalelos}
+															<span class="tracking-tight opacity-80">P{ramo.paralelo}</span>
+														{/if}
+													</div>
+												{/if}
+											</div>
+
+											{#if showClassType && info.tipo !== TipoBloque.Cátedra}
+												{@const typeLabel = formatClassType(info.tipo)}
+												{#if typeLabel}
+													<div
+														class="absolute right-1 bottom-1 mt-1 {styles.badge()} {isCollision
+															? 'origin-bottom-right scale-75'
+															: ''}"
+													>
+														{typeLabel}
+													</div>
+												{/if}
+											{/if}
+
+											{#if showRooms && info.sala}
+												<div
+													class="absolute bottom-1 left-1 text-[10px] font-bold mix-blend-hard-light {isCollision
+														? 'origin-bottom-left scale-90'
+														: ''}"
+												>
+													{info.sala}
+												</div>
+											{/if}
 										{/if}
-									</span>
-								</div>
-							{:else}
-								<div class="scale-110 font-mono text-2xl leading-none font-black tracking-tight">
-									{ramo.sigla}
-								</div>
-								<div class="-mt-1 flex items-center gap-1.5 text-sm font-medium">
-									{#if showParalelos}
-										<span class="tracking-tight opacity-80">PAR. {ramo.paralelo}</span>
+									</div>
+								{/each}
+							</div>
+						{:else}
+							<div class="flex h-full w-full flex-col p-0.5 inset-ring-2 inset-ring-amber-500">
+								{#each cellBloques as info}
+									{@const ramo = info.ramo}
+									{#if ramo}
+										<div class="relative flex flex-1 items-center justify-center overflow-hidden">
+											<div
+												class={styles.overlay()}
+												style:background-color={ramo.color?.hex() ?? ''}
+											></div>
+
+											<div
+												class="relative z-10 truncate px-0.5 font-mono text-[10px] leading-none font-black tracking-tight"
+											>
+												{ramo.sigla}
+											</div>
+										</div>
 									{/if}
-								</div>
-							{/if}
-						</div>
-
-						{#if showClassType && info.tipo !== TipoBloque.Cátedra}
-							{@const typeLabel = formatClassType(info.tipo)}
-							{#if typeLabel}
-								<div class="absolute right-1 bottom-1 mt-1 {styles.badge()}">
-									{typeLabel}
-								</div>
-							{/if}
-						{/if}
-
-						{#if showRooms && info.sala}
-							<div class="absolute bottom-1 left-2 text-[10px] font-bold mix-blend-hard-light">
-								{info.sala}
+								{/each}
 							</div>
 						{/if}
 					{/if}
