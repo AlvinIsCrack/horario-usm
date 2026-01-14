@@ -178,7 +178,6 @@ def aggregate_professor_stats(prof_name, reviews):
     total_effective_weight = 0
     raw_count = len(active_reviews)
     last_review_date = ""
-    tag_counts = {}
 
     tag_weighted_counts = {}
 
@@ -291,8 +290,8 @@ def aggregate_professor_stats(prof_name, reviews):
         score = calculate_weighted_tag_score(w_sum, total_effective_weight)
         tag_scores.append((tag, score))
 
-    sorted_tags = sorted(tag_scores, key=lambda x: x[1], reverse=True)[:6]
-    top_tags = [t[0] for t in sorted_tags]
+    sorted_tags = sorted(tag_scores, key=lambda x: x[1], reverse=True)[:8]
+    top_tags = [[t[0], t[1]] for t in sorted_tags]
 
     return {
         "id": prof_name,

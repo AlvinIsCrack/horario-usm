@@ -1,5 +1,4 @@
 import os
-import sys
 from requests import Session
 
 def get_session_cookie():

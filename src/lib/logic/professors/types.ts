@@ -477,7 +477,7 @@ export interface ProfessorView {
     name: string;
     email: string;
     stats: Record<string, MetricStats | null>;
-    tags: TagId[];
+    tags: [TagId, number][];
     comments?: ProfessorComment[];
     meta: ProfessorMeta;
 }

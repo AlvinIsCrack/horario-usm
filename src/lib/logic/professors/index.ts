@@ -20,7 +20,7 @@ export function findProfessor(rawName: string): ProfessorView | null {
 
 // --- Helpers de Renderizado ---
 
-export function getTagMetadata(tagId: TagId) {
+export function getTagMetadata(tagId: TagId): TagDefinition & { score?: number; } {
     return USM_TAGS[tagId] || {
         id: tagId,
         label: tagId,
@@ -30,7 +30,7 @@ export function getTagMetadata(tagId: TagId) {
     };
 }
 
-export function orderTags(tags: TagDefinition[]) {
+export function orderTags<T extends { sentiment: keyof typeof TAGS_ORDER_SENTIMENT, label: string }>(tags: T[]): T[] {
     return [...tags].sort((a, b) => {
         const sentimentDiff = TAGS_ORDER_SENTIMENT[a.sentiment] - TAGS_ORDER_SENTIMENT[b.sentiment];
         if (sentimentDiff !== 0) return sentimentDiff;
@@ -106,7 +106,10 @@ export function getProfessorRenderData(input: string | ProfessorView | null) {
         profile,
         hasData: hasAnyData,
         meta,
-        tags: (profile.tags || []).map(tagId => getTagMetadata(tagId)),
+        tags: (profile.tags || []).map(([tagId, score]) => ({
+            ...getTagMetadata(tagId),
+            score
+        })),
         sampleMeta: profile.meta
     };
 }

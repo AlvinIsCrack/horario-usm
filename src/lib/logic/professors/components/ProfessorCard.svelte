@@ -12,6 +12,7 @@
 	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
 	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
 	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
+	import { max } from 'lodash';
 
 	let {
 		id,
@@ -176,7 +177,7 @@
 			{#if repoData?.campuses}
 				{#each Array.from(repoData.campuses) as sede}
 					<span
-						class="bg-primary/50 text-secondary-foreground border-secondary-foreground/10 -ml-0.5 rounded-full border px-1.5 text-[10px] select-none"
+						class="text-secondary-foreground border-secondary-foreground/10 -ml-0.5 rounded-full border bg-sky-900/80 px-1.5 text-[10px] shadow-sm/50 select-none"
 					>
 						{sede}
 					</span>
@@ -224,9 +225,12 @@
 	{/if}
 
 	{#if renderData && renderData.tags.length > 0}
+		{@const tags = renderData.tags}
+		{@const scores = tags.map((t) => t.score ?? 0).sort()}
+
 		<div class="flex flex-wrap gap-1">
-			{#each orderTags(renderData.tags) as tag (tag.id)}
-				<ProfessorTag {tag} />
+			{#each orderTags(tags) as tag (tag.id)}
+				<ProfessorTag {tag} heavy={scores.slice(0, 3).includes(tag.score)} />
 			{/each}
 		</div>
 	{/if}
