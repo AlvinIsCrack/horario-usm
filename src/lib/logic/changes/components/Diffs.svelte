@@ -341,7 +341,7 @@
 			grupoWrapper: 'flex flex-col gap-1',
 			header:
 				'flex items-baseline gap-2 px-1 text-sm mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
-			card: 'group flex items-center gap-3 mr-1 rounded-md px-3 py-0.5',
+			card: 'group flex w-full items-center gap-3 mr-1 rounded-md px-4 py-0.5',
 			cardStructural: 'rounded-md gap-3 border border-dashed px-3 py-0.5 text-xs font-medium',
 			indicador: 'h-2 w-2 rounded-full shrink-0 hover:scale-105 hover:ring-2',
 			content: 'flex min-w-0 flex-1 flex-col',
@@ -354,10 +354,10 @@
 		},
 		variants: {
 			status: {
-				pos: { indicador: 'bg-green-500', alertaTexto: 'text-green-500' },
-				neg: { indicador: 'bg-rose-500', alertaTexto: 'text-rose-500' },
-				warn: { indicador: 'bg-amber-500', alertaTexto: 'text-amber-500' },
-				neu: { indicador: 'bg-cyan-500', alertaTexto: 'text-cyan-500' }
+				pos: { indicador: 'bg-green-500', card: 'bg-green-800/50', alertaTexto: 'text-green-500' },
+				neg: { indicador: 'bg-rose-500', card: 'bg-rose-800/50', alertaTexto: 'text-rose-500' },
+				warn: { indicador: 'bg-amber-500', card: 'bg-amber-700/50', alertaTexto: 'text-amber-500' },
+				neu: { indicador: 'bg-cyan-500', card: 'bg-cyan-800/50', alertaTexto: 'text-cyan-500' }
 			},
 			structType: {
 				ALERTA: { cardStructural: 'border-rose-500/50 bg-rose-500/10 text-rose-600' },
@@ -438,22 +438,23 @@
 						<span class="ml-2 opacity-60">{grupo.items.length} eventos</span>
 					</header>
 
-					<div class="ml-2 flex flex-col gap-px pl-0">
+					<div class="ml-2 flex flex-col gap-1 pl-0">
 						{#each grupo.items as item}
+							{@const status = getStatus(item)}
+
 							{#if 'esEstructural' in item}
 								<div
 									class={s.cardStructural({
 										structType: item.tipo,
-										new: newItems.has(grupo.timestamp)
+										new: newItems.has(grupo.timestamp),
+										status
 									})}
 								>
 									{item.mensaje}
 								</div>
 							{:else}
-								{@const status = getStatus(item)}
-
 								<Tooltip content={getStatusTooltip(item)}>
-									<div class={s.card({ new: newItems.has(grupo.timestamp) })}>
+									<div class={s.card({ new: newItems.has(grupo.timestamp), status })}>
 										<div class={s.indicador({ status })}></div>
 
 										<div class={s.content()}>
