@@ -98,9 +98,9 @@
 			<Diffs bind:hasNewEvents={hasNewChanges} />
 		</div>
 
-		<div class="absolute top-1/2 right-0 z-50 -translate-y-1/2">
+		<div class="absolute top-1/2 right-0 z-50 -mr-2 -translate-y-1/2">
 			{#if !showChanges}
-				<div transition:fade class="flex items-center gap-2 pr-1">
+				<div transition:fade={{ duration: 200 }} class="flex items-center gap-1 pr-1">
 					<Button
 						variant="ghost"
 						class="hover:bg-foreground/5 relative h-24 w-12 rounded-full!"
@@ -111,27 +111,33 @@
 						/>
 
 						{#if hasNewChanges}
-							<span class="absolute top-6 right-3 flex h-3 w-3">
+							<span class="absolute top-7 right-1 flex h-3 w-3">
 								<span
-									class="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75"
+									class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400"
 								></span>
-								<span class="relative inline-flex h-3 w-3 rounded-full bg-rose-500"></span>
+								<span class="relative inline-flex h-3 w-3 rounded-full bg-amber-500"></span>
 							</span>
 						{/if}
 					</Button>
 
 					<span
-						class="text-muted-foreground/50 rotate-180 text-xs font-black tracking-wider uppercase select-none [writing-mode:vertical-rl]"
+						class="text-foreground rotate-180 text-sm font-black tracking-wider uppercase select-none [writing-mode:vertical-rl]"
 					>
-						Cambios
+						Cambios SIGA
 					</span>
 				</div>
 			{/if}
 		</div>
 
-		<div class="absolute top-1/2 left-0 z-50 -translate-y-1/2 p-4">
+		<div class="absolute top-1/2 left-0 z-50 -ml-2 -translate-y-1/2">
 			{#if showChanges}
-				<div transition:fade>
+				<div transition:fade={{ duration: 200 }} class="flex items-center gap-1 pl-1">
+					<span
+						class="text-foreground text-sm font-black tracking-wider uppercase select-none [writing-mode:vertical-rl]"
+					>
+						Volver
+					</span>
+
 					<Button
 						variant="ghost"
 						class="hover:bg-foreground/5 h-24 w-12 rounded-full!"

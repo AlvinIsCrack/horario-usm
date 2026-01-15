@@ -342,7 +342,8 @@
 			header:
 				'flex items-baseline gap-2 px-1 text-sm mb-0.5 font-bold uppercase tracking-wide text-muted-foreground',
 			card: 'group flex w-full items-center gap-3 mr-1 rounded-md px-4 py-0.5',
-			cardStructural: 'rounded-md gap-3 border border-dashed px-3 py-0.5 text-xs font-medium',
+			cardStructural:
+				'group flex w-full items-center gap-3 mr-1 rounded-md px-4 py-4 border-2 border-dashed',
 			indicador: 'h-2 w-2 rounded-full shrink-0 hover:scale-105 hover:ring-2',
 			content: 'flex min-w-0 flex-1 flex-col',
 			filaPrincipal: 'flex items-baseline gap-2.5 overflow-hidden whitespace-nowrap',
@@ -360,8 +361,8 @@
 				neu: { indicador: 'bg-cyan-500', card: 'bg-cyan-800/50', alertaTexto: 'text-cyan-500' }
 			},
 			structType: {
-				ALERTA: { cardStructural: 'border-rose-500/50 bg-rose-500/10 text-rose-600' },
-				INFO: { cardStructural: 'border-blue-500/50 bg-blue-500/10 text-blue-600' }
+				ALERTA: { cardStructural: 'border-rose-500/50! bg-rose-600/20 text-rose-600' },
+				INFO: { cardStructural: 'border-blue-500/50! bg-blue-600/20 text-blue-600' }
 			},
 			new: {
 				false: {},
@@ -440,19 +441,18 @@
 
 					<div class="ml-2 flex flex-col gap-1 pl-0">
 						{#each grupo.items as item}
-							{@const status = getStatus(item)}
-
 							{#if 'esEstructural' in item}
 								<div
 									class={s.cardStructural({
 										structType: item.tipo,
 										new: newItems.has(grupo.timestamp),
-										status
+										status: 'neg'
 									})}
 								>
 									{item.mensaje}
 								</div>
 							{:else}
+								{@const status = getStatus(item)}
 								<Tooltip content={getStatusTooltip(item)}>
 									<div class={s.card({ new: newItems.has(grupo.timestamp), status })}>
 										<div class={s.indicador({ status })}></div>
