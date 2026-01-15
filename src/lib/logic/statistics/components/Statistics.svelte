@@ -141,7 +141,7 @@
 							position="right"
 						>
 							<Card
-								class="group isolate flex w-full flex-row items-center gap-1.5 px-2.5! py-1! 2xl:gap-2 2xl:px-3! 2xl:py-1.5! {stat.status
+								class="group flex w-full flex-row items-center gap-1.5 px-2.5! py-1! 2xl:gap-2 2xl:px-3! 2xl:py-1.5! {stat.status
 									? statusColors[stat.status]
 									: ''} shadow-sm/50!"
 							>

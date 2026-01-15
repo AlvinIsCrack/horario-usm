@@ -90,6 +90,7 @@
 @layer base {
   html {
     @apply bg-background;
+    scroll-behavior: smooth;
   }
 
   body {

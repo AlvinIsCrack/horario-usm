@@ -21,6 +21,15 @@
 		professor?: ProfessorEntry;
 	} = $props();
 
+	let isVisible = $state(false);
+	function viewport(node: HTMLElement) {
+		const observer = new IntersectionObserver((entries) => {
+			isVisible = entries[0].isIntersecting;
+		});
+		observer.observe(node);
+		return { destroy: () => observer.disconnect() };
+	}
+
 	const nameToSearch = $derived(professor?.name ?? id ?? '');
 	const registryProfile = $derived(findProfessor(nameToSearch));
 	const renderData = $derived(getProfessorRenderData(registryProfile));
@@ -103,19 +112,21 @@
 	let isPaused = $state(false);
 
 	$effect(() => {
+		if (!isVisible) return;
+
 		const _ = [isPaused];
 		let interval: any;
-		// Solo rota si hay más de 1 comentario y no está pausado por el mouse
+
 		if ((renderData?.profile.comments?.length ?? 0) > 1 && !isPaused) {
 			interval = setInterval(() => {
 				commentIndex = (commentIndex + 1) % renderData!.profile.comments!.length;
-			}, 4000); // 6 segundos por comentario
+			}, 4000);
 		}
 		return () => clearInterval(interval);
 	});
 </script>
 
-<div class="relative h-full w-full space-y-2.5 text-left">
+<div class="relative h-full w-full space-y-2.5 text-left" use:viewport>
 	<div class="{currentUi.bg} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
@@ -164,7 +175,7 @@
 				{/snippet}
 				<Tooltip wrapperClass="absolute! right-0 top-0 -m-0.5" content={tooltipContent}>
 					<div
-						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:drop-shadow-sm/50 [&_svg]:hover:opacity-100"
+						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:hover:opacity-100"
 					>
 						<Icon class={currentUi.iconClass} />
 					</div>

@@ -309,7 +309,8 @@
 		<div class="mx-auto grid max-w-4xl grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 			{#each visibleResults as prof (prof.name)}
 				<div
-					class="bg-card group relative flex h-full w-full flex-col space-y-2 rounded-lg border p-4 text-left shadow-sm/50 transition-all"
+					class="bg-card group relative flex h-full w-full flex-col space-y-2 rounded-lg border p-4 text-left shadow-sm/50"
+					style="content-visibility: auto; contain-intrinsic-size: 300px;"
 				>
 					<ProfessorCard professor={prof} />
 					<Button size="sm" class="mt-auto w-full" onclick={() => openEvaluationModal(prof)}>

@@ -8,6 +8,67 @@ export class MallaState {
     _selectedSede = $state<string>('');
     _selectedJornada = $state<string>('');
 
+    get stats() {
+        let totalCreditos = 0;
+        let approvedCreditos = 0;
+        let totalRamos = 0;
+        let approvedRamos = 0;
+        let unlockableRamos = 0; // Ramos que podría tomar ahora mismo
+        let maxSemestres = 0;
+
+        if (this.rawMalla) {
+            this.rawMalla.forEach((semestre, i) => {
+                // Asumimos que el índice del array es el semestre (0-based)
+                if (semestre.length > 0) maxSemestres = Math.max(maxSemestres, i + 1);
+
+                semestre.forEach((ramo) => {
+                    totalCreditos += ramo.creditos;
+                    totalRamos++;
+
+                    const isApproved = this.approvedSigs.has(ramo.sigla);
+                    if (isApproved) {
+                        approvedCreditos += ramo.creditos;
+                        approvedRamos++;
+                    } else {
+                        // Lógica para saber si está desbloqueado (disponible para cursar)
+                        // Un ramo está desbloqueado si NO está aprobado Y cumple sus prerrequisitos
+                        const requirementsMet = ramo.requisitos.every(reqGroup =>
+                            // reqGroup es un array (OR), basta con cumplir uno del grupo
+                            reqGroup.some(req => this.approvedSigs.has(req.sigla))
+                        );
+
+                        // Nota: Asumimos que si no tiene requisitos, está desbloqueado por defecto
+                        if (requirementsMet || ramo.requisitos.length === 0) {
+                            unlockableRamos++;
+                        }
+                    }
+                });
+            });
+        }
+
+        const percent = totalCreditos > 0 ? Math.round((approvedCreditos / totalCreditos) * 100) : 0;
+
+        // Estimación de tiempo (Nominal)
+        const yearsTotal = maxSemestres / 2;
+        // Estimación burda de progreso en años basada en créditos (SCT)
+        const yearsProgress = totalCreditos > 0 ? (approvedCreditos / totalCreditos) * yearsTotal : 0;
+        const yearsRemaining = Math.max(0, yearsTotal - yearsProgress);
+
+        return {
+            totalCreditos,
+            approvedCreditos,
+            remainingCreditos: totalCreditos - approvedCreditos,
+            totalRamos,
+            approvedRamos,
+            remainingRamos: totalRamos - approvedRamos,
+            unlockableRamos,
+            percent,
+            semestresTotales: maxSemestres,
+            duracionTeoricaAnos: yearsTotal,
+            estimacionAnosRestantes: yearsRemaining.toFixed(1)
+        };
+    }
+
     // Getters y Setters para Sede y Jornada
     get selectedSede() { return this._selectedSede; }
     set selectedSede(value: string) {
@@ -114,20 +175,6 @@ export class MallaState {
                 };
             });
         });
-    });
-
-    // Estadísticas
-    stats = $derived.by(() => {
-        const todos = this.currentMalla.flat();
-        if (todos.length === 0) return { percent: 0, total: 0, approved: 0, creditos: 0 };
-        const aprobados = todos.filter((r) => r.checked);
-        const creditosAprobados = aprobados.reduce((acc, r) => acc + r.creditos, 0);
-        return {
-            percent: Math.round((aprobados.length / todos.length) * 100),
-            total: todos.length,
-            approved: aprobados.length,
-            creditos: creditosAprobados
-        };
     });
 
     constructor() {

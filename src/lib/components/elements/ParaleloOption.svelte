@@ -54,16 +54,12 @@
 				{/snippet}
 
 				<div class="truncate text-sm font-medium">
-					{#if profesor.includes('NN')}
-						NN (Profesor aún no asignado)
-					{:else}
-						<Tooltip interactive offset={50} position="right" content={tooltipContent}>
-							<span
-								class="decoration-foreground/50 cursor-help underline decoration-dotted hover:decoration-solid"
-								>{profesor}</span
-							>
-						</Tooltip>
-					{/if}
+					<Tooltip interactive offset={50} position="right" content={tooltipContent}>
+						<span
+							class="decoration-foreground/50 cursor-help underline decoration-dotted hover:decoration-solid"
+							>{profesor}</span
+						>
+					</Tooltip>
 				</div>
 			{/each}
 		</div>

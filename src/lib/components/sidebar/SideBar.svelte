@@ -39,7 +39,7 @@
 	id="main-sidebar"
 	class="bg-sidebar text-sidebar-foreground relative h-full max-w-xs! overflow-hidden p-4"
 >
-	<div in:fade={{ delay: 500, duration: 500 }} class="isolate h-full w-full">
+	<div in:fade={{ delay: 500, duration: 500 }} class="h-full w-full">
 		<div
 			class="absolute inset-0 flex h-full w-full flex-col gap-2 p-3 transition-opacity duration-300
 			{SidebarState.isOpen ? 'pointer-events-none opacity-0' : 'opacity-100 delay-100'}"
@@ -150,7 +150,7 @@
 							<h1 class="-mb-0.5 font-semibold">{SidebarState.title}</h1>
 						{/if}
 						{#if SidebarState.description}
-							<p class="text-sm opacity-50">{SidebarState.description}</p>
+							<p class="text-sm opacity-50 leading-tight">{SidebarState.description}</p>
 						{/if}
 					</div>
 					<Button

@@ -40,7 +40,7 @@ export class ProfessorRepository {
                                 if (!paralelo.profesor || !Array.isArray(paralelo.profesor)) continue;
 
                                 for (const rawName of paralelo.profesor) {
-                                    if (!rawName || rawName === 'POR ASIGNAR') continue;
+                                    if (!rawName || rawName === 'NN' || rawName === 'Sin profesor' || rawName === 'POR ASIGNAR') continue;
 
                                     // 1. Normalización de Nombre del Profesor
                                     const cleanName = rawName.replace(/\(.*\)/g, '').trim();

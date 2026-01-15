@@ -18,7 +18,7 @@
 
 <Tooltip content={tooltipContent}>
 	<Badge
-		class="relative isolate cursor-help overflow-hidden px-2! py-px! text-[10px] font-normal saturate-120! transition-all duration-500 select-none
+		class="relative cursor-help overflow-hidden px-2! py-px! text-[10px] font-normal saturate-120! transition-all duration-500 select-none
         {heavy
 			? 'border-white/40! font-semibold!'
 			: 'border-white/20! hover:opacity-100 hover:brightness-150!'}"

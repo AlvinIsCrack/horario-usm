@@ -31,7 +31,7 @@
 	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
 
 	const base = tv({
-		base: 'isolate overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
+		base: 'overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
 		variants: {
 			dimension: {
 				didactica: 'rounded-sm',
@@ -155,7 +155,7 @@
 >
 	{#if currentIcon}
 		{@const Icon = currentIcon}
-		<Icon class="relative z-10 size-full drop-shadow-xs/100 transition-all will-change-transform" />
+		<Icon class="relative drop-shadow-sm/80 z-10 size-full transition-all" />
 	{/if}
 
 	{#if isExtreme}
