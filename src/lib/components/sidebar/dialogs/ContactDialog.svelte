@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import Button from '$lib/components/ui/Button.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
@@ -16,7 +17,7 @@
 
 	<div class="flex flex-col gap-3 p-4">
 		<div class="pointer-events-none my-4 w-full place-items-center space-y-1">
-			<img class="h-30 w-auto rounded-md" src="/media/meowl.gif" alt="Meowl" />
+			<img class="h-30 w-auto rounded-md" src="{base}/media/meowl.gif" alt="Meowl" />
 			<h1 class="font-mono">lukka</h1>
 		</div>
 
