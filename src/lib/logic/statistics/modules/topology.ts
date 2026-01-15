@@ -73,7 +73,7 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
             icon: icons.Warning,
             label: STAT_LABELS.HORARIO,
             value: 'Asfixiante',
-            tooltip: `Detectada racha de <b>${maxRachaTeorica} bloques teóricos</b> (Cátedras) consecutivos.<br/><span class="opacity-70 text-xs">A diferencia de un taller, aquí no hay espacio para pausas activas. Tu atención caerá en picada tras el 3er bloque.</span>`,
+            tooltip: `Detectada racha de <b>${maxRachaTeorica} bloques teóricos (${Math.ceil(maxRachaTeorica / 2)} módulos de clase aprox.)</b> (cátedras) consecutivos.<br/><span class="opacity-70 text-xs">A diferencia de un taller, aquí no hay espacio para pausas activas. Tu atención caerá en picada tras el 3er bloque.</span>`,
             status: 'danger'
         });
     } else if (ctx.ventanas.length === 0) {

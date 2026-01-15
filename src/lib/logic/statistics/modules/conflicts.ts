@@ -5,7 +5,7 @@ export function analyzeConflicts(ctx: AnalyzerContext, icons: any): StatItem[] {
     const bloquesUnicos = new Set<string>();
     ctx.ramos.forEach(r => r.horario.forEach(b => bloquesUnicos.add(`${b.dia}-${b.bloque}`)));
     const totalInscripciones = ctx.ramos.reduce((sum, r) => sum + r.horario.length, 0);
-    const topes = (totalInscripciones - bloquesUnicos.size) / 2;
+    const topes = Math.ceil((totalInscripciones - bloquesUnicos.size) / 2);
 
     if (topes > 0) {
         return [{
