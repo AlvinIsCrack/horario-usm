@@ -1,4 +1,4 @@
-// src/lib/helpers/ics.ts
+import { BLOQUE_DURATION_MINUTES } from '$lib/constants/usm';
 import Time from '$lib/helpers/time';
 import { Calendario } from '$lib/states/calendario.svelte';
 import type { Ramo } from '../ramos/types';
@@ -58,17 +58,15 @@ export function generateICS(options: ICSOptions): string {
         ramo.horario.forEach(bloque => {
             const horaInicioStr = Time.bloqueToHHMM(bloque.bloque) || '08:00';
             const startDate = getNextDayOfWeek(bloque.dia, horaInicioStr);
-            const endDate = new Date(startDate.getTime() + 70 * 60000);
+            const endDate = new Date(startDate.getTime() + BLOQUE_DURATION_MINUTES * 60000);
 
             const summary = escapeICS(`${ramo.nombre} (${ramo.sigla})`);
             const location = escapeICS(bloque.sala || 'Por definir');
             const description = escapeICS(`Paralelo ${ramo.paralelo} - ${ramo.profesor.join(', ')}`);
             const uid = `${ramo.sigla}-${bloque.dia}-${bloque.bloque}-${generationId}@horario-usm`;
 
-            // Lógica de Repetición
             let rrule = `RRULE:FREQ=WEEKLY;WKST=MO`;
             if (options.limitSemester) {
-                // Si limitamos, agregamos UNTIL
                 rrule += `;UNTIL=${getSemesterEndDate()}`;
             }
 
