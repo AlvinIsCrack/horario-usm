@@ -1,32 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import MaterialSymbolsToolsWrench from '$lib/icons/MaterialSymbolsToolsWrench.svelte';
-	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
 	import { SmartReadTracker } from '$lib/logic/changes/readStatus';
 
 	const UPDATES = {
-		'Corrección de topes al imprimir o generar imagen': {
+		'Sincronización de horario en exportación (ICS)': {
 			icon: MaterialSymbolsToolsWrench,
 			description:
-				'Ahora se muestran bien los topes de horario en el documento generado para motivos de impresión o visualización.'
-		},
-		'Nuevas etiquetas y sistema visual de calificación': {
-			icon: RiEmotionHappyFill,
-			description:
-				'Rediseño total de la semántica y visualización de notas. Se mejoraron nombres y descripciones para eliminar ambigüedades, junto con un nuevo sistema de iconos dinámicos. Además, hay nuevas etiquetas para catalogar a los profesores.'
-		},
-		'Corrección en el desbloqueo de malla': {
-			icon: MaterialSymbolsToolsWrench,
-			description:
-				'Ahora el sistema identifica correctamente los ramos equivalentes o alternativos. Ya no se te bloquearán asignaturas por no cursar una versión de un ramo que no corresponde a tu carrera. ¡Gracias por avisarrrr!'
+				'Se corrigió el desfase horario en el archivo de calendario tras el cambio de hora en Chile. Es necesario volver a exportar e importar el calendario en tu aplicación.'
 		}
 	};
 
 	let newItems = $state(new Set<string>());
 	onMount(() => {
 		// Inicializamos el tracker inteligente
-		// - 8 horas de duración para considerar algo "nuevo"
-		// - Pausa el contador entre las 00:00 y las 06:00
 		const tracker = new SmartReadTracker({
 			storageKey: 'app_changelog_seen',
 			thresholdHours: 4,

@@ -2,10 +2,10 @@
 
 interface TrackerOptions {
     storageKey: string;
-    thresholdHours?: number; // Por defecto 8
-    expirationDays?: number; // Por defecto 7
-    nightStartHour?: number; // 0 = Medianoche
-    nightEndHour?: number;   // 6 = 6 AM
+    thresholdHours?: number;
+    expirationDays?: number;
+    nightStartHour?: number;
+    nightEndHour?: number;
 }
 
 export class SmartReadTracker {
@@ -18,7 +18,7 @@ export class SmartReadTracker {
     constructor(options: TrackerOptions) {
         this.key = options.storageKey;
         this.thresholdMs = (options.thresholdHours ?? 8) * 60 * 60 * 1000;
-        this.expirationMs = (options.expirationDays ?? 7) * 24 * 60 * 60 * 1000;
+        this.expirationMs = (options.expirationDays ?? 30 * 4) * 24 * 60 * 60 * 1000;
         this.nightStart = options.nightStartHour ?? 0;
         this.nightEnd = options.nightEndHour ?? 8;
     }

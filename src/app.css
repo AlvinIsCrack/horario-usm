@@ -25,7 +25,7 @@
   --warning-foreground: oklch(0.985 0 0);
   --destructive: oklch(43.775% 0.16142 23.902);
   --destructive-foreground: oklch(64.092% 0.24466 27.738);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 20%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.552 0.016 285.938);
   --chart-1: oklch(0.488 0.243 264.376);
