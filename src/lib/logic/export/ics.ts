@@ -15,7 +15,15 @@ function escapeICS(str: string): string {
 }
 
 function formatICSDate(date: Date): string {
-    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    const ss = pad(date.getSeconds());
+
+    return `${yyyy}${mm}${dd}T${hh}${min}${ss}`;
 }
 
 function getNextDayOfWeek(dayIndex: number, timeStr: string): Date {
