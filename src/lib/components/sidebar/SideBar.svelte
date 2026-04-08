@@ -97,12 +97,12 @@
 									Icon={Teachers}
 									variant="secondary"
 								/>
-								<!-- <SidebarButton
-									text="Calculadora promedios"
-									onclick={() => goto(`${base}/optimizador`)}
+								<SidebarButton
+									text="Calculadora Promedios"
+									onclick={() => goto(`${base}/promedios`)}
 									Icon={MaterialSymbolsCalculate}
 									variant="secondary"
-								/> -->
+								/>
 							</div>
 						{/if}
 					</div>
@@ -150,7 +150,7 @@
 							<h1 class="-mb-0.5 font-semibold">{SidebarState.title}</h1>
 						{/if}
 						{#if SidebarState.description}
-							<p class="text-sm opacity-50 leading-tight">{SidebarState.description}</p>
+							<p class="text-sm leading-tight opacity-50">{SidebarState.description}</p>
 						{/if}
 					</div>
 					<Button

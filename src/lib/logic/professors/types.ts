@@ -37,7 +37,7 @@ export const EVALUATION_DIMENSIONS = {
             puntualidad: {
                 id: 'gestion_tiempo',
                 label: 'Puntualidad',
-                description: 'Evalúa el respeto por el tiempo del bloque horario. Considera tanto la hora de llegada como la de salida, y si el profesor utiliza el tiempo de clase de manera eficiente o si suele extenderse más allá del timbre.',
+                description: 'Evalúa el respeto por el tiempo del bloque horario. Considera tanto la hora de llegada como la de salida, y si el profesor utiliza el tiempo de clase de manera eficiente o si suele extenderse más allá del fin de ésta.',
                 type: 'BARS',
                 levels: {
                     1: { label: 'Impuntual', description: 'Retrasos constantes o inasistencias sin previo aviso.' },

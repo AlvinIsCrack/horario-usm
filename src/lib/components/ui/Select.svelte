@@ -46,11 +46,14 @@
 		items,
 		disabled = false,
 		size,
+		onchange,
+		onUpdate,
 		class: _class,
 		...props
 	}: Omit<HTMLSelectAttributes, 'size'> & {
 		items: { label?: string; value: string }[];
 		size?: keyof typeof selectTrigger.variants.size;
+		onUpdate?: (value: string) => void;
 	} = $props();
 
 	// Estado interno
@@ -69,6 +72,7 @@
 	function handleSelect(newValue: string) {
 		value = newValue;
 		open = false;
+		onUpdate?.(newValue);
 	}
 
 	// Cierre al hacer click fuera (similar a Menu.svelte)

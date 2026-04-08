@@ -14,7 +14,7 @@
 	let { toast, index }: { toast: ToastProps; index: number } = $props();
 
 	const toastVariants = tv({
-		base: 'group pointer-events-auto relative flex justify-between w-full items-center space-x-4 overflow-hidden rounded-sm shadow-md/50 p-2 pr-10 pl-4 transition-all hover:scale-[1.02] border border-foreground/50! [&_svg]:scale-180',
+		base: 'group pointer-events-auto relative flex justify-between min-h-10 w-full items-center space-x-4 overflow-hidden rounded-sm p-2 pr-10 pl-4 transition-all hover:scale-[1.02] border border-foreground/50! [&_svg]:scale-180',
 		variants: {
 			variant: {
 				default: 'border-border bg-background text-foreground',

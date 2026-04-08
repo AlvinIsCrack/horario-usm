@@ -45,6 +45,7 @@
 				esTiempoEstimado: tiempoNoInformado,
 				ventanas: Calendario.ventanas
 			};
+
 			const prompt = await generateAIAnalysisPrompt(context);
 			await navigator.clipboard.writeText(prompt);
 

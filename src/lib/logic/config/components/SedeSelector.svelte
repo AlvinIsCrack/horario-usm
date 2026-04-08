@@ -10,6 +10,7 @@
 	import Warning from '$lib/icons/warning.svelte';
 	import { fade } from 'svelte/transition';
 	import { Config } from '../store.svelte';
+	import { base } from '$app/paths';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
 
@@ -95,7 +96,7 @@
 						transition:fade
 						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 mask-r-from-40% mask-r-to-90% object-cover"
 						alt=""
-						src={sedeImageSrc}
+						src="{base}/{sedeImageSrc}"
 					/>
 				{/key}
 			{/if}
