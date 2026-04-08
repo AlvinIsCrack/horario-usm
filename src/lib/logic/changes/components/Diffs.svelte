@@ -1,6 +1,6 @@
 <script lang="ts">
 	import jsonlContent from '$lib/data/historial_cambios.jsonl?raw';
-	import dayjs from 'dayjs';
+	import dayjs from '$lib/helpers/dayjs';
 	import relativeTime from 'dayjs/plugin/relativeTime';
 	import 'dayjs/locale/es';
 	import { tv } from 'tailwind-variants';

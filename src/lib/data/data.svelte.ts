@@ -3,7 +3,7 @@ import _ASIGNATURAS from "./horario_asignaturas.json";
 import _CARRERAS from "./planes_carreras.json";
 import _METADATA from "./metadata.json";
 import _PROGRAMAS from "./programas_academicos.json";
-import dayjs from "dayjs";
+import dayjs from '$lib/helpers/dayjs';
 import { Config } from "$lib/logic/config/store.svelte";
 import type { Ramo } from "$lib/logic/ramos/types";
 
