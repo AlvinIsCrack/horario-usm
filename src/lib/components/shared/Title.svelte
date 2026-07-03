@@ -2,12 +2,11 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { fade } from 'svelte/transition';
 	import Diffs from '$lib/core/changes/components/Diffs.svelte';
-	import Button from '../ui/Button.svelte';
-	import MaterialSymbolsArrowLeftAlt from '$lib/icons/MaterialSymbolsArrowLeftAlt.svelte';
 	import { SmartReadTracker } from '$lib/core/changes/readStatus';
 	import jsonlContent from '$lib/data/historial_cambios.jsonl?raw';
 	import { onMount } from 'svelte';
 	import Changelog from '$lib/core/changes/components/Changelog.svelte';
+	import { Config } from '$lib/core/config/store.svelte';
 
 	let visible = $state(false);
 	let showChanges = $state(false);
@@ -34,6 +33,29 @@
 			console.error(e);
 		}
 	});
+
+	// Extrae y filtra linealmente los semestres disponibles para la Sede y Jornada activas en el Config
+	let semestresDisponibles = $derived(
+		Config.sede && Config.jornada
+			? (Data.semestres[Config.sede]?.[Config.jornada] || []).filter((semestreKey: string) => {
+					const semestreData = Data.ASIGNATURAS[Config.sede]?.[Config.jornada]?.[semestreKey];
+					return semestreData && Object.keys(semestreData).length > 0;
+				})
+			: []
+	);
+
+	// Group available semesters by year for the timeline layout
+	let semestresPorAnio = $derived(
+		semestresDisponibles.reduce((acc: Record<string, string[]>, sem: string) => {
+			const [year] = sem.split('-');
+			if (!acc[year]) acc[year] = [];
+			acc[year].push(sem);
+			return acc;
+		}, {})
+	);
+
+	// Sort years in descending order to show recent semesters first
+	let aniosDisponibles = $derived(Object.keys(semestresPorAnio).sort((a, b) => b.localeCompare(a)));
 </script>
 
 {#if visible}
@@ -72,6 +94,58 @@
 				>
 					Actualizado el {Data.updateDate?.format('dddd D [de] MMM/YYYY[, a las] HH:mm')}
 				</div>
+
+				{#if semestresDisponibles.length > 0}
+					<div class="mt-6 flex w-full max-w-3xl flex-col items-center px-2">
+						<p class="text-foreground/60 mb-2 text-xs">Semestres disponibles</p>
+						<div
+							class="border-foreground/10 relative flex w-full items-stretch justify-center gap-6 pt-4"
+						>
+							<div
+								class="via-border absolute -mt-4 h-px w-full bg-linear-to-r from-transparent to-transparent"
+							></div>
+							{#each aniosDisponibles as anio}
+								<div class="relative flex flex-row gap-1.5">
+									<div
+										class="bg-background border-foreground/20 text-foreground/70 absolute -top-[27px] left-0 rounded border px-1.5 py-0.5 font-mono text-xs font-bold shadow-sm"
+									>
+										{anio}
+									</div>
+
+									{#each semestresPorAnio[anio] as sem}
+										{@const isSelected = Config.semestre === sem}
+										{@const [_, semNum] = sem.split('-')}
+
+										<button
+											onclick={() => Config.setSemestre(sem)}
+											class="relative flex min-w-[120px] cursor-pointer items-center justify-between gap-3 rounded border px-2 py-1 text-[11px] font-bold transition-all duration-200 focus:outline-none
+												{isSelected
+												? 'bg-foreground/5 text-foreground border-foreground/20 shadow-sm'
+												: 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground border-transparent bg-transparent'}"
+										>
+											<span class="font-mono">Semestre {semNum}</span>
+											{#if isSelected}
+												<span
+													class="bg-foreground absolute top-1/4 left-0 h-1/2 w-[2px] rounded-full"
+												></span>
+											{/if}
+										</button>
+									{/each}
+								</div>
+							{/each}
+						</div>
+					</div>
+				{:else if Config.semestre}
+					<div
+						class="text-primary mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 shadow-sm"
+					>
+						<span class="text-foreground/60 text-sm italic">
+							Estás viendo el semestre
+							<span class="text-primary-foreground ml-1 font-mono font-bold">{Config.semestre}</span
+							>
+						</span>
+					</div>
+				{/if}
 			</div>
 
 			<div class="mt-4">
