@@ -74,6 +74,32 @@
 	);
 	const isVespertina = $derived(selectedJornada === 'Vespertina');
 	const invalid = $derived(!Config.sede);
+
+	// Determine the semantic status of the selected semester
+	const getSemesterStatus = (sem: string) => {
+		const today = new Date();
+		const currentSem = `${today.getFullYear()}-${today.getMonth() < 7 ? '1' : '2'}`;
+
+		if (sem === currentSem)
+			return {
+				label: 'Actual',
+				color: 'text-emerald-500',
+				activeClass: 'border-emerald-500 bg-emerald-500/10'
+			};
+		if (sem > currentSem)
+			return {
+				label: 'Futuro',
+				color: 'text-blue-500',
+				activeClass: 'border-blue-500 bg-blue-500/10'
+			};
+		return {
+			label: 'Pasado',
+			color: 'text-amber-500',
+			activeClass: 'border-amber-500 bg-amber-500/10'
+		};
+	};
+
+	const semesterStatus = $derived(selectedSemestre ? getSemesterStatus(selectedSemestre) : null);
 </script>
 
 <div class="relative h-fit w-full opacity-100 duration-400 starting:opacity-0">
@@ -124,11 +150,10 @@
 				<div class="flex w-full flex-row justify-between gap-2">
 					{#if selectedSede && Data.jornadas[selectedSede]}
 						{@const disabled = Data.jornadas[selectedSede].length <= 1}
-						<div class="h-full flex-1">
+						<div class="h-full flex-[0.5]">
 							<p class="text-sm">Jornada</p>
 							<Select
 								{disabled}
-								size="sm"
 								class="w-full"
 								items={Data.jornadas[selectedSede].map((jornada) => ({
 									value: jornada
@@ -137,16 +162,34 @@
 							/>
 						</div>
 					{/if}
-					{#if selectedSede && selectedJornada}
-						<div class="h-full w-2/5">
+					{#if selectedSede && selectedJornada && semestres.length > 0}
+						<div class="h-full flex-1">
 							<p class="text-sm">Semestre</p>
-							<Select
-								size="sm"
-								disabled={semestres.length === 1}
-								class="w-full"
-								items={semestres.map((s) => ({ value: s }))}
-								bind:value={selectedSemestre}
-							/>
+							<div class="scrollbar-hide flex w-full snap-x gap-1 overflow-x-auto">
+								{#each [...semestres] as sem}
+									{@const status = getSemesterStatus(sem)}
+									{@const isSelected = selectedSemestre === sem}
+
+									<button
+										onclick={() => (selectedSemestre = sem)}
+										class="hover:border-accent-foreground! flex flex-1 grow cursor-pointer snap-center flex-col items-start rounded border px-2 py-1 text-left transition-all focus:outline-none
+											{isSelected ? status.activeClass : 'bg-muted hover:bg-muted/80 border-transparent'}"
+									>
+										<span
+											class="text-sm font-bold {isSelected
+												? 'text-foreground'
+												: 'text-muted-foreground'}">{sem}</span
+										>
+										<span
+											class="text-[9px] font-bold tracking-wider uppercase {isSelected
+												? status.color
+												: 'text-muted-foreground/50'}"
+										>
+											{status.label}
+										</span>
+									</button>
+								{/each}
+							</div>
 						</div>
 					{/if}
 				</div>

@@ -25,20 +25,21 @@
 			SettingsDialogState.open();
 		}, 500);
 
-		return () => {
-			clearTimeout(timeout);
-		};
+		return () => clearTimeout(timeout);
 	});
 </script>
 
-<DialogComponent bind:open={isOpen} class="gap-0 p-0">
-	<div class="bg-card border-b p-4 pb-3">
-		<h2 class="text-lg leading-none font-bold">Ajustes</h2>
-		<p class="text-muted-foreground mt-1 text-xs">
-			Especifica sede, jornada y otros parámetros para personalización.
+<DialogComponent bind:open={isOpen} class="gap-0 p-0 sm:max-w-md">
+	<div class="bg-card border-b p-5 pb-4">
+		<h2 class="text-xl leading-none font-black tracking-tight">Ajustes de Entorno</h2>
+		<p class="text-muted-foreground mt-2 text-xs leading-relaxed">
+			Define el contexto institucional. Los datos como los paralelos, profesores y estadísticas se
+			adaptarán a la ubicación y el semestre que especifiques aquí.
 		</p>
 	</div>
 
-	<SedeSelector />
-	<UserData />
+	<div class="bg-muted/20 flex flex-col gap-4 p-4">
+		<SedeSelector />
+		<UserData />
+	</div>
 </DialogComponent>
