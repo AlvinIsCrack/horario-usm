@@ -148,9 +148,9 @@
 				{/if}
 			</div>
 
-			<div class="mt-4">
+			<!-- <div class="mt-4">
 				<Changelog />
-			</div>
+			</div> -->
 
 			<div class="absolute bottom-8 left-1/2 w-full -translate-x-1/2 px-4">
 				<div class="mx-auto max-w-2xl text-center text-xs opacity-50">
