@@ -118,7 +118,7 @@
 
 				{#if Calendario.inicializado}
 					<div class="flex w-full flex-row items-center justify-between">
-						<span class="text-sm opacity-50">Sistema</span>
+						<div></div>
 						<div class="flex gap-1">
 							<Tooltip content="Ajustes">
 								<Button size="icon" variant="ghost" onclick={SettingsDialogState.open}>
