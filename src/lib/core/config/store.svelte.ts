@@ -7,7 +7,8 @@ const STORAGE_KEYS = {
     SEDE: 'sede',
     JORNADA: 'jornada',
     CARRERA: 'carrera',
-    SEMESTRE: 'semestre',
+    SEMESTRE: 'semestre_v2',
+    SEMESTRE_UPDATED_AT: 'semestre_updated_at',
     TRASLADO: 'tiempo-traslado'
 };
 
@@ -21,11 +22,26 @@ class ConfigManager {
 
     constructor() {
         if (browser) {
-            // Recuperar persistencia al iniciar
+            // Persistence
             this.sede = localStorage.getItem(STORAGE_KEYS.SEDE) || '';
             this.jornada = localStorage.getItem(STORAGE_KEYS.JORNADA) || '';
             this.carrera = localStorage.getItem(STORAGE_KEYS.CARRERA) || '';
-            this.semestre = localStorage.getItem(STORAGE_KEYS.SEMESTRE) || '';
+
+            // Check if the saved semester is still within the 30-day grace period
+            const savedSemestre = localStorage.getItem(STORAGE_KEYS.SEMESTRE);
+            const updatedAt = localStorage.getItem(STORAGE_KEYS.SEMESTRE_UPDATED_AT);
+            const gracePeriodMs = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+
+            if (savedSemestre && updatedAt && (Date.now() - parseInt(updatedAt) < gracePeriodMs)) {
+                this.semestre = savedSemestre;
+            } else {
+                // If grace period expired or missing, fallback to empty (SedeSelector will compute the latest)
+                this.semestre = '';
+                if (browser) {
+                    localStorage.removeItem(STORAGE_KEYS.SEMESTRE);
+                    localStorage.removeItem(STORAGE_KEYS.SEMESTRE_UPDATED_AT);
+                }
+            }
 
             const savedTraslado = localStorage.getItem(STORAGE_KEYS.TRASLADO);
             this.tiempoTraslado = savedTraslado ? parseInt(savedTraslado) : 60;
@@ -51,7 +67,10 @@ class ConfigManager {
 
     setSemestre(val: string) {
         this.semestre = val;
-        if (browser) localStorage.setItem(STORAGE_KEYS.SEMESTRE, val);
+        if (browser) {
+            localStorage.setItem(STORAGE_KEYS.SEMESTRE, val);
+            localStorage.setItem(STORAGE_KEYS.SEMESTRE_UPDATED_AT, Date.now().toString());
+        }
     }
 
     setTiempoTraslado(val: number) {

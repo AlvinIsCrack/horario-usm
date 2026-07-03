@@ -29,25 +29,31 @@
 			selectedJornada = Data.jornadas[selectedSede][0] || '';
 	});
 
-	// Actualiza el semestre cuando cambia la jornada
+	// Updates the semester when the schedule context or available fields change
 	$effect(() => {
 		if (lockedLocation) return;
-		if (
-			selectedSede &&
-			selectedJornada &&
-			Data.semestres[selectedSede]?.[selectedJornada] &&
-			!Data.semestres[selectedSede][selectedJornada].includes(selectedSemestre)
-		)
-			selectedSemestre = Data.semestres[selectedSede][selectedJornada][0] || '';
+
+		const disponible = Data.semestres[selectedSede]?.[selectedJornada] || [];
+		if (selectedSede && selectedJornada && disponible.length > 0) {
+			// If store is empty (forced reset/expired) or current value is invalid, fallback to the most recent
+			if (!selectedSemestre || !disponible.includes(selectedSemestre)) {
+				// Sort to safely grab the highest semester value (e.g. "2026-1" > "2025-2")
+				const sorted = [...disponible].sort((a, b) => b.localeCompare(a));
+				selectedSemestre = sorted[0];
+			}
+		}
 	});
 
-	// Sincroniza los estados locales con el store Calendario
-	// Este efecto se ejecuta cada vez que cualquiera de las variables de estado cambian
+	// Synchronizes local states with the global Config manager
 	$effect(() => {
 		if (lockedLocation) return;
 		Config.sede = selectedSede;
 		Config.jornada = selectedJornada;
-		Config.semestre = selectedSemestre;
+
+		// Use setSemestre to trigger the timestamp update only if it actually changed manually
+		if (Config.semestre !== selectedSemestre) {
+			Config.setSemestre(selectedSemestre);
+		}
 	});
 
 	let semestres = $derived(
