@@ -98,7 +98,7 @@
 			<Diffs bind:hasNewEvents={hasNewChanges} />
 		</div>
 
-		<div class="absolute top-1/2 right-0 z-50 -mr-2 -translate-y-1/2">
+		<!-- <div class="absolute top-1/2 right-0 z-50 -mr-2 -translate-y-1/2">
 			{#if !showChanges}
 				<div transition:fade={{ duration: 200 }} class="flex items-center gap-1 pr-1">
 					<Button
@@ -127,9 +127,9 @@
 					</span>
 				</div>
 			{/if}
-		</div>
+		</div> -->
 
-		<div class="absolute top-1/2 left-0 z-50 -ml-2 -translate-y-1/2">
+		<!-- <div class="absolute top-1/2 left-0 z-50 -ml-2 -translate-y-1/2">
 			{#if showChanges}
 				<div transition:fade={{ duration: 200 }} class="flex items-center gap-1 pl-1">
 					<span
@@ -149,6 +149,6 @@
 					</Button>
 				</div>
 			{/if}
-		</div>
+		</div> -->
 	</div>
 {/if}
