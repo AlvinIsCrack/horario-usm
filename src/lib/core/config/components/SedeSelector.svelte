@@ -35,11 +35,11 @@
 
 		const disponible = Data.semestres[selectedSede]?.[selectedJornada] || [];
 		if (selectedSede && selectedJornada && disponible.length > 0) {
-			// If store is empty (forced reset/expired) or current value is invalid, fallback to the most recent
+			// If the active semester is empty (due to reset/expiration) or no longer valid, select the newest
 			if (!selectedSemestre || !disponible.includes(selectedSemestre)) {
-				// Sort to safely grab the highest semester value (e.g. "2026-1" > "2025-2")
-				const sorted = [...disponible].sort((a, b) => b.localeCompare(a));
-				selectedSemestre = sorted[0];
+				// Business logic: Sort descending to guarantee the latest semester (e.g., '2026-2' > '2026-1') is always at index 0
+				const sortedCronologicamente = [...disponible].sort((a, b) => b.localeCompare(a));
+				selectedSemestre = sortedCronologicamente[0];
 			}
 		}
 	});
