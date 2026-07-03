@@ -13,18 +13,18 @@
 	import Select from '$lib/components/ui/Select.svelte';
 	import { tick, untrack } from 'svelte';
 	import { Config } from '$lib/core/config/store.svelte';
-
-	// SE ELIMINÓ inputStyle porque ahora usamos clases directas
+	import type { Ramo } from '$lib/core/ramos/types';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	const listStyle = tv({
-		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
+		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
 	});
 
 	const itemStyle = tv({
-		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all from-25% bg-gradient-to-r from-card to-card duration-150 border hover:border-foreground/50! group overflow-hidden hover:cursor-pointer',
+		base: 'relative w-full text-left py-2 px-4 transition-all duration-150 border-b group-even:bg-black/40 overflow-hidden hover:cursor-pointer',
 		variants: {
 			active: {
-				true: 'from-accent/50 to-accent/50 border-accent brightness-150'
+				true: 'bg-primary/20! brightness-125'
 			},
 			tipo: {
 				AMBOS: 'to-green-500/40',
@@ -254,7 +254,7 @@
 	>
 		<ul
 			transition:fade={{ duration: 200 }}
-			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-lg overflow-y-auto"
+			class="{listStyle()} h-auto max-h-(--max-h)! min-w-3xl overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-ramo-search"
@@ -265,14 +265,85 @@
 				e.preventDefault();
 			}}
 		>
-			<div class="relative p-3 px-4 text-sm">
+			{#snippet ramoRow(sigla: string, ramo: Ramo, inHorario: boolean, index: number)}
+				<li
+					bind:this={itemNodes[index]}
+					data-sigla={sigla}
+					id="option-ramo-search-{index}"
+					role="option"
+					aria-selected={highlightedIndex === index}
+					onmousemove={() => (highlightedIndex = index)}
+					class="group list-none"
+				>
+					<button
+						class="{itemStyle({
+							active: highlightedIndex === index,
+							added: inHorario,
+							tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any
+						})} grid grid-cols-[100px_3fr_1fr_1fr_50px] items-center gap-4 text-sm"
+						onmousedown={(e) => {
+							e.preventDefault();
+							onItemClicked(sigla);
+						}}
+					>
+						<span
+							class="font-mono text-base font-black tracking-wide drop-shadow-sm/50"
+							title={sigla}
+						>
+							{sigla}
+						</span>
+
+						<span class="text-muted-foreground truncate text-left font-medium" title={ramo.nombre}>
+							{ramo.nombre}
+						</span>
+
+						<span class="truncate text-center text-xs font-semibold tracking-wider uppercase">
+							{@html (ramo.tipoCurricular ?? '').replace(
+								/AMBOS|PAR|IMPAR|ELECTIVO/gi,
+								(m: string) =>
+									({
+										AMBOS: '<span class="text-emerald-500">AMBOS</span>',
+										PAR: '<span class="text-amber-500">PAR</span>',
+										IMPAR: '<span class="text-sky-400">IMPAR</span>',
+										ELECTIVO: '<span class="text-rose-400">ELECTIVO</span>'
+									})[m] ?? ''
+							)}
+						</span>
+
+						<span
+							class="text-muted-foreground/70 truncate text-left text-xs"
+							title="DEPTO. DE {ramo.departamento}"
+						>
+							{ramo.departamento ?? 'N/A'}
+						</span>
+
+						<span
+							class="text-right font-mono tracking-tight tabular-nums"
+							class:opacity-50={ramo.creditos === 0}
+							class:text-sky-400={ramo.creditos! > 0 && ramo.creditos! < 5}
+							class:text-yellow-400={ramo.creditos! >= 5 && ramo.creditos! < 7}
+							class:text-red-400={ramo.creditos! >= 7}
+						>
+							{#if ramo.creditos === null || ramo.creditos === undefined}
+								&mdash;
+							{:else}
+								<span title="Créditos SCT">
+									{ramo.creditos}
+								</span>
+							{/if}
+						</span>
+					</button>
+				</li>
+			{/snippet}
+
+			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b px-2.5 py-1">
 				<p>
 					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
 				</p>
 
 				{#await filteredItems then items}
-					<div transition:slide={{ axis: 'y' }} class="mt-1 flex flex-col gap-0.5">
+					<div transition:slide={{ axis: 'y' }} class="flex flex-col gap-0.5">
 						{#if query.length && cachedRamos.length !== items.length}
 							<p>
 								Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
@@ -306,10 +377,18 @@
 						/>
 					</button>
 				{/if}
+
 				<div
-					class="border-border relative bottom-0 mt-auto w-full translate-y-2 scale-x-200 border-b"
-				></div>
+					class="text-muted-foreground/60 -mx-2.5 mt-2 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 pt-2 text-xs"
+				>
+					<span>Sigla</span>
+					<span>Asignatura</span>
+					<span class="text-center">Tipo</span>
+					<span>Departamento</span>
+					<span class="text-right">Créditos</span>
+				</div>
 			</div>
+
 			{#await filteredItems}
 				<li class="text-muted-foreground animate-pulse p-4 text-center text-sm">
 					Buscando asignaturas...
@@ -331,56 +410,7 @@
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
 
-						<li
-							bind:this={itemNodes[i]}
-							data-sigla={sigla}
-							id="option-ramo-search-{i}"
-							role="option"
-							aria-selected={highlightedIndex === i}
-							onmousemove={() => (highlightedIndex = i)}
-							class="list-none"
-						>
-							<button
-								class={itemStyle({
-									active: highlightedIndex === i,
-									added: inHorario,
-									tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any
-								})}
-								onmousedown={(e) => {
-									e.preventDefault();
-									onItemClicked(sigla);
-								}}
-							>
-								<div class="leading-2">
-									<p class="max-w-11/12">
-										<span class="mr-1 font-mono text-xl font-black tracking-wide drop-shadow-sm/50"
-											>{sigla}</span
-										>
-										<span
-											class="text-muted-foreground text-sm leading-3 font-medium tracking-tight"
-										>
-											{ramo.nombre}
-										</span>
-										{#if ramo.tipoCurricular}
-											<span
-												class="text-muted-foreground absolute right-1 bottom-1 ml-auto block text-xs leading-3 font-normal"
-											>
-												{@html ramo.tipoCurricular.replace(
-													/AMBOS|PAR|IMPAR|ELECTIVO/gi,
-													(m) =>
-														({
-															AMBOS: '<span class="text-emerald-500">PAR/IMPAR</span>',
-															PAR: '<span class="text-amber-500">PAR</span>',
-															IMPAR: '<span class="text-sky-400">IMPAR</span>',
-															ELECTIVO: '<span class="text-rose-400">ELECTIVO</span>'
-														})[m] ?? ''
-												)}
-											</span>
-										{/if}
-									</p>
-								</div>
-							</button>
-						</li>
+						{@render ramoRow(sigla, ramo, inHorario, i)}
 					{/each}
 				{/if}
 			{:catch error}
