@@ -67,7 +67,7 @@
 				<Separator class="mx-4 w-auto" />
 			{/if}
 
-			<div class="flex-1 overflow-y-auto p-4">
+			<div class="flex-1 overflow-x-hidden overflow-y-auto p-4">
 				<div class="flex flex-col gap-4">
 					{#if Calendario.visible}
 						<div class="flex flex-col gap-1">
