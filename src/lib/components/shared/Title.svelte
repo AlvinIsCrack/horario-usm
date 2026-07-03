@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import Changelog from '$lib/core/changes/components/Changelog.svelte';
 	import { Config } from '$lib/core/config/store.svelte';
+	import Tooltip from '../ui/Tooltip.svelte';
 
 	let visible = $state(false);
 	let showChanges = $state(false);
@@ -90,7 +91,6 @@
 						class="font-gothic-expanded text-foreground w-full
 							text-center text-7xl
 							leading-[0.85] font-black
-							tracking-tighter
 							uppercase lg:-mt-3 lg:text-8xl lg:leading-[0.8] xl:text-9xl"
 					>
 						{Data.updateDate?.fromNow().replace('hace', '').deaccent() ?? '...'}
@@ -103,40 +103,32 @@
 				</div>
 
 				{#if semestresDisponibles.length > 0}
-					<div class="mt-6 flex w-full max-w-3xl flex-col items-center px-2">
-						<p class="text-foreground/60 mb-2 text-xs">Semestres disponibles</p>
+					<div class="mt-6 flex w-full max-w-3xl flex-col items-center gap-1 px-2">
+						<p class="text-foreground/60 -mb-1 text-sm">Semestres disponibles</p>
 						<div
-							class="border-foreground/10 relative flex w-full items-stretch justify-center gap-6 pt-4"
+							class="via-border h-px w-full bg-linear-to-r from-transparent to-transparent"
+						></div>
+						<div
+							class="border-foreground/10 relative flex w-full flex-col items-center justify-center"
 						>
-							<div
-								class="via-border absolute -mt-4 h-px w-full bg-linear-to-r from-transparent to-transparent"
-							></div>
 							{#each aniosDisponibles as anio}
-								<div class="relative flex flex-row gap-1.5">
-									<div
-										class="bg-background border-foreground/20 text-foreground/70 absolute -top-[27px] left-0 rounded border px-1.5 py-0.5 font-mono text-xs font-bold shadow-sm"
-									>
-										{anio}
-									</div>
-
+								<div class="relative flex flex-row gap-1">
 									{#each semestresPorAnio[anio] as sem}
 										{@const isSelected = Config.semestre === sem}
 										{@const [_, semNum] = sem.split('-')}
+										{@const code = `${anio}-${semNum}`}
 
-										<button
-											onclick={() => Config.setSemestre(sem)}
-											class="relative flex min-w-[120px] cursor-pointer items-center justify-between gap-3 rounded border px-2 py-1 text-[11px] font-bold transition-all duration-200 focus:outline-none
+										<Tooltip content="Seleccionar el semestre {code}">
+											<button
+												onclick={() => Config.setSemestre(sem)}
+												class="relative flex min-w-32 cursor-pointer items-center justify-center gap-2 rounded border p-3 text-base transition-all duration-200 focus:outline-none
 												{isSelected
-												? 'bg-foreground/5 text-foreground border-foreground/20 shadow-sm'
-												: 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground border-transparent bg-transparent'}"
-										>
-											<span class="font-mono">Semestre {semNum}</span>
-											{#if isSelected}
-												<span
-													class="bg-foreground absolute top-1/4 left-0 h-1/2 w-[2px] rounded-full"
-												></span>
-											{/if}
-										</button>
+													? 'bg-primary text-primary-foreground border-foreground/20 font-medium shadow-sm'
+													: 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground border-transparent bg-transparent'}"
+											>
+												<span class="tabular-nums">{code}</span>
+											</button>
+										</Tooltip>
 									{/each}
 								</div>
 							{/each}
