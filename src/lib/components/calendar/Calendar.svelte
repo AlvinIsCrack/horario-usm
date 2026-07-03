@@ -8,7 +8,7 @@
 	import ForkSpoon from '$lib/icons/fork-spoon.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Tooltip from '../ui/Tooltip.svelte';
-	import { Días } from '$lib/logic/ramos/types';
+	import { Días } from '$lib/core/ramos/types';
 
 	const [bloqueBegin, bloqueEnd] = $derived(Calendario.bloqueRange);
 	const [díaBegin, díaEnd] = $derived(Calendario.range);
@@ -22,7 +22,7 @@
 
 <div transition:fade class="relative h-full w-full">
 	{#if !Calendario.visible}
-		{#await import('../elements/Title.svelte') then { default: Title }}
+		{#await import('../shared/Title.svelte') then { default: Title }}
 			<div class="absolute flex h-full w-full items-center justify-center">
 				<Title />
 			</div>

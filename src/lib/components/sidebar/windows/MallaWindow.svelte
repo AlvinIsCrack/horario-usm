@@ -1,9 +1,9 @@
 <script lang="ts">
-	import PlanSearch from '$lib/components/elements/PlanSearch.svelte';
+	import PlanSearch from '$lib/components/shared/PlanSearch.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import { MallaPageState } from '../../../../routes/malla/+page.svelte';
-	import { getCareerOptions } from '$lib/logic/malla/data';
+	import { getCareerOptions } from '$lib/core/malla/data';
 	import MaterialSymbolsInfo from '$lib/icons/MaterialSymbolsInfo.svelte';
 
 	let careerOptions = $derived(

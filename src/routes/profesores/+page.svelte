@@ -15,28 +15,28 @@
 </script>
 
 <script lang="ts">
-	import { professorRepo } from '$lib/logic/professors/repository.svelte';
-	import ProfessorCard from '$lib/logic/professors/components/ProfessorCard.svelte';
+	import { professorRepo } from '$lib/core/professors/repository.svelte';
+	import ProfessorCard from '$lib/core/professors/components/ProfessorCard.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Slider from '$lib/components/ui/Slider.svelte';
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import Loader from '$lib/icons/loader.svelte';
 
-	import { submitReview, type ReviewPayload } from '$lib/logic/reviews/api';
-	import type { TagId, TagCategory, TagDefinition } from '$lib/logic/professors/types';
+	import { submitReview, type ReviewPayload } from '$lib/core/reviews/api';
+	import type { TagId, TagCategory, TagDefinition } from '$lib/core/professors/types';
 	import {
 		USM_TAGS,
 		EVALUATION_DIMENSIONS,
 		TAG_CATEGORY_DESCRIPTIONS
-	} from '$lib/logic/professors/types';
-	import { orderTags } from '$lib/logic/professors';
+	} from '$lib/core/professors/types';
+	import { orderTags } from '$lib/core/professors';
 	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
-	import { checkTextQuality } from '$lib/logic/reviews/quality';
+	import { checkTextQuality } from '$lib/core/reviews/quality';
 
 	// Nuevas importaciones para integración con Sidebar
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import ProfessorsWindow from '$lib/components/sidebar/windows/ProfessorsWindow.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import Select from '$lib/components/ui/Select.svelte';

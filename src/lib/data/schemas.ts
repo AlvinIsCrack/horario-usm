@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TipoBloque } from "$lib/logic/ramos/types";
+import { TipoBloque } from "$lib/core/ramos/types";
 
 // Esquemas base
 export const BloqueSchema = z.object({

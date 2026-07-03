@@ -2,7 +2,7 @@
 	import { MAIN_RENDERER } from '$lib/constants/ids';
 	import Loader from '$lib/icons/loader.svelte';
 	import { fade } from 'svelte/transition';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import { onMount } from 'svelte';
 
 	// Aseguramos que la sidebar esté limpia al volver al home
@@ -20,5 +20,8 @@
 		</div>
 	{:then { default: Calendar }}
 		<Calendar />
+		{#await import('$lib/core/config/components/dialog/SettingsDialog.svelte') then { default: SettingsDialog }}
+			<SettingsDialog />
+		{/await}
 	{/await}
 </div>

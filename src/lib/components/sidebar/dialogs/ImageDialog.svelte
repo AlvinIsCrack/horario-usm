@@ -4,9 +4,9 @@
 	import Toggle from '$lib/components/ui/Toggle.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
 	import MdiDownload from '$lib/icons/save.svelte';
-	import ExportableSchedule from '$lib/logic/export/components/ExportableSchedule.svelte';
+	import ExportableSchedule from '$lib/core/export/components/ExportableSchedule.svelte';
 	import MaterialSymbolsPrint from '$lib/icons/MaterialSymbolsPrint.svelte';
-	import { ImageState } from '$lib/logic/dialogs/state.svelte';
+	import { ImageState } from '$lib/core/dialogs/state.svelte';
 	import ToggleGroup from '$lib/components/ui/ToggleGroup.svelte';
 
 	let theme = $state<string>('Papel');
@@ -22,7 +22,7 @@
 		isProcessing = true;
 		try {
 			// Importamos dinámicamente el helper para evitar problemas de SSR si los hubiera
-			const { captureSchedule } = await import('$lib/logic/export/screenshot');
+			const { captureSchedule } = await import('$lib/core/export/screenshot');
 			await captureSchedule(mode);
 
 			if (mode === 'download') toast.success('Imagen guardada correctamente');

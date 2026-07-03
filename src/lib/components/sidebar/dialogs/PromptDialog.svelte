@@ -4,8 +4,8 @@
 	import MaterialSymbolsLinkRounded from '$lib/icons/MaterialSymbolsLinkRounded.svelte';
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { Config } from '$lib/logic/config/store.svelte';
-	import { PromptState } from '$lib/logic/dialogs/state.svelte';
+	import { Config } from '$lib/core/config/store.svelte';
+	import { PromptState } from '$lib/core/dialogs/state.svelte';
 </script>
 
 <DialogComponent bind:open={PromptState.isOpen} class="max-w-md gap-0 p-0">

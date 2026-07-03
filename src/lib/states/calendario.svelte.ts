@@ -1,7 +1,7 @@
 import { SAVED_HORARIOS } from "$lib/constants/ids";
-import { Config } from "$lib/logic/config/store.svelte";
-import { Ramos } from "$lib/logic/ramos/store.svelte";
-import { Días, type Bloque, type Ramo } from "$lib/logic/ramos/types";
+import { Config } from "$lib/core/config/store.svelte";
+import { Ramos } from "$lib/core/ramos/store.svelte";
+import { Días, type Bloque, type Ramo } from "$lib/core/ramos/types";
 import { Data } from "$lib/data/data.svelte";
 import Color from "color";
 import { tick } from "svelte";

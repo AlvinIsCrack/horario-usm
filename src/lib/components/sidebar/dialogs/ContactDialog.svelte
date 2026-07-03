@@ -4,7 +4,7 @@
 	import DialogComponent from '$lib/components/ui/Dialog.svelte';
 	import MaterialSymbolsFeedback from '$lib/icons/MaterialSymbolsFeedback.svelte';
 	import MingcutePaypalFill from '$lib/icons/MingcutePaypalFill.svelte';
-	import { ContactState } from '$lib/logic/dialogs/state.svelte';
+	import { ContactState } from '$lib/core/dialogs/state.svelte';
 </script>
 
 <DialogComponent bind:open={ContactState.isOpen} class="max-w-sm gap-0 p-0">

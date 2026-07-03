@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Bloque } from '$lib/logic/ramos/types';
+	import type { Bloque } from '$lib/core/ramos/types';
 	import RamoCard from './RamoCard.svelte';
 
 	let { bloques }: { bloques: Bloque[] | null } = $props();

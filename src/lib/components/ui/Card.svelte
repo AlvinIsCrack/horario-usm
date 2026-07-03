@@ -5,7 +5,7 @@
 </script>
 
 <div
-	class="bg-accent text-accent-foreground flex flex-col gap-1 rounded-lg border p-4 shadow-lg/50 {_class}"
+	class="bg-accent text-accent-foreground flex flex-col gap-1 rounded-md border p-4 shadow-md/50 {_class}"
 	{...props}
 >
 	{@render children?.()}

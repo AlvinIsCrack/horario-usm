@@ -3,10 +3,10 @@
 	import { Data } from '$lib/data/data.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { tick, untrack } from 'svelte';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
-	import RamoSummary from '../../elements/RamoSummary.svelte';
-	import ParaleloOption from '../../elements/ParaleloOption.svelte';
+	import RamoSummary from '../../shared/RamoSummary.svelte';
+	import ParaleloOption from '../../shared/ParaleloOption.svelte';
 
 	let {
 		edit
@@ -53,7 +53,7 @@
 
 <div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
 	{#if !edit}
-		{#await import('../../elements/RamoSearch.svelte') then { default: RamoSearch }}
+		{#await import('../../shared/RamoSearch.svelte') then { default: RamoSearch }}
 			<div class="mt-1 flex flex-col gap-1">
 				<p class="text-muted-foreground text-xs font-bold uppercase">Ramo</p>
 				<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />

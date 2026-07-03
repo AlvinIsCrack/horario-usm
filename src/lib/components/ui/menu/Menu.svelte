@@ -5,7 +5,7 @@
 	import Floating from '$lib/components/ui/Floating.svelte';
 
 	const menuStyle = tv({
-		base: 'min-w-[8rem] overflow-hidden rounded-md border-2 bg-popover p-1 text-popover-foreground shadow-md/50 focus:outline-none'
+		base: 'min-w-3xs overflow-hidden rounded border bg-popover p-1 text-popover-foreground shadow-md/50 focus:outline-none'
 	});
 
 	let {
@@ -13,7 +13,7 @@
 		trigger,
 		open = $bindable(false),
 		position = 'bottom',
-		align = 'center', // Mapeado a 'anchor' en Floating
+		align = 'start',
 		offset = 6,
 		class: _class,
 		...props

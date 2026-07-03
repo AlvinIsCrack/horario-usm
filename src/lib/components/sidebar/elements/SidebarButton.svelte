@@ -15,7 +15,7 @@
 	class="block h-auto flex-1 justify-start py-2 text-left leading-tight whitespace-normal {_class}"
 	{onclick}
 >
-	<p class="display-[inherit] text-[inherit]">
+	<p class="display-[inherit] text-inherit">
 		{#if Icon}
 			<Icon class="mr-1 inline-block scale-125 align-middle" />
 		{/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Bloque, Días } from '$lib/logic/ramos/types';
+	import type { Bloque, Días } from '$lib/core/ramos/types';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import BlockContent from './BlockContent.svelte';
 

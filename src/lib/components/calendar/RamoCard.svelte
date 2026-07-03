@@ -2,9 +2,9 @@
 	import { fly } from 'svelte/transition';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Location from '$lib/icons/location.svelte';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import CornerBadge from '../ui/CornerBadge.svelte';
-	import { TipoBloque, type Bloque } from '$lib/logic/ramos/types';
+	import { TipoBloque, type Bloque } from '$lib/core/ramos/types';
 
 	let { bloqueObject, ...props }: { bloqueObject: Bloque } = $props();
 	let visible = $state(false);

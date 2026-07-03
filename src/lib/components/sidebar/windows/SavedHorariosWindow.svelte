@@ -2,7 +2,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Add from '$lib/icons/add.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 </script>
 
 <div class="flex h-full w-full flex-col gap-2 overflow-y-auto">

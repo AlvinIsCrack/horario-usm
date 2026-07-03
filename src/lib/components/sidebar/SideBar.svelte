@@ -4,9 +4,9 @@
 	import { base } from '$app/paths';
 	import { goto } from '$app/navigation';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
-	import { ContactState } from '$lib/logic/dialogs/state.svelte';
-	import { Config } from '$lib/logic/config/store.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
+	import { ContactState } from '$lib/core/dialogs/state.svelte';
+	import { Config } from '$lib/core/config/store.svelte';
 
 	// Componentes UI & Iconos
 	import Button from '$lib/components/ui/Button.svelte';
@@ -27,119 +27,119 @@
 	// Ventanas y Paneles
 	import RamoWindow from './windows/RamoWindow.svelte';
 	import SavedHorariosWindow from './windows/SavedHorariosWindow.svelte';
-	import RamosList from '../elements/RamosList.svelte';
-	import Statistics from '../../logic/statistics/components/Statistics.svelte';
-	import SedeSelector from '../../logic/config/components/SedeSelector.svelte';
-	import UserData from '../../logic/config/components/UserData.svelte';
-	import MaterialSymbolsCalculate from '$lib/icons/MaterialSymbolsCalculate.svelte';
+	import Statistics from '$lib/core/statistics/components/Statistics.svelte';
 	import MaterialSymbolsArrowLeftAlt from '$lib/icons/MaterialSymbolsArrowLeftAlt.svelte';
+	import { SettingsDialogState } from '$lib/core/config/components/dialog/SettingsDialog.svelte';
+	import Tooltip from '../ui/Tooltip.svelte';
+	import MaterialSymbolsSettings from '$lib/icons/MaterialSymbolsSettings.svelte';
+	import RamosList from '../shared/RamosList.svelte';
 </script>
 
 <div
 	id="main-sidebar"
-	class="bg-sidebar text-sidebar-foreground relative h-full max-w-xs! overflow-hidden p-4"
+	class="bg-sidebar text-sidebar-foreground relative flex h-full max-w-xs! flex-col overflow-hidden"
 >
-	<div in:fade={{ delay: 500, duration: 500 }} class="h-full w-full">
+	<div in:fade={{ delay: 500, duration: 500 }} class="flex h-full w-full flex-col">
 		<div
-			class="absolute inset-0 flex h-full w-full flex-col gap-2 p-3 transition-opacity duration-300
+			class="flex h-full w-full flex-col transition-opacity duration-300
 			{SidebarState.isOpen ? 'pointer-events-none opacity-0' : 'opacity-100 delay-100'}"
 			aria-hidden={SidebarState.isOpen}
 		>
-			<div class="h-min w-full">
-				{#if Config.sede}
-					<div in:fly={{ y: -40 }} class="flex h-min w-full flex-row flex-wrap gap-2">
+			{#if Config.sede}
+				<div class="flex flex-row gap-2 p-4 pb-2" in:fly={{ y: -20 }}>
+					<SidebarButton
+						text="Añadir ramo"
+						onclick={() => {
+							SidebarState.open(
+								RamoWindow,
+								{},
+								{
+									title: 'Añadir ramo',
+									description: 'Planificar tu horario'
+								}
+							);
+						}}
+						Icon={Add}
+						class="justify-center!"
+					/>
+					<SidebarActionsMenu />
+				</div>
+				<Separator class="mx-4 w-auto" />
+			{/if}
+
+			<div class="flex-1 overflow-y-auto p-4">
+				<div class="flex flex-col gap-4">
+					{#if Calendario.visible}
+						<div class="flex flex-col gap-1">
+							<RamosList />
+						</div>
+						<Separator />
+						<Statistics />
+					{/if}
+				</div>
+			</div>
+
+			<div class="flex flex-col gap-2 bg-black/5 p-4 dark:bg-white/5">
+				{#if Config.sede && !Calendario.visible}
+					<div class="flex flex-col gap-2">
+						<p class="text-opacity-60 mb-1 text-xs font-semibold tracking-wider uppercase">
+							Otras Herramientas
+						</p>
 						<SidebarButton
-							text="Añadir ramo"
+							text="Horarios guardados"
 							onclick={() => {
 								SidebarState.open(
-									RamoWindow,
+									SavedHorariosWindow,
 									{},
 									{
-										title: 'Añadir ramo',
-										description: 'Planificar tu horario'
+										title: 'Horarios guardados',
+										description: 'Guardados localmente'
 									}
 								);
 							}}
-							Icon={Add}
-							class="justify-center!"
+							Icon={Horario}
+							variant="secondary"
 						/>
+						<SidebarButton
+							text="Malla Interactiva"
+							onclick={() => goto(`${base}/malla`)}
+							Icon={MaterialSymbolsGrid4x4}
+							variant="secondary"
+						/>
+						<SidebarButton
+							text="Profesores"
+							onclick={() => goto(`${base}/profesores`)}
+							Icon={Teachers}
+							variant="secondary"
+						/>
+					</div>
+					<Separator class="my-2" />
+				{/if}
 
-						<SidebarActionsMenu />
-
-						<Separator />
-
-						{#if !Calendario.visible}
-							<div class="flex flex-1 flex-col gap-[inherit]">
-								<SidebarButton
-									text="Horarios"
-									onclick={() => {
-										SidebarState.open(
-											SavedHorariosWindow,
-											{},
-											{
-												title: 'Horarios guardados',
-												description: 'Guardados localmente'
-											}
-										);
-									}}
-									Icon={Horario}
-									variant="secondary"
-								/>
-								<SidebarButton
-									text="Malla Interactiva"
-									onclick={() => goto(`${base}/malla`)}
-									Icon={MaterialSymbolsGrid4x4}
-									variant="secondary"
-								/>
-								<SidebarButton
-									text="Profesores"
-									onclick={() => goto(`${base}/profesores`)}
-									Icon={Teachers}
-									variant="secondary"
-								/>
-								<!-- <SidebarButton
-									text="Calculadora promedios"
-									onclick={() => goto(`${base}/optimizador`)}
-									Icon={MaterialSymbolsCalculate}
-									variant="secondary"
-								/> -->
-							</div>
-						{/if}
+				{#if Calendario.inicializado}
+					<div class="flex w-full flex-row items-center justify-between">
+						<span class="text-sm opacity-50">Sistema</span>
+						<div class="flex gap-1">
+							<Tooltip content="Ajustes">
+								<Button size="icon" variant="ghost" onclick={SettingsDialogState.open}>
+									<MaterialSymbolsSettings class="size-5" />
+								</Button>
+							</Tooltip>
+							<Tooltip content="Contacto">
+								<Button size="icon" variant="ghost" onclick={ContactState.open}>
+									<MaterialSymbolsFeedback class="size-5" />
+								</Button>
+							</Tooltip>
+						</div>
 					</div>
 				{/if}
-			</div>
-
-			<div class="flex h-full w-full flex-col-reverse gap-1 overflow-hidden">
-				{#if Calendario.visible}
-					<RamosList />
-					<Separator />
-					<Statistics />
-				{:else if Calendario.inicializado}
-					<SedeSelector />
-					<UserData />
-				{/if}
-			</div>
-
-			<div class="w-full text-center text-sm">
-				<Separator />
-				{#await import("$lib/components/elements/Me.svelte") then { default: Me }}
-					<Me />
-					<button
-						type="button"
-						class="decoration-foreground/50 mt-1 cursor-pointer underline decoration-dashed opacity-50 hover:decoration-solid hover:opacity-100"
-						onclick={ContactState.open}
-					>
-						<MaterialSymbolsFeedback class="mr-1 inline" />
-						Contacto
-					</button>
-				{/await}
 			</div>
 		</div>
 
 		{#if SidebarState.activeWindow}
 			{@const Window = SidebarState.activeWindow}
 			<div
-				class="bg-sidebar-accent text-sidebar-accent-foreground absolute top-0 left-0 z-10 flex h-full w-full min-w-full flex-col items-end gap-2 p-4"
+				class="bg-sidebar-accent text-sidebar-accent-foreground absolute top-0 left-0 z-10 flex h-full w-full min-w-full flex-col items-end gap-2 overflow-hidden p-4"
 				transition:fly={{ x: '-100%', opacity: 1, easing: circOut, duration: 300 }}
 			>
 				<div
@@ -150,7 +150,7 @@
 							<h1 class="-mb-0.5 font-semibold">{SidebarState.title}</h1>
 						{/if}
 						{#if SidebarState.description}
-							<p class="text-sm opacity-50 leading-tight">{SidebarState.description}</p>
+							<p class="text-sm leading-tight opacity-50">{SidebarState.description}</p>
 						{/if}
 					</div>
 					<Button
@@ -188,9 +188,7 @@
 		0% {
 			opacity: 0;
 			width: 0;
-			padding: 0;
 		}
-
 		50% {
 			opacity: 1;
 		}

@@ -8,10 +8,10 @@
 
 <script lang="ts">
 	// Importaciones de lógica modularizada
-	import { MallaState } from '$lib/logic/malla/malla.svelte';
-	import { getCenter, generatePath, romanize } from '$lib/logic/malla/visuals';
-	import { cardStyles } from '$lib/logic/malla/styles';
-	import type { Connection, RamoMalla } from '$lib/logic/malla/types';
+	import { MallaState } from '$lib/core/malla/malla.svelte';
+	import { getCenter, generatePath, romanize } from '$lib/core/malla/visuals';
+	import { cardStyles } from '$lib/core/malla/styles';
+	import type { Connection, RamoMalla } from '$lib/core/malla/types';
 
 	// UI Components
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
@@ -19,7 +19,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import { onDestroy, onMount } from 'svelte';
 	import MallaWindow from '$lib/components/sidebar/windows/MallaWindow.svelte';
-	import { SidebarState } from '$lib/logic/sidebar/state.svelte';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 
 	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
@@ -27,10 +27,13 @@
 		SidebarState.open(
 			MallaWindow,
 			{},
-			{ title: 'Malla Interactiva', description: 'Planifica tu trayectoria académica de forma visual e interactiva' }
+			{
+				title: 'Malla Interactiva',
+				description: 'Planifica tu trayectoria académica de forma visual e interactiva'
+			}
 		);
 		MallaPageState.malla = mallaState;
-	})
+	});
 
 	onDestroy(() => {
 		SidebarState.reset();

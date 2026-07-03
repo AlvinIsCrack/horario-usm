@@ -4,7 +4,7 @@
 	import { tv } from 'tailwind-variants';
 
 	const button = tv({
-		base: 'border border-input cursor-pointer transition-colors disabled:opacity-50 disabled:pointer-events-none flex justify-center gap-2 items-center rounded-md tracking-tight font-medium',
+		base: 'border border-input cursor-pointer transition-colors disabled:opacity-50 disabled:pointer-events-none flex justify-center gap-2 items-center rounded font-normal',
 		variants: {
 			variant: {
 				primary: 'bg-primary hover:bg-primary/50 text-primary-foreground',

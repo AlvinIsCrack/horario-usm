@@ -4,7 +4,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { Dialog } from '$lib/components/ui/helpers/DialogRenderer.svelte';
-	import { generateAIAnalysisPrompt } from '$lib/logic/statistics/prompt';
+	import { generateAIAnalysisPrompt } from '$lib/core/statistics/prompt';
 
 	// Iconos
 	import MaterialSymbolsMenu from '$lib/icons/MaterialSymbolsMenu.svelte';
@@ -13,15 +13,15 @@
 	import Image from '$lib/icons/image.svelte';
 	import Save from '$lib/icons/save.svelte';
 	import Trash from '$lib/icons/trash.svelte';
-	import { downloadICS } from '$lib/logic/export/ics';
+	import { downloadICS } from '$lib/core/export/ics';
 	import MdiCalendarExport from '$lib/icons/MdiCalendarExport.svelte';
 	import { toast } from '$lib/components/ui/sonner/ctx.svelte';
-	import { Config } from '$lib/logic/config/store.svelte';
-	import { type AnalyzerContext } from '$lib/logic/statistics/types';
-	import { ImageState, PromptState } from '$lib/logic/dialogs/state.svelte';
+	import { Config } from '$lib/core/config/store.svelte';
+	import { type AnalyzerContext } from '$lib/core/statistics/types';
+	import { ImageState, PromptState } from '$lib/core/dialogs/state.svelte';
 </script>
 
-<Menu align="end">
+<Menu>
 	{#snippet trigger()}
 		<Tooltip content="Opciones">
 			<Button variant="outlined" size="icon">
