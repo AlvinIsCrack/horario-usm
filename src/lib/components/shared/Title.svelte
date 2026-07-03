@@ -63,6 +63,13 @@
 		transition:fade={{ duration: 400 }}
 		class="relative h-full w-full overflow-hidden select-none"
 	>
+		<img
+			src="https://home.ripley.cl/minisitios/estatico/calefaccion/img/prod_estufagas.png"
+			alt="Estufita a gas"
+			draggable="false"
+			class="pointer-events-none absolute right-8 bottom-0 w-40"
+		/>
+
 		<div
 			class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out will-change-transform"
 			class:opacity-0={showChanges}
