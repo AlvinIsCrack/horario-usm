@@ -7,6 +7,7 @@
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import RamoSummary from '../../shared/RamoSummary.svelte';
 	import ParaleloOption from '../../shared/ParaleloOption.svelte';
+	import { slide } from 'svelte/transition';
 
 	let {
 		edit
@@ -55,7 +56,19 @@
 	{#if !edit}
 		{#await import('../../shared/RamoSearch.svelte') then { default: RamoSearch }}
 			<div class="mt-1 flex flex-col gap-1">
-				<p class="text-muted-foreground text-xs font-bold uppercase">Ramo</p>
+				<p class="text-muted-foreground text-xs font-bold uppercase">Añadir Ramo</p>
+
+				{#if !selectedRamo}
+					<div
+						class="bg-muted/30 border-muted text-muted-foreground rounded border p-3 text-xs leading-relaxed"
+						transition:slide={{ duration: 150, axis: 'y' }}
+					>
+						<p class="text-foreground mb-1 font-semibold">¿Cómo empezar?</p>
+						Busca un ramo por su nombre o sigla (ej. MAT023, FIS120). Una vez seleccionado, su información
+						y sus paralelos disponibles aparecerán aquí.
+					</div>
+				{/if}
+
 				<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
 			</div>
 		{/await}
