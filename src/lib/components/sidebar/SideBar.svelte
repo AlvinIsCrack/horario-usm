@@ -70,7 +70,7 @@
 			{/if}
 
 			<div class="flex-1 overflow-x-hidden overflow-y-auto p-4">
-				{#if !Calendario.ramos.length}
+				{#if Config.sede && !Calendario.visible}
 					<div
 						class="my-auto flex h-full flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
 						in:fade={{ duration: 200 }}
@@ -96,6 +96,22 @@
 						>
 							Crear horario
 						</Button>
+						<Button
+							class="w-full"
+							variant="outlined"
+							onclick={() =>
+								SidebarState.open(
+									SavedHorariosWindow,
+									{},
+									{
+										title: 'Horarios guardados',
+										description: 'Guardados localmente'
+									}
+								)}
+							startDecorator={Horario}
+						>
+							Horarios guardados
+						</Button>
 					</div>
 				{/if}
 
@@ -116,21 +132,6 @@
 						<p class="text-opacity-60 mb-1 text-xs font-semibold tracking-wider uppercase">
 							Otras Herramientas
 						</p>
-						<SidebarButton
-							text="Horarios guardados"
-							onclick={() => {
-								SidebarState.open(
-									SavedHorariosWindow,
-									{},
-									{
-										title: 'Horarios guardados',
-										description: 'Guardados localmente'
-									}
-								);
-							}}
-							Icon={Horario}
-							variant="secondary"
-						/>
 						<SidebarButton
 							text="Malla Interactiva"
 							onclick={() => goto(`${base}/malla`)}
