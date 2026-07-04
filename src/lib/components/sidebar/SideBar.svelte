@@ -79,9 +79,9 @@
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-2 bg-black/5 p-4 dark:bg-white/5">
+			<div class="flex flex-col gap-2 border-t bg-black/5 dark:bg-white/5">
 				{#if Config.sede && !Calendario.visible}
-					<div class="flex flex-col gap-2">
+					<div class="flex flex-col gap-2 p-4">
 						<p class="text-opacity-60 mb-1 text-xs font-semibold tracking-wider uppercase">
 							Otras Herramientas
 						</p>
@@ -113,11 +113,10 @@
 							variant="secondary"
 						/>
 					</div>
-					<Separator class="my-2" />
 				{/if}
 
 				{#if Calendario.inicializado}
-					<div class="flex w-full flex-row items-center justify-between">
+					<div class="bg-primary/60 flex w-full flex-row items-center justify-between border-t p-4">
 						<div></div>
 						<div class="flex gap-1">
 							<Tooltip content="Ajustes">
