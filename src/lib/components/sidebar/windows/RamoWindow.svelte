@@ -60,12 +60,11 @@
 
 				{#if !selectedRamo}
 					<div
-						class="bg-muted/30 border-muted text-muted-foreground rounded border p-3 text-xs leading-relaxed"
+						class="text-muted-foreground text-xs leading-relaxed"
 						transition:slide={{ duration: 150, axis: 'y' }}
 					>
-						<p class="text-foreground mb-1 font-semibold">¿Cómo empezar?</p>
-						Busca un ramo por su nombre o sigla (ej. MAT023, FIS120). Una vez seleccionado, su información
-						y sus paralelos disponibles aparecerán aquí.
+						Busca un ramo por su nombre o sigla (ej. MAT023, FIS120). Una vez seleccionado, su
+						información y sus paralelos disponibles aparecerán aquí.
 					</div>
 				{/if}
 
