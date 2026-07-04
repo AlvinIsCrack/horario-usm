@@ -79,12 +79,17 @@
 
 	{#if selectedRamo && paraleloOptions.length}
 		<Separator />
-		<div>
-			Elige el paralelo
-			<p class="text-xs opacity-50">
-				Haz click en un paralelo para previsualizarlo en tu horario. Pulsa de nuevo para detener la
-				previsualización.
-			</p>
+		<div class="flex flex-col gap-1">
+			<p class="text-muted-foreground text-xs font-bold uppercase">Elegir paralelo</p>
+			{#if !Calendario.ramoPreview && !Calendario.ramos.length}
+				<div
+					class="text-muted-foreground text-xs leading-relaxed"
+					transition:slide={{ duration: 150, axis: 'y' }}
+				>
+					Haz click en un paralelo para previsualizarlo en tu horario. Pulsa de nuevo para detener
+					la previsualización.
+				</div>
+			{/if}
 		</div>
 		<div class="flex w-full shrink flex-col gap-2 overflow-y-auto">
 			{#each paraleloOptions as paraleloOption (paraleloOption.value)}
