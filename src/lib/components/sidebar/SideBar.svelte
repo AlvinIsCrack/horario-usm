@@ -148,19 +148,25 @@
 				{/if}
 
 				{#if Calendario.inicializado}
-					<div class="bg-primary/60 flex w-full flex-row items-center justify-between border-t p-4">
+					<div class="bg-primary/20 flex w-full flex-row items-center justify-between border-t p-4">
 						<div></div>
-						<div class="flex gap-1">
-							<Tooltip content="Ajustes">
-								<Button size="icon" variant="ghost" onclick={SettingsDialogState.open}>
-									<MaterialSymbolsSettings class="size-5" />
-								</Button>
-							</Tooltip>
-							<Tooltip content="Contacto">
-								<Button size="icon" variant="ghost" onclick={ContactState.open}>
-									<MaterialSymbolsFeedback class="size-5" />
-								</Button>
-							</Tooltip>
+						<div class="flex w-full gap-1 *:flex-1">
+							<Button
+								variant="outlined"
+								size="sm"
+								onclick={SettingsDialogState.open}
+								startDecorator={MaterialSymbolsSettings}
+							>
+								Ajustes
+							</Button>
+							<Button
+								variant="outlined"
+								size="sm"
+								onclick={ContactState.open}
+								startDecorator={MaterialSymbolsFeedback}
+							>
+								Contacto
+							</Button>
 						</div>
 					</div>
 				{/if}

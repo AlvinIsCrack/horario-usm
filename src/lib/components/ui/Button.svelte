@@ -15,7 +15,7 @@
 			},
 			size: {
 				icon: 'p-2 w-min h-auto aspect-square',
-				sm: 'px-0.5 py-1',
+				sm: 'px-2 py-1',
 				default: 'px-4 py-1.5'
 			}
 		}
