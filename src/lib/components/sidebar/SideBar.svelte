@@ -45,10 +45,10 @@
 			{SidebarState.isOpen ? 'pointer-events-none opacity-0' : 'opacity-100 delay-100'}"
 			aria-hidden={SidebarState.isOpen}
 		>
-			{#if Config.sede}
+			{#if Config.sede && Calendario.ramos.length}
 				<div class="flex flex-row gap-2 p-4 pb-2" in:fly={{ y: -20 }}>
 					<SidebarButton
-						text={Calendario.ramos.length ? 'Añadir ramo' : 'Crear horario'}
+						text="Añadir ramo"
 						onclick={() => {
 							SidebarState.open(
 								RamoWindow,
@@ -70,6 +70,35 @@
 			{/if}
 
 			<div class="flex-1 overflow-x-hidden overflow-y-auto p-4">
+				{#if !Calendario.ramos.length}
+					<div
+						class="my-auto flex h-full flex-1 flex-col items-center justify-center gap-2 p-4 text-center"
+						in:fade={{ duration: 200 }}
+					>
+						<div class="bg-primary/10 text-primary border-primary/60! rounded-full border p-2">
+							<Add class="size-8" />
+						</div>
+						<div class="space-y-1">
+							<h3 class="text-base font-semibold">¿List@ para armar tu semestre?</h3>
+							<p class="text-muted-foreground max-w-60 text-xs leading-normal">
+								Crea tu horario ideal buscando ramos y explorando los paralelos/profesores
+								disponibles.
+							</p>
+						</div>
+						<Button
+							class="mt-2 w-full"
+							onclick={() =>
+								SidebarState.open(RamoWindow, {
+									title: 'Añadir ramo',
+									description: 'Planificar tu horario',
+									Icon: Add
+								})}
+						>
+							Crear horario
+						</Button>
+					</div>
+				{/if}
+
 				<div class="flex flex-col gap-4">
 					{#if Calendario.visible}
 						<div class="flex flex-col gap-1">
