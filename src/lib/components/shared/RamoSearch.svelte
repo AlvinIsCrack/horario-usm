@@ -231,7 +231,7 @@
 		/>
 		<input
 			bind:this={_this}
-			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded border-2 bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
+			class="border-input! hover:border-foreground! focus-within:border-foreground! placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded border-2 bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
 			bind:value={query}
 			{placeholder}
 			{disabled}
