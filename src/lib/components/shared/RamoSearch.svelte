@@ -286,10 +286,7 @@
 							onItemClicked(sigla);
 						}}
 					>
-						<span
-							class="font-mono text-base font-black tracking-wide drop-shadow-sm/50"
-							title={sigla}
-						>
+						<span class="font-mono text-base tracking-wider drop-shadow-sm/50" title={sigla}>
 							{sigla}
 						</span>
 
@@ -297,17 +294,17 @@
 							{ramo.nombre}
 						</span>
 
-						<span class="truncate text-center text-xs font-semibold tracking-wider uppercase">
+						<span class="truncate text-xs font-medium tracking-wider uppercase">
 							{@html (ramo.tipoCurricular ?? '').replace(
 								/AMBOS|PAR|IMPAR|ELECTIVO/gi,
 								(m: string) =>
 									({
-										AMBOS: '<span class="text-emerald-500">AMBOS</span>',
-										PAR: '<span class="text-amber-500">PAR</span>',
-										IMPAR: '<span class="text-sky-400">IMPAR</span>',
-										ELECTIVO: '<span class="text-rose-400">ELECTIVO</span>'
+										AMBOS: 'AMBOS',
+										PAR: 'PAR',
+										IMPAR: 'IMPAR',
+										ELECTIVO: 'ELECTIVO'
 									})[m] ?? ''
-							)}
+							) || '&mdash;'}
 						</span>
 
 						<span
@@ -319,10 +316,12 @@
 
 						<span
 							class="text-right font-mono tracking-tight tabular-nums"
-							class:opacity-50={ramo.creditos === 0}
-							class:text-sky-400={ramo.creditos! > 0 && ramo.creditos! < 5}
-							class:text-yellow-400={ramo.creditos! >= 5 && ramo.creditos! < 7}
-							class:text-red-400={ramo.creditos! >= 7}
+							class:opacity-40={ramo.creditos === 0}
+							class:opacity-60={ramo.creditos! > 0 && ramo.creditos! < 5}
+							class:opacity-80={ramo.creditos! >= 5 && ramo.creditos! < 7}
+							class:font-bold={ramo.creditos! >= 7}
+							class:text-sky-300={ramo.creditos! < 7}
+							class:text-sky-400={ramo.creditos! >= 7}
 						>
 							{#if ramo.creditos === null || ramo.creditos === undefined}
 								&mdash;
@@ -336,7 +335,7 @@
 				</li>
 			{/snippet}
 
-			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b px-2.5 py-1">
+			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 text-sm">
 				<p>
 					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
@@ -379,11 +378,11 @@
 				{/if}
 
 				<div
-					class="text-muted-foreground/60 -mx-2.5 mt-2 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 pt-2 text-xs"
+					class="text-muted-foreground -mx-3 -mb-1 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 pt-2 text-xs"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
-					<span class="text-center">Tipo</span>
+					<span>Tipo</span>
 					<span>Departamento</span>
 					<span class="text-right">Créditos</span>
 				</div>
