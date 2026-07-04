@@ -42,7 +42,7 @@
 	let {
 		this: _this = $bindable(),
 		value = $bindable(),
-		placeholder = 'Buscar ramo...',
+		placeholder = 'Buscar ramo por sigla, nombre...',
 		disabled = false,
 		class: _class,
 		...props
@@ -227,11 +227,11 @@
 >
 	<div class="relative">
 		<Search
-			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
+			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2"
 		/>
 		<input
 			bind:this={_this}
-			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
+			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded border-2 bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
 			bind:value={query}
 			{placeholder}
 			{disabled}
