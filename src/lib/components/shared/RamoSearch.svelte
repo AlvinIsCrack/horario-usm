@@ -15,13 +15,15 @@
 	import { Config } from '$lib/core/config/store.svelte';
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
+	import Badge from '../ui/Badge.svelte';
+	import { cn } from '$lib/utils';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
 	});
 
 	const itemStyle = tv({
-		base: 'relative w-full text-left py-2 px-4 transition-all duration-150 border-b group-even:bg-black/40 overflow-hidden hover:cursor-pointer',
+		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer',
 		variants: {
 			active: {
 				true: 'bg-primary/20! brightness-125'
@@ -286,7 +288,7 @@
 							onItemClicked(sigla);
 						}}
 					>
-						<span class="font-mono text-base tracking-wider drop-shadow-sm/50" title={sigla}>
+						<span class="font-mono text-base tracking-wider tabular-nums" title={sigla}>
 							{sigla}
 						</span>
 
@@ -294,18 +296,41 @@
 							{ramo.nombre}
 						</span>
 
-						<span class="truncate text-xs font-medium tracking-wider uppercase">
-							{@html (ramo.tipoCurricular ?? '').replace(
-								/AMBOS|PAR|IMPAR|ELECTIVO/gi,
-								(m: string) =>
-									({
-										AMBOS: 'AMBOS',
-										PAR: 'PAR',
-										IMPAR: 'IMPAR',
-										ELECTIVO: 'ELECTIVO'
-									})[m] ?? ''
-							) || '&mdash;'}
-						</span>
+						{#if ramo.tipoCurricular}
+							{@const isImpar = ramo.tipoCurricular === 'IMPAR' || ramo.tipoCurricular === 'AMBOS'}
+							{@const isPar = ramo.tipoCurricular === 'PAR' || ramo.tipoCurricular === 'AMBOS'}
+							{@const isElectivo = ramo.tipoCurricular === 'ELECTIVO'}
+
+							{@const tooltipText = isElectivo
+								? 'Ramo Electivo'
+								: `Disponible en ${isImpar ? 'semestres impares' : ''}${isImpar && isPar ? ' y ' : ''}${isPar ? 'semestres pares' : ''}`}
+
+							{@const segmentBase = cn(
+								'h-4 flex-1 rounded-full border transition-colors text-center text-[11px] text-primary-foreground/60'
+							)}
+
+							<span>
+								<Tooltip content={tooltipText} wrapperClass="w-full">
+									<Badge
+										class="flex w-full items-center justify-center gap-0.5 truncate px-0.5! font-normal!"
+										variant={isElectivo ? 'outline' : 'default'}
+									>
+										{#if isElectivo}
+											<span class="text-center">ELECTIVO</span>
+										{:else}
+											<div class="{segmentBase} {isImpar ? 'bg-primary' : ''} rounded-r-none!">
+												PAR
+											</div>
+											<div class="{segmentBase} {isPar ? 'bg-primary' : ''} rounded-l-none!">
+												IMPAR
+											</div>
+										{/if}
+									</Badge>
+								</Tooltip>
+							</span>
+						{:else}
+							<span class="text-center"> &mdash; </span>
+						{/if}
 
 						<span
 							class="text-muted-foreground/70 truncate text-left text-xs"
@@ -321,7 +346,7 @@
 							class:opacity-80={ramo.creditos! >= 5 && ramo.creditos! < 7}
 							class:font-bold={ramo.creditos! >= 7}
 							class:text-sky-300={ramo.creditos! < 7}
-							class:text-sky-400={ramo.creditos! >= 7}
+							class:text-primary={ramo.creditos! >= 7}
 						>
 							{#if ramo.creditos === null || ramo.creditos === undefined}
 								&mdash;
@@ -382,7 +407,7 @@
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
-					<span>Tipo</span>
+					<span class="text-center">Tipo</span>
 					<span>Departamento</span>
 					<span class="text-right">Créditos</span>
 				</div>
