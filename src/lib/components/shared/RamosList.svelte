@@ -52,14 +52,8 @@
 	{#if !Calendario.ramos.length}
 		<p class="opacity-50">No hay ramos registrados.</p>
 	{:else}
-		<div class="flex w-full flex-row items-center justify-between gap-2 text-sm">
-			<div class="-mt-1">
-				<h1 class="text-sm font-normal">Ramos registrados</h1>
-				<p class="text-xs opacity-50">
-					{Calendario.ramos.filter((r) => r.creditos ?? 0).length} ramos
-				</p>
-			</div>
-
+		<div class="-mb-1 flex w-full flex-row items-center justify-between gap-2 text-sm">
+			<h1 class="text-sm font-normal">Ramos registrados</h1>
 			{#if totalSCT}
 				<Tooltip
 					wrapperClass="starting:opacity-0 opacity-100 duration-400"
