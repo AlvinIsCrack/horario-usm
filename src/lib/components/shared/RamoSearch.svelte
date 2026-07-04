@@ -15,7 +15,6 @@
 	import { Config } from '$lib/core/config/store.svelte';
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
-	import Badge from '../ui/Badge.svelte';
 	import { cn } from '$lib/utils';
 
 	const listStyle = tv({
@@ -306,26 +305,19 @@
 								: `Disponible en ${isImpar ? 'semestres impares' : ''}${isImpar && isPar ? ' y ' : ''}${isPar ? 'semestres pares' : ''}`}
 
 							{@const segmentBase = cn(
-								'h-4 flex-1 rounded-full border transition-colors text-center text-[11px] text-primary-foreground/60'
+								'h-3 w-3 min-h-3 min-w-3 aspect-square rounded-full border transition-colors text-center text-[11px] text-primary-foreground/60'
 							)}
 
 							<span>
 								<Tooltip content={tooltipText} wrapperClass="w-full">
-									<Badge
-										class="flex w-full items-center justify-center gap-0.5 truncate px-0.5! font-normal!"
-										variant={isElectivo ? 'outline' : 'default'}
-									>
+									<span class="flex w-full flex-row items-center justify-center gap-1">
 										{#if isElectivo}
-											<span class="text-center">ELECTIVO</span>
+											<span class="scale-110 text-center font-mono text-base font-light"> # </span>
 										{:else}
-											<div class="{segmentBase} {isImpar ? 'bg-primary' : ''} rounded-r-none!">
-												PAR
-											</div>
-											<div class="{segmentBase} {isPar ? 'bg-primary' : ''} rounded-l-none!">
-												IMPAR
-											</div>
+											<div class="{segmentBase} {isImpar ? 'bg-primary' : ''}"></div>
+											<div class="{segmentBase} {isPar ? 'bg-primary/80 -hue-rotate-5' : ''}"></div>
 										{/if}
-									</Badge>
+									</span>
 								</Tooltip>
 							</span>
 						{:else}
@@ -360,7 +352,7 @@
 				</li>
 			{/snippet}
 
-			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 text-sm">
+			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 pb-0 text-sm">
 				<p>
 					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
@@ -403,7 +395,7 @@
 				{/if}
 
 				<div
-					class="text-muted-foreground -mx-3 -mb-1 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 pt-2 text-xs"
+					class="text-primary-foreground/60 bg-primary/60 -mx-3 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 py-2 text-xs"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
