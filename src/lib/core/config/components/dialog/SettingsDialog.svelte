@@ -28,17 +28,14 @@
 		return () => clearTimeout(timeout);
 	});
 
-	/**
-	 * Validates if the configuration requirements are met before allowing closure.
-	 */
-	function handleCloseAttempt() {
-		if (Config.sede && Config.semestre) {
-			isOpen = false;
-		}
+	let isConfigComplete = $derived(!!Config.sede && !!Config.semestre);
+
+	function forceClose() {
+		isOpen = false;
 	}
 </script>
 
-<DialogComponent bind:open={isOpen} onclose={handleCloseAttempt} class="gap-0 p-0 sm:max-w-md">
+<DialogComponent bind:open={isOpen} closable={isConfigComplete} class="gap-0 p-0 sm:max-w-md">
 	<div class="bg-card border-b p-5 pb-4">
 		<h2 class="text-xl leading-none font-black tracking-tight">Ajustes</h2>
 		<p class="text-muted-foreground mt-2 text-xs leading-relaxed">
