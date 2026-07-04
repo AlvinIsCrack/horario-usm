@@ -248,14 +248,14 @@
 	<Floating
 		trigger={containerEl}
 		visible={isFocused}
-		position="bottom"
-		anchor="start"
-		offset={0}
+		position="right"
+		anchor="end"
+		offset={4}
 		class="z-50"
 	>
 		<ul
 			transition:fade={{ duration: 200 }}
-			class="{listStyle()} h-auto max-h-(--max-h)! min-w-3xl overflow-y-auto"
+			class="{listStyle()} h-auto max-h-(--max-h)! min-w-3xl -translate-y-12 overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-ramo-search"
