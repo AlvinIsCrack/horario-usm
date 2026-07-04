@@ -25,7 +25,7 @@
 		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer',
 		variants: {
 			active: {
-				true: 'bg-primary/20! brightness-125'
+				true: 'bg-primary/20!'
 			},
 			tipo: {
 				AMBOS: 'to-green-500/40',
