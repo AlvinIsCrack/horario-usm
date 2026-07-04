@@ -48,7 +48,7 @@
 			{#if Config.sede}
 				<div class="flex flex-row gap-2 p-4 pb-2" in:fly={{ y: -20 }}>
 					<SidebarButton
-						text="Añadir ramo"
+						text={Calendario.ramos.length ? 'Añadir ramo' : 'Crear horario'}
 						onclick={() => {
 							SidebarState.open(
 								RamoWindow,
@@ -62,7 +62,9 @@
 						Icon={Add}
 						class="justify-center!"
 					/>
-					<SidebarActionsMenu />
+					{#if Calendario.ramos.length}
+						<SidebarActionsMenu />
+					{/if}
 				</div>
 				<Separator class="mx-4 w-auto" />
 			{/if}

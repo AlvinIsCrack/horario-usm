@@ -119,6 +119,6 @@
 			Calendario.addRamo({ ...Calendario.ramoPreview });
 			await tick();
 			SidebarState.close();
-		}}>{inHorario ? 'Reemplazar' : 'Añadir'} ramo</Button
+		}}>{inHorario ? 'Reemplazar' : 'Confirmar'} ramo</Button
 	>
 </div>
