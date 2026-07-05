@@ -9,6 +9,7 @@
 	import { SettingsDialogState } from '$lib/core/config/components/dialog/SettingsDialog.svelte';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import MaterialSymbolsRefresh from '$lib/icons/MaterialSymbolsRefresh.svelte';
+	import Button from '../ui/Button.svelte';
 
 	let visible = $state(false);
 	let showChanges = $state(false);
@@ -113,11 +114,11 @@
 								? `Semestre ${semestreMasReciente} disponible`
 								: 'Cambiar configuración'}
 						>
-							<button
-								class="justify-items bg-primary hover:border-primary-foreground! focus:ring-primary/50 text-primary-foreground relative flex cursor-pointer flex-row items-center gap-1 rounded border px-3 py-0.5 pl-2 font-mono text-sm font-semibold transition-colors focus:ring-2 focus:outline-none"
+							<Button
 								onclick={() => SettingsDialogState.open()}
+								size="sm"
+								startDecorator={MaterialSymbolsRefresh}
 							>
-								<MaterialSymbolsRefresh class="inline size-4 scale-110" />
 								{Config.semestre}
 
 								{#if hayNuevoSemestre}
@@ -128,7 +129,7 @@
 										<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
 									</span>
 								{/if}
-							</button>
+							</Button>
 						</Tooltip>
 						para <span class="font-medium">{Config.sede}</span>, jornada
 						<span class="font-medium">{Config.jornada}</span>.
