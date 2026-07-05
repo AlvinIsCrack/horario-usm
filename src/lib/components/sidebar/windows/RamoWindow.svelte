@@ -56,7 +56,13 @@
 	{#if !edit}
 		{#await import('../../shared/RamoSearch.svelte') then { default: RamoSearch }}
 			<div class="mt-1 flex flex-col gap-1">
-				<p class="text-muted-foreground text-xs font-bold uppercase">Añadir Ramo</p>
+				<div class="mb-1 flex items-center gap-2">
+					<span
+						class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+						>1</span
+					>
+					<p class="text-muted-foreground text-xs font-bold uppercase">Añadir Ramo</p>
+				</div>
 
 				{#if !selectedRamo}
 					<div
@@ -80,7 +86,14 @@
 	{#if selectedRamo && paraleloOptions.length}
 		<Separator />
 		<div class="flex flex-col gap-1">
-			<p class="text-muted-foreground text-xs font-bold uppercase">Elegir paralelo</p>
+			<div class="mb-1 flex items-center gap-2">
+				<span
+					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+					>2</span
+				>
+				<p class="text-muted-foreground text-xs font-bold uppercase">Elegir paralelo</p>
+			</div>
+
 			{#if !Calendario.ramoPreview && !Calendario.ramos.length}
 				<div
 					class="text-muted-foreground text-xs leading-relaxed"
@@ -114,15 +127,40 @@
 		</div>
 	{/if}
 
-	<Button
-		class="relative bottom-0 mt-auto"
-		disabled={!selectedRamo || !selectedParalelo}
-		variant={inHorario ? 'destructive' : 'primary'}
-		onclick={async () => {
-			if (!Calendario.ramoPreview) return;
-			Calendario.addRamo({ ...Calendario.ramoPreview });
-			await tick();
-			SidebarState.close();
-		}}>{inHorario ? 'Reemplazar' : 'Confirmar'} ramo</Button
-	>
+	{#if Calendario.ramoPreview}
+		<Separator class="mt-auto" />
+		<div class="flex flex-col gap-1">
+			<div class="mb-1 flex items-center gap-2">
+				<span
+					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+					>3</span
+				>
+				<p class="text-muted-foreground text-xs font-bold uppercase">
+					{inHorario ? 'Reemplazar' : 'Confirmar'} ramo
+				</p>
+			</div>
+
+			{#if !Calendario.ramoPreview && !Calendario.ramos.length}
+				<div
+					class="text-muted-foreground text-xs leading-relaxed"
+					transition:slide={{ duration: 150, axis: 'y' }}
+				>
+					Haz click en un paralelo para previsualizarlo en tu horario. Pulsa de nuevo para detener
+					la previsualización.
+				</div>
+			{/if}
+		</div>
+		<Button
+			disabled={!selectedRamo || !selectedParalelo}
+			variant={inHorario ? 'destructive' : 'primary'}
+			onclick={async () => {
+				if (!Calendario.ramoPreview) return;
+				Calendario.addRamo({ ...Calendario.ramoPreview });
+				await tick();
+				SidebarState.close();
+			}}
+		>
+			{inHorario ? 'Reemplazar' : 'Confirmar'} ramo
+		</Button>
+	{/if}
 </div>
