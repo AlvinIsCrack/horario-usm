@@ -25,7 +25,6 @@
 	 * UI styling and tooltip messaging derived from the total credit load thresholds.
 	 */
 	const sctStatus = $derived.by(() => {
-		// ... (Keep existing sctStatus logic exactly as is)
 		if (totalSCT === 0) return { color: '', tooltip: 'Créditos totales (SCT)' };
 		if (totalSCT < 17)
 			return {

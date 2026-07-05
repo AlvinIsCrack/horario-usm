@@ -1,3 +1,8 @@
+<script module>
+	// Current query filter mode applied to search operations
+	let filterMode = $state<'none' | 'malla' | 'available'>('none');
+</script>
+
 <script lang="ts">
 	import { Data } from '$lib/data/data.svelte';
 	import { tv } from 'tailwind-variants';
@@ -15,7 +20,6 @@
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
-	import Warning from '$lib/icons/warning.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -65,9 +69,6 @@
 
 	// --- Lógica de Malla Interactiva ---
 	const mallaState = new MallaState();
-
-	// Estado del filtro: 'none' | 'malla' | 'available'
-	let filterMode = $state<'none' | 'malla' | 'available'>('none');
 
 	// Opciones del Select con redacción formal
 	const filterOptions = [
