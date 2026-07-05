@@ -20,6 +20,7 @@
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
+	import SemesterAvailability from './SemesterAvailability.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -321,29 +322,8 @@
 						</span>
 
 						{#if ramo.tipoCurricular}
-							{@const isImpar = ramo.tipoCurricular === 'IMPAR' || ramo.tipoCurricular === 'AMBOS'}
-							{@const isPar = ramo.tipoCurricular === 'PAR' || ramo.tipoCurricular === 'AMBOS'}
-							{@const isElectivo = ramo.tipoCurricular === 'ELECTIVO'}
-
-							{@const tooltipText = isElectivo
-								? 'Ramo Electivo'
-								: `Disponible en ${isImpar ? 'semestres impares' : ''}${isImpar && isPar ? ' y ' : ''}${isPar ? 'semestres pares' : ''}`}
-
-							{@const segmentBase = cn(
-								'h-3 w-3 min-h-3 min-w-3 aspect-square rounded-full border transition-colors text-center text-[11px] text-primary-foreground/60'
-							)}
-
 							<span>
-								<Tooltip content={tooltipText} wrapperClass="w-full">
-									<span class="flex w-full flex-row items-center justify-center gap-1">
-										{#if isElectivo}
-											<span class="scale-110 text-center font-mono text-base font-light"> # </span>
-										{:else}
-											<div class="{segmentBase} {isImpar ? 'bg-primary' : ''}"></div>
-											<div class="{segmentBase} {isPar ? 'bg-primary/80 -hue-rotate-5' : ''}"></div>
-										{/if}
-									</span>
-								</Tooltip>
+								<SemesterAvailability curricularType={ramo.tipoCurricular} />
 							</span>
 						{:else}
 							<span class="text-center"> &mdash; </span>

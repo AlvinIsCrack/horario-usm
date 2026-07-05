@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Badge from '$lib/components/ui/Badge.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
@@ -9,9 +8,17 @@
 	import Ticket from '$lib/icons/ticket.svelte';
 	import { Config } from '$lib/core/config/store.svelte';
 	import { generateColorForRamo } from '$lib/core/ramos/colors';
+	import SemesterAvailability from './SemesterAvailability.svelte';
 
+	/**
+	 * @param sigla - Unique academic code identifying the course target (e.g., "INF-123").
+	 */
 	let { sigla }: { sigla: string } = $props();
+
+	// Resolves target course definitions from local execution cache.
 	const ramo = $derived(Object.values(Data.cachedRamos[sigla]).at(0));
+
+	// Resolves regional branch scheduling and curriculum programs based on current runtime configuration state.
 	const [carrera, programa] = $derived.by(() => {
 		if (!ramo) return [null, null];
 		return [
@@ -29,55 +36,65 @@
 			.saturate(0.6)
 			.darken(0.4)
 			.hex()}55);"
-		class="text-foreground gap-2 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
+		class="text-foreground flex flex-col justify-between gap-4 p-4 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
 	>
-		<div class="mb-2 flex flex-row flex-wrap gap-1">
+		<div class="flex flex-col">
+			<div class="flex flex-row flex-wrap items-center justify-between gap-2">
+				<span class="font-mono text-sm tracking-wider" style:color={color?.lighten(0.5).hex()}
+					>{ramo.sigla}</span
+				>
+				<div class="flex flex-row flex-wrap gap-1">
+					{#if programa}
+						<SemesterAvailability size="lg" curricularType={programa.tipo} />
+					{/if}
+				</div>
+			</div>
+
+			<div class="space-y-1">
+				<h3 class="text-base leading-tight font-bold tracking-tight">{ramo.nombre}</h3>
+
+				<div class="space-y-1 text-xs opacity-80">
+					<p class="truncate" title={ramo.departamento}>
+						DEPTO DE <span class="font-semibold">{ramo.departamento}</span>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div
+			class="bg-muted/30 border-border/40 -mx-4 flex w-auto border-y py-2.5 text-sm font-medium *:flex-1"
+		>
 			<Tooltip content="Cantidad de alumnos máximos por paralelo">
-				<Badge icon={Ticket}>{ramo.cupo} CUPOS</Badge>
+				<div
+					class="text-foreground hover:text-foreground border-border/40 flex w-full items-center justify-center gap-2 border-r transition-colors"
+				>
+					<Ticket class="text-muted-foreground size-4 stroke-[1.75]" />
+					<span>{ramo.cupo} <span class="text-muted-foreground font-normal">cupos</span></span>
+				</div>
 			</Tooltip>
 			{#if ramo.creditos}
-				<Tooltip content="Créditos SCT del ramo">
-					<Badge icon={Circles}>{ramo.creditos} SCT</Badge>
-				</Tooltip>
+				<div
+					class="text-foreground hover:text-foreground flex w-full items-center justify-center gap-2 transition-colors"
+				>
+					<Circles class="text-muted-foreground size-4 stroke-[1.75]" />
+					<span>{ramo.creditos} <span class="text-muted-foreground font-normal">SCT</span></span>
+				</div>
 			{/if}
 		</div>
 
-		<p class="-mb-3 w-full font-bold">{ramo.sigla}</p>
-		<p class="text-sm">{ramo.nombre}</p>
-
 		{#if programa}
-			<p class="-mb-3 w-full">
-				RAMO <Tooltip
-					content={{
-						AMBOS: 'Este ramo se dicta tanto en semestres pares como impares.',
-						PAR: 'Este ramo se dicta solo en semestres pares.',
-						IMPAR: 'Este ramo se dicta solo en semestres impares.',
-						ELECTIVO: 'Este ramo corresponde a un electivo de la malla curricular.'
-					}[programa.tipo as string]}
+			<div class="flex justify-end">
+				<Button
+					size="sm"
+					variant="secondary"
+					class="h-8 w-full gap-1.5 text-xs sm:w-auto"
+					onclick={() => {
+						window.open(programa.programa, '_blank');
+					}}
 				>
-					<span class="text-primary opacity-100 mix-blend-overlay text-shadow-xs/50!">
-						{programa.tipo.replace('AMBOS', 'PAR E IMPAR')}
-					</span>
-				</Tooltip> DEL
-			</p>
-		{/if}
-		<p class="leading-4 opacity-50">DEPTO. DE {ramo.departamento}</p>
-
-		<!-- {#if carrera}
-			<div class="flex flex-col py-2">
-				{#each Object.entries(carrera.horas) as [hora, valor] (hora)}
-					<p>Horas {hora}: {valor} HRS</p>
-				{/each}
+					<Clip class="inline h-3.5 w-3.5" /> Ver programa
+				</Button>
 			</div>
-		{/if} -->
-		{#if programa}
-			<Button
-				size="sm"
-				variant="secondary"
-				onclick={() => {
-					window.open(programa.programa, '_blank');
-				}}><Clip class="inline" /> Ver programa</Button
-			>
 		{/if}
 	</Card>
 {/if}
