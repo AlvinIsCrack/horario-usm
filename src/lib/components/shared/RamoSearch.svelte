@@ -399,7 +399,7 @@
 			{/snippet}
 
 			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 pb-0 text-sm">
-				<p class="pb-2">
+				<p>
 					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
 				</p>
@@ -428,7 +428,7 @@
 				{#if isMallaCompatible}
 					<button
 						transition:slide={{ axis: 'y' }}
-						class="w-full pb-2"
+						class="w-full"
 						onmousedown={(e) => e.preventDefault()}
 					>
 						<Select
@@ -439,6 +439,8 @@
 						/>
 					</button>
 				{/if}
+
+				<div class="w-full pb-2"></div>
 
 				<div
 					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-2 text-xs"
