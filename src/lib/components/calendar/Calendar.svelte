@@ -9,6 +9,7 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { Días } from '$lib/core/ramos/types';
+	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 
 	const [bloqueBegin, bloqueEnd] = $derived(Calendario.bloqueRange);
 	const [díaBegin, díaEnd] = $derived(Calendario.range);
@@ -21,12 +22,15 @@
 </script>
 
 <div transition:fade class="relative h-full w-full">
-	{#if !Calendario.visible}
-		{#await import('../shared/Title.svelte') then { default: Title }}
-			<div class="absolute flex h-full w-full items-center justify-center">
+	{#if !Calendario.visible && !SidebarState.activeWindow}
+		<div
+			transition:fade={{ duration: 200 }}
+			class="absolute flex h-full w-full items-center justify-center"
+		>
+			{#await import('../shared/Title.svelte') then { default: Title }}
 				<Title />
-			</div>
-		{/await}
+			{/await}
+		</div>
 	{:else}
 		<div
 			id="calendar-main"
