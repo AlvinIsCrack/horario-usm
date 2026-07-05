@@ -176,9 +176,9 @@
 
 		{#if lockedLocation}
 			<div
-				class="flex items-center gap-1.5 rounded bg-amber-500/10 p-2 text-xs font-medium text-amber-600 dark:text-amber-400"
+				class="flex items-center gap-2 rounded border border-amber-400/60! bg-amber-600/20 p-2 text-xs font-medium text-amber-600 dark:text-amber-400"
 			>
-				<Lock class="inline shrink-0" />
+				<Lock class="inline size-4 shrink-0" />
 				<span
 					>No es posible modificar la ubicación actual porque ya posees asignaturas inscritas en tu
 					horario.</span
