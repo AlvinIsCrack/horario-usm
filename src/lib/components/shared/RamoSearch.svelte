@@ -8,7 +8,6 @@
 	const { debounce } = pkg;
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
-
 	import { MallaState } from '$lib/core/malla/malla.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { tick, untrack } from 'svelte';
@@ -16,7 +15,7 @@
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
-	import { Ramos } from '$lib/core/ramos/store.svelte';
+	import Warning from '$lib/icons/warning.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -40,7 +39,7 @@
 		}
 	});
 
-	const GRID_CLASSES = 'grid grid-cols-[100px_3fr_60px_100px_1fr_20px]';
+	const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
 
 	let {
 		this: _this = $bindable(),
@@ -296,12 +295,19 @@
 							onItemClicked(sigla);
 						}}
 					>
-						<span class="font-mono text-base tracking-wider tabular-nums" title={sigla}>
+						<span class="font-mono text-base font-normal tracking-wider tabular-nums" title={sigla}>
 							{sigla}
 						</span>
 
 						<span class="text-muted-foreground truncate text-left font-medium" title={ramo.nombre}>
 							{ramo.nombre}
+						</span>
+
+						<span
+							class="text-muted-foreground/70 truncate text-left text-xs"
+							title="DEPTO. DE {ramo.departamento}"
+						>
+							{ramo.departamento ?? 'N/A'}
 						</span>
 
 						{#if ramo.tipoCurricular}
@@ -333,58 +339,29 @@
 							<span class="text-center"> &mdash; </span>
 						{/if}
 
-						<span
-							class="flex flex-row flex-wrap items-center justify-center gap-1 text-center *:w-full"
-						>
+						<span class="text-right font-medium *:w-full">
 							{#if paralelos.length}
-								{@const numbers = paralelos.map((p) => Number(p.paralelo))}
-								{@const isAllNumeric = numbers.every((n) => !isNaN(n))}
-								{@const sortedNumbers = isAllNumeric ? [...numbers].sort((a, b) => a - b) : []}
-								{@const isLinearSequence =
-									isAllNumeric && sortedNumbers.every((n, i) => n === sortedNumbers[0] + i)}
-
-								{#if isLinearSequence || paralelos.length <= 3}
-									<span
-										class={cn(
-											'text-muted-foreground rounded border px-1.5 py-0.5 font-mono text-xs font-bold',
-											paralelos.length > 1 ? 'bg-muted' : 'bg-card'
-										)}
-									>
-										{#if isLinearSequence}
-											{#if sortedNumbers[0] != sortedNumbers[sortedNumbers.length - 1]}
-												{sortedNumbers[0]}–{sortedNumbers[sortedNumbers.length - 1]} ({sortedNumbers.length})
-											{:else}
-												{sortedNumbers[0]}
-											{/if}
-										{:else}
-											{paralelos.map((p) => p.paralelo).join(',')}
-										{/if}
-									</span>
-								{:else}
-									<span class="text-muted-foreground/80 text-xs font-medium">
-										{paralelos.length} paralelos
-									</span>
-								{/if}
+								<div
+									class={cn([
+										'text-muted-foreground text-right font-mono tracking-tight tabular-nums',
+										paralelos.length >= 3 && 'text-foreground'
+									])}
+								>
+									{paralelos.length}
+								</div>
 							{:else}
-								<span class="text-center"> &mdash; </span>
+								&mdash;
 							{/if}
 						</span>
 
 						<span
-							class="text-muted-foreground/70 truncate text-left text-xs"
-							title="DEPTO. DE {ramo.departamento}"
-						>
-							{ramo.departamento ?? 'N/A'}
-						</span>
-
-						<span
-							class="text-right font-mono tracking-tight tabular-nums"
-							class:opacity-40={ramo.creditos === 0}
-							class:opacity-60={ramo.creditos! > 0 && ramo.creditos! < 5}
-							class:opacity-80={ramo.creditos! >= 5 && ramo.creditos! < 7}
-							class:font-bold={ramo.creditos! >= 7}
-							class:text-sky-300={ramo.creditos! < 7}
-							class:text-primary={ramo.creditos! >= 7}
+							class={cn([
+								'text-right font-mono font-medium tracking-tight tabular-nums',
+								ramo.creditos === 0 && 'text-muted-foreground',
+								ramo.creditos! > 0 && ramo.creditos! < 5 && 'text-muted-foreground',
+								ramo.creditos! >= 5 && ramo.creditos! < 7 && 'text-foreground',
+								ramo.creditos! >= 7 && 'font-black'
+							])}
 						>
 							{#if ramo.creditos === null || ramo.creditos === undefined}
 								&mdash;
@@ -443,13 +420,13 @@
 				<div class="w-full pb-2"></div>
 
 				<div
-					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-2 text-xs"
+					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-2 text-xs *:my-auto *:leading-tight"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
-					<span class="text-center">Tipo</span>
-					<span class="text-center">Paralelos</span>
 					<span>Departamento</span>
+					<span class="text-center">Tipo</span>
+					<span class="block justify-self-end text-right">Núm. Paralelos</span>
 					<span class="text-right">SCT</span>
 				</div>
 			</div>
