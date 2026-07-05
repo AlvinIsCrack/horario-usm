@@ -38,7 +38,7 @@
 <div class="{disabled ? 'pointer-events-none opacity-40 grayscale' : ''} flex w-full">
 	<Button
 		class={cn([
-			'relative flex w-full items-center gap-2 border px-2! py-1!',
+			'relative flex min-h-10! w-full items-center gap-2 border p-2!',
 			!selected
 				? 'bg-background! hover:bg-accent! hover:border-accent-foreground/20 active:bg-accent/80'
 				: 'bg-primary! text-primary-foreground ring-primary/20 hover:bg-primary/90! shadow-md ring-1',
