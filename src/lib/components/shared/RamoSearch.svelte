@@ -88,19 +88,28 @@
 		if (!isMallaCompatible) filterMode = 'none';
 	});
 
+	// Guard to prevent autofocus on initial component render
+	let isInitialMount = true;
+
 	$effect(() => {
-		// Dependencia: se ejecuta cuando cambia el modo de filtro
+		// Dependency: executes whenever the filter mode changes
 		const _ = [filterMode];
 
 		untrack(() => {
-			// Si cambió el filtro, asumimos interacción del usuario.
-			// Cancelamos el timeout de cierre (si el click en la opción robó el foco)
+			// Skip execution on the first render to prevent unwanted autofocus
+			if (isInitialMount) {
+				isInitialMount = false;
+				return;
+			}
+
+			// If the filter changed, we assume user interaction.
+			// Cancel the closure timeout (in case the option click stole the focus)
 			clearTimeout(blurTimeout);
 
-			// Aseguramos que el estado sea 'abierto'
+			// Ensure the dropdown state is set to 'open'
 			if (!isFocused) isFocused = true;
 
-			// Devolvemos el foco al input amablemente
+			// Politely return focus to the input element
 			tick().then(() => {
 				_this?.focus();
 			});
