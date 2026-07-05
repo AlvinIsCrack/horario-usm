@@ -84,8 +84,8 @@
 			<div class="z-10 flex flex-col items-center justify-center">
 				<div class="text-foreground peer flex cursor-help flex-col items-center">
 					<span
-						class="mb-1 text-center text-xl font-black
-								tracking-tight opacity-70 lg:text-3xl xl:text-4xl"
+						class="mb-2 text-center text-xl font-black
+								tracking-tight lg:text-3xl xl:text-4xl"
 					>
 						INFORMACIÓN DE RAMOS ACTUALIZADA HACE
 					</span>
