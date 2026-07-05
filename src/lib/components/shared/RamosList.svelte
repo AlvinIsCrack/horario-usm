@@ -77,7 +77,7 @@
 				{#snippet ramoCard()}
 					<div
 						role="listitem"
-						class="group pointer-events-auto relative w-full rounded-md border px-3 py-2 {isHighlighted
+						class="group pointer-events-auto relative min-h-18 w-full rounded-md border px-3 py-2 {isHighlighted
 							? 'text-accent-foreground'
 							: 'text-popover-foreground'}"
 						style:border-color={ramo.color?.hexa()}
