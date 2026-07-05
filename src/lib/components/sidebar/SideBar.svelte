@@ -75,7 +75,12 @@
 						class="relative my-auto flex h-full flex-1 flex-col items-center justify-center gap-2 p-4 text-center *:z-1"
 						in:fade={{ duration: 200 }}
 					>
-						<img class="mb-2 aspect-square size-24" src="/calendario.png" alt="" />
+						<img
+							draggable="false"
+							class="pointer-events-none mb-2 aspect-square size-24"
+							src="/calendario.png"
+							alt=""
+						/>
 						<div class="space-y-1">
 							<h3 class="text-base font-semibold">¿List@ para armar tu semestre?</h3>
 							<p class="text-muted-foreground max-w-60 text-xs leading-normal">
