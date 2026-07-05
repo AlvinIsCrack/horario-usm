@@ -48,7 +48,7 @@
 	});
 </script>
 
-<div class="mt-2 flex h-full flex-col gap-1 overflow-x-visible overflow-y-auto">
+<div class="flex h-full flex-col gap-1 overflow-x-visible overflow-y-auto">
 	{#if !Calendario.ramos.length}
 		<p class="opacity-50">No hay ramos registrados.</p>
 	{:else}
