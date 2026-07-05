@@ -108,13 +108,14 @@
 						class="text-muted-foreground [&_span]:text-foreground! mt-4 inline-flex items-center gap-1.5 text-base"
 					>
 						Consultando la malla del semestre
-						<Tooltip content="Cambiar semestre">
+						<Tooltip
+							content={hayNuevoSemestre
+								? `Semestre ${semestreMasReciente} disponible`
+								: 'Cambiar configuración'}
+						>
 							<button
 								class="justify-items bg-primary hover:border-primary-foreground! focus:ring-primary/50 text-primary-foreground relative flex cursor-pointer flex-row items-center gap-1 rounded border px-3 py-0.5 pl-2 font-mono text-sm font-semibold transition-colors focus:ring-2 focus:outline-none"
 								onclick={() => SettingsDialogState.open()}
-								title={hayNuevoSemestre
-									? `Semestre ${semestreMasReciente} disponible`
-									: 'Cambiar configuración'}
 							>
 								<MaterialSymbolsRefresh class="inline size-4 scale-110" />
 								{Config.semestre}
