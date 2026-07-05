@@ -1,9 +1,9 @@
 <script>
 	import { MAIN_RENDERER } from '$lib/constants/ids';
-	import Loader from '$lib/icons/loader.svelte';
 	import { fade } from 'svelte/transition';
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import { onMount } from 'svelte';
+	import Spinner from '$lib/components/shared/Spinner.svelte';
 
 	// Aseguramos que la sidebar esté limpia al volver al home
 	onMount(() => {
@@ -15,7 +15,7 @@
 	{#await import('$lib/components/calendar/Calendar.svelte')}
 		<div class="relative flex h-full w-full items-center justify-center">
 			<div transition:fade class="absolute">
-				<Loader class="loader-usm scale-200" />
+				<Spinner size="lg" />
 			</div>
 		</div>
 	{:then { default: Calendar }}

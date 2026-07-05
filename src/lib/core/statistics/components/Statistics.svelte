@@ -12,6 +12,7 @@
 	import type { StatItem, AnalyzerContext } from '$lib/core/statistics/types';
 	import { Config } from '$lib/core/config/store.svelte';
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
+	import Spinner from '$lib/components/shared/Spinner.svelte';
 
 	let statistics: StatItem[] = $state([]);
 	// let updated = $state(false);
@@ -113,7 +114,7 @@
 		{#await statistics}
 			<div class="flex h-full w-full items-center justify-center">
 				<div in:fade class="absolute">
-					<Loader class="loader-usm scale-200" />
+					<Spinner />
 				</div>
 			</div>
 		{:then statistics}
