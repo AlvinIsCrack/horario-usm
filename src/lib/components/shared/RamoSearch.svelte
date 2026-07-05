@@ -16,6 +16,7 @@
 	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
+	import { Ramos } from '$lib/core/ramos/store.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -38,6 +39,8 @@
 			}
 		}
 	});
+
+	const GRID_CLASSES = 'grid grid-cols-[100px_3fr_60px_100px_1fr_20px]';
 
 	let {
 		this: _this = $bindable(),
@@ -255,7 +258,7 @@
 	>
 		<ul
 			transition:fade={{ duration: 200 }}
-			class="{listStyle()} h-auto max-h-(--max-h)! min-w-3xl overflow-y-auto"
+			class="{listStyle()} h-auto max-h-(--max-h)! min-w-4xl overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-ramo-search"
@@ -266,7 +269,13 @@
 				e.preventDefault();
 			}}
 		>
-			{#snippet ramoRow(sigla: string, ramo: Ramo, inHorario: boolean, index: number)}
+			{#snippet ramoRow(
+				sigla: string,
+				ramo: Ramo,
+				paralelos: Ramo[],
+				inHorario: boolean,
+				index: number
+			)}
 				<li
 					bind:this={itemNodes[index]}
 					data-sigla={sigla}
@@ -281,7 +290,7 @@
 							active: highlightedIndex === index,
 							added: inHorario,
 							tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any
-						})} grid grid-cols-[100px_3fr_1fr_1fr_50px] items-center gap-4 text-sm"
+						})} {GRID_CLASSES} items-center gap-4 text-sm"
 						onmousedown={(e) => {
 							e.preventDefault();
 							onItemClicked(sigla);
@@ -325,6 +334,43 @@
 						{/if}
 
 						<span
+							class="flex flex-row flex-wrap items-center justify-center gap-1 text-center *:w-full"
+						>
+							{#if paralelos.length}
+								{@const numbers = paralelos.map((p) => Number(p.paralelo))}
+								{@const isAllNumeric = numbers.every((n) => !isNaN(n))}
+								{@const sortedNumbers = isAllNumeric ? [...numbers].sort((a, b) => a - b) : []}
+								{@const isLinearSequence =
+									isAllNumeric && sortedNumbers.every((n, i) => n === sortedNumbers[0] + i)}
+
+								{#if isLinearSequence || paralelos.length <= 3}
+									<span
+										class={cn(
+											'text-muted-foreground rounded border px-1.5 py-0.5 font-mono text-xs font-bold',
+											paralelos.length > 1 ? 'bg-muted' : 'bg-card'
+										)}
+									>
+										{#if isLinearSequence}
+											{#if sortedNumbers[0] != sortedNumbers[sortedNumbers.length - 1]}
+												{sortedNumbers[0]}–{sortedNumbers[sortedNumbers.length - 1]} ({sortedNumbers.length})
+											{:else}
+												{sortedNumbers[0]}
+											{/if}
+										{:else}
+											{paralelos.map((p) => p.paralelo).join(',')}
+										{/if}
+									</span>
+								{:else}
+									<span class="text-muted-foreground/80 text-xs font-medium">
+										{paralelos.length} paralelos
+									</span>
+								{/if}
+							{:else}
+								<span class="text-center"> &mdash; </span>
+							{/if}
+						</span>
+
+						<span
 							class="text-muted-foreground/70 truncate text-left text-xs"
 							title="DEPTO. DE {ramo.departamento}"
 						>
@@ -343,9 +389,9 @@
 							{#if ramo.creditos === null || ramo.creditos === undefined}
 								&mdash;
 							{:else}
-								<span title="Créditos SCT">
+								<Tooltip content="{ramo.creditos} Créditos SCT">
 									{ramo.creditos}
-								</span>
+								</Tooltip>
 							{/if}
 						</span>
 					</button>
@@ -353,7 +399,7 @@
 			{/snippet}
 
 			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 pb-0 text-sm">
-				<p>
+				<p class="pb-2">
 					Para el semestre <span class="highlight">{Config.semestre}</span> hay
 					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
 				</p>
@@ -382,7 +428,7 @@
 				{#if isMallaCompatible}
 					<button
 						transition:slide={{ axis: 'y' }}
-						class="w-full py-2"
+						class="w-full pb-2"
 						onmousedown={(e) => e.preventDefault()}
 					>
 						<Select
@@ -395,13 +441,14 @@
 				{/if}
 
 				<div
-					class="text-primary-foreground/60 bg-primary/60 -mx-3 grid grid-cols-[100px_3fr_1fr_1fr_50px] gap-4 border-t px-4 py-2 text-xs"
+					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-2 text-xs"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
 					<span class="text-center">Tipo</span>
+					<span class="text-center">Paralelos</span>
 					<span>Departamento</span>
-					<span class="text-right">Créditos</span>
+					<span class="text-right">SCT</span>
 				</div>
 			</div>
 
@@ -426,7 +473,7 @@
 						{@const ramo = paralelos.at(0)!}
 						{@const inHorario = Calendario.hasRamo({ sigla })}
 
-						{@render ramoRow(sigla, ramo, inHorario, i)}
+						{@render ramoRow(sigla, ramo, paralelos, inHorario, i)}
 					{/each}
 				{/if}
 			{:catch error}
