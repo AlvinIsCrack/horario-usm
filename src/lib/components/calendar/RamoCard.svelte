@@ -48,7 +48,7 @@
 					.hexa()})"
 				{...props}
 			>
-				<div>
+				<div class="-space-y-1">
 					<p
 						class="line-clamp-2 text-xs leading-tight font-medium md:text-sm 2xl:text-base"
 						title={ramo.nombre}
@@ -57,12 +57,14 @@
 					</p>
 
 					<p
-						class:opacity-60={esOscuro}
-						class:opacity-40={!esOscuro}
-						class="mt-0.5 text-[10px] lg:text-xs"
+						class:opacity-80={esOscuro}
+						class:opacity-60={!esOscuro}
+						class="mt-0.5 font-mono text-xs font-medium lg:text-sm"
 					>
-						<b>{ramo.sigla}</b>
-						<span class="ml-1 opacity-80">PAR. {ramo.paralelo}</span>
+						<b class="drop-shadow-xs" style:color={ramo.color?.lighten(-0.5).saturate(0.2).hex()}
+							>{ramo.sigla}</b
+						>
+						P{ramo.paralelo}
 					</p>
 				</div>
 
