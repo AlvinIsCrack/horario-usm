@@ -68,10 +68,10 @@
 	type SedeMatcher = [(sede: string) => boolean, string];
 
 	const sedeMap: SedeMatcher[] = [
-		[(sede: string) => sede.match(/casa central/gi) !== null, 'campus_casa_central.jpg'], // Mejorado para asegurar boolean
-		[(sede: string) => sede.match(/concepci.n/gi) !== null, 'campus_concepcion.jpg'], // Mejorado para asegurar boolean
-		[(sede: string) => sede.match(/vitacura/gi) !== null, 'campus_vitacura.jpg'], // Mejorado para asegurar boolean
-		[(sede: string) => sede.match(/viña|JMC/gi) !== null, 'campus_viña_del_mar.jpg'], // Mejorado para asegurar boolean
+		[(sede: string) => sede.match(/casa central/gi) !== null, 'campus_casa_central.jpg'],
+		[(sede: string) => sede.match(/concepci.n/gi) !== null, 'campus_concepcion.jpg'],
+		[(sede: string) => sede.match(/vitacura/gi) !== null, 'campus_vitacura.jpg'],
+		[(sede: string) => sede.match(/viña|JMC/gi) !== null, 'campus_viña_del_mar.jpg'],
 		[(_: string) => true, 'campus_san_joaquin.jpg']
 	];
 

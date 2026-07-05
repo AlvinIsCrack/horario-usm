@@ -78,7 +78,7 @@
 						<img
 							draggable="false"
 							class="pointer-events-none mb-2 aspect-square size-24"
-							src="/calendario.png"
+							src="calendario.png"
 							alt=""
 						/>
 						<div class="space-y-1">
