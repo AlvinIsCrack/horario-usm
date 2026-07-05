@@ -6,7 +6,7 @@
 
 	// Estilos del Trigger (Botón principal)
 	const selectTrigger = tv({
-		base: 'flex w-full items-center justify-between rounded-md border border-input bg-input ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer transition-all',
+		base: 'flex w-full items-center justify-between rounded border border-input bg-input ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 cursor-pointer transition-all',
 		variants: {
 			open: {
 				true: 'ring-2 ring-ring ring-offset-2'
@@ -17,7 +17,7 @@
 			},
 			size: {
 				default: 'h-10 px-3 py-2 text-sm',
-				sm: 'h-8 px-2 text-xs rounded-sm gap-1'
+				sm: 'h-8 px-2 text-xs rounded gap-1'
 			}
 		},
 		defaultVariants: {
@@ -27,12 +27,12 @@
 
 	// Estilos del Contenedor del Menú
 	const optionsWrapper = tv({
-		base: 'relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md outline-none'
+		base: 'relative z-50 min-w-[8rem] overflow-hidden rounded border bg-popover text-popover-foreground shadow-md outline-none'
 	});
 
 	// Estilos de cada Opción
 	const optionItem = tv({
-		base: 'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors',
+		base: 'relative flex w-full cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors',
 		variants: {
 			selected: {
 				true: 'bg-accent/50 text-accent-foreground font-medium'
