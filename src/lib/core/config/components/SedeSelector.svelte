@@ -7,8 +7,7 @@
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Lock from '$lib/icons/lock.svelte';
-	import Warning from '$lib/icons/warning.svelte';
-	import { fade } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import { Config } from '../store.svelte';
 
 	let { class: _class, ...props }: HTMLAttributes<HTMLDivElement> = $props();
@@ -81,14 +80,8 @@
 </script>
 
 {#snippet warningState()}
-	<div
-		class="sede-selector-warning-bg absolute top-0 left-0 h-full w-full origin-bottom scale-150 object-cover"
-	></div>
-	<div
-		class="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center leading-4"
-	>
-		<Warning class="scale-200 text-amber-500" />
-		<p class="z-10 text-sm font-medium">Por favor, selecciona tu sede y jornada para comenzar</p>
+	<div class="text-destructive-foreground mt-2 text-sm">
+		Necesitas especificar tu sede o campus.
 	</div>
 {/snippet}
 
@@ -98,14 +91,19 @@
 	>
 		<div>
 			<p class="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-				Sede Universitaria
+				Sede/Campus
+				<span class="text-destructive-foreground -ml-0.5 text-base">*</span>
 			</p>
 			<Select
-				placeholder="Selecciona tu sede..."
-				class="w-full"
+				placeholder="Selecciona tu sede/campus..."
+				class="w-full {invalid ? 'border-destructive-foreground!' : ''}"
 				items={Data.sedes.map((s) => ({ value: s }))}
 				bind:value={selectedSede}
 			/>
+
+			{#if invalid}
+				{@render warningState()}
+			{/if}
 		</div>
 		<div class="flex w-full flex-row justify-between gap-2">
 			{#if selectedSede && Data.jornadas[selectedSede]}
@@ -154,20 +152,27 @@
 
 <div class="relative h-fit w-full opacity-100 duration-400 starting:opacity-0">
 	<Card class="{_class} flex flex-col gap-2 overflow-hidden" {...props}>
-		<div class="pointer-events-none relative mb-2 h-20 w-full will-change-contents">
-			{#if invalid}
-				{@render warningState()}
-			{:else}
+		{#if !invalid}
+			<div
+				transition:slide={{ axis: 'y' }}
+				class="pointer-events-none relative mb-2 h-20 w-full will-change-contents"
+			>
+				<div
+					class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 transition-all {isVespertina
+						? 'bg-card'
+						: 'bg-primary'} mask-l-from-60% mask-l-to-80%"
+				></div>
+
 				{#key sedeImageSrc}
 					<img
 						transition:fade
-						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 mask-r-from-40% mask-r-to-90% object-cover"
+						class="absolute top-0 left-0 h-full w-full origin-bottom scale-150 mask-r-from-40% mask-r-to-80% object-cover"
 						alt="Campus Background Image"
 						src={sedeImageSrc}
 					/>
 				{/key}
-			{/if}
-		</div>
+			</div>
+		{/if}
 
 		{#if lockedLocation}
 			<div
@@ -187,25 +192,12 @@
 	{#if !invalid}
 		{#key isVespertina}
 			{@const Icon = isVespertina ? Moon : Sun}
-			<div
-				transition:fade
-				class="absolute top-0 right-0 m-2 mix-blend-difference drop-shadow-sm drop-shadow-black"
-			>
-				<Icon class="inline h-20 w-auto" />
+			<div transition:fade class="absolute top-0 right-0 m-2 drop-shadow-sm drop-shadow-black">
+				<Icon
+					class="inline h-20 w-auto {!isVespertina ? 'animate-spin' : ''}"
+					style="animation-duration: 8s;"
+				/>
 			</div>
 		{/key}
 	{/if}
 </div>
-
-<style>
-	:global(.sede-selector-warning-bg) {
-		background-color: #a00a;
-		animation: sede-selector-warning 500ms ease infinite alternate;
-	}
-
-	@keyframes -global-sede-selector-warning {
-		from {
-			background-color: #8008;
-		}
-	}
-</style>
