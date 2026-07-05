@@ -36,9 +36,13 @@
 			{/snippet}
 
 			<Tooltip content={tooltipContent}>
-				<p class="decoration-foreground/50 text-sm underline decoration-dotted">Tiempo de Viaje</p>
+				<p class="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
+					Tiempo de Viaje
+				</p>
 			</Tooltip>
-			<span class="text-foreground font-mono text-sm font-bold">{value} min</span>
+			<span class="bg-popover rounded border p-0.5 px-2 font-mono text-sm">
+				{value} min
+			</span>
 		</div>
 
 		<div class="px-1">
