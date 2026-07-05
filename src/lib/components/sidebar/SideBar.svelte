@@ -83,7 +83,7 @@
 						/>
 						<div class="space-y-1">
 							<h3 class="text-base font-semibold">¿List@ para armar tu semestre?</h3>
-							<p class="text-muted-foreground max-w-60 text-xs leading-normal">
+							<p class="text-muted-foreground max-w-60 text-xs leading-normal lg:text-sm">
 								Planifica tu horario ideal buscando ramos y explorando los paralelos/profesores
 								disponibles.
 							</p>

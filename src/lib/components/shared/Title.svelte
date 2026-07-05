@@ -104,10 +104,7 @@
 
 				{#if semestresDisponibles.length > 0}
 					<div class="mt-6 flex w-full max-w-3xl flex-col items-center gap-1 px-2">
-						<p class="text-foreground/60 -mb-1 text-sm">Semestres disponibles</p>
-						<div
-							class="via-border h-px w-full bg-linear-to-r from-transparent to-transparent"
-						></div>
+						<p class="text-foreground/60 text-sm">Semestres disponibles</p>
 						<div
 							class="border-foreground/10 relative flex w-full flex-col items-center justify-center"
 						>
