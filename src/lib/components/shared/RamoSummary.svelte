@@ -36,7 +36,7 @@
 			.saturate(0.6)
 			.darken(0.4)
 			.hex()}55);"
-		class="text-foreground flex flex-col justify-between gap-4 p-4 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
+		class="text-foreground flex flex-col justify-between gap-4 overflow-hidden p-4 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
 	>
 		<div class="flex flex-col">
 			<div class="flex flex-row flex-wrap items-center justify-between gap-2">
@@ -50,20 +50,10 @@
 				</div>
 			</div>
 
-			<div class="space-y-1">
-				<h3 class="text-base leading-tight font-bold tracking-tight">{ramo.nombre}</h3>
-
-				<div class="space-y-1 text-xs opacity-80">
-					<p class="truncate" title={ramo.departamento}>
-						DEPTO DE <span class="font-semibold">{ramo.departamento}</span>
-					</p>
-				</div>
-			</div>
+			<h3 class="line-clamp-2 text-base leading-tight font-bold tracking-tight">{ramo.nombre}</h3>
 		</div>
 
-		<div
-			class="bg-muted/30 border-border/40 -mx-4 flex w-auto border-y py-2.5 text-sm font-medium *:flex-1"
-		>
+		<div class="bg-muted/30 -mx-4 flex w-auto border-y py-2.5 text-sm font-medium *:flex-1">
 			<Tooltip content="Cantidad de alumnos máximos por paralelo">
 				<div
 					class="text-foreground hover:text-foreground border-border/40 flex w-full items-center justify-center gap-2 border-r transition-colors"
@@ -83,7 +73,15 @@
 		</div>
 
 		{#if programa}
-			<div class="flex justify-end">
+			<div
+				class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-2 px-4 py-2.5"
+			>
+				<div class="max-w-1/2 text-xs">
+					<p class="truncate" title={ramo.departamento}>
+						{ramo.departamento}
+					</p>
+				</div>
+
 				<Button
 					size="sm"
 					variant="secondary"
