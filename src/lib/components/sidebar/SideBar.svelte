@@ -30,7 +30,6 @@
 	import Statistics from '$lib/core/statistics/components/Statistics.svelte';
 	import MaterialSymbolsArrowLeftAlt from '$lib/icons/MaterialSymbolsArrowLeftAlt.svelte';
 	import { SettingsDialogState } from '$lib/core/config/components/dialog/SettingsDialog.svelte';
-	import Tooltip from '../ui/Tooltip.svelte';
 	import MaterialSymbolsSettings from '$lib/icons/MaterialSymbolsSettings.svelte';
 	import RamosList from '../shared/RamosList.svelte';
 </script>

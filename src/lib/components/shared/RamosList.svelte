@@ -12,6 +12,8 @@
 	import MaterialSymbolsMenu from '$lib/icons/MaterialSymbolsMenu.svelte';
 	import MenuItem from '../ui/menu/MenuItem.svelte';
 	import { Menu } from '../ui/menu';
+	import { cn } from '$lib/utils';
+	import MaterialSymbolsMoreVert from '$lib/icons/MaterialSymbolsMoreVert.svelte';
 
 	/**
 	 * Total credits (SCT) calculated reactively from the registered academic subjects.
@@ -29,26 +31,26 @@
 
 		if (totalSCT < 17) {
 			return {
-				color: 'bg-red-500/20 text-red-100 border-red-500/50 border',
-				tooltip: 'ALERTA: Menos de 17 SCT (Riesgo de alumno parcial/pérdida de beneficios).'
+				color: 'bg-red-500/20 text-red-300 border-red-500/50 border',
+				tooltip: 'Menos de 17 SCT (Riesgo de alumno parcial/pérdida de beneficios).'
 			};
 		}
 
 		if (totalSCT > 35) {
 			return {
-				color: 'bg-amber-500/20 text-amber-100 border-amber-500/50 border',
-				tooltip: 'ADVERTENCIA: Más de 35 SCT (Requiere autorización de sobrecarga).'
+				color: 'bg-amber-500/20 text-amber-300 border-amber-500/50 border',
+				tooltip: 'Más de 35 SCT (Requiere autorización de sobrecarga).'
 			};
 		}
 
 		return {
-			color: 'bg-green-500/20 text-green-100 border-green-500/50 border',
-			tooltip: 'Carga académica estándar (17 - 35 SCT).'
+			color: 'bg-green-500/20 text-green-200 border-green-500/50 border',
+			tooltip: 'Carga académica estándar (17-35 SCT).'
 		};
 	});
 </script>
 
-<div class="flex h-full flex-col gap-1 overflow-x-visible overflow-y-auto">
+<div class="flex h-full flex-col gap-2 overflow-x-visible overflow-y-auto">
 	{#if !Calendario.ramos.length}
 		<p class="opacity-50">No hay ramos registrados.</p>
 	{:else}
@@ -56,17 +58,19 @@
 			<h1 class="text-sm font-normal">Ramos registrados</h1>
 			{#if totalSCT}
 				<Tooltip
-					wrapperClass="starting:opacity-0 opacity-100 duration-400"
+					wrapperClass="starting:opacity-0 opacity-100 duration-400 text-xs text-muted-foreground"
 					content={sctStatus.tooltip}
 				>
-					<Badge icon={Circles} class="transition-colors duration-300 {sctStatus.color}">
-						{totalSCT} SCT
-					</Badge>
+					<span>
+						<b class={cn('text-foreground', sctStatus.color, 'border-none! bg-transparent!')}
+							>{totalSCT} SCT</b
+						> en total
+					</span>
 				</Tooltip>
 			{/if}
 		</div>
 
-		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto p-1">
+		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto">
 			{#each Calendario.ramos as ramo, index (index)}
 				{@const isHighlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
@@ -92,38 +96,34 @@
 				{#snippet ramoCard()}
 					<div
 						role="listitem"
-						class="group pointer-events-auto relative w-full border px-2 py-1 {isHighlighted
-							? 'bg-accent text-accent-foreground'
-							: 'bg-popover text-popover-foreground'}"
+						class="group pointer-events-auto relative w-full rounded-md border px-3 py-2 {isHighlighted
+							? 'text-accent-foreground'
+							: 'text-popover-foreground'}"
 						style:border-color={ramo.color?.hexa()}
+						style:background={ramo.color?.darken(0.2).fade(0.8).hexa()}
 						onmouseenter={() => (Calendario.ramoPreview = ramo)}
 						onmouseleave={() => (Calendario.ramoPreview = undefined)}
 					>
-						<div
-							class="absolute -top-px -bottom-px left-0 w-2 -translate-x-2/3"
-							style:background={ramo.color?.hexa() ?? '#0000'}
-						></div>
+						<div class="w-full pr-10">
+							<div class="mb-1 line-clamp-2 text-sm leading-tight font-normal" title={ramo.nombre}>
+								{ramo.nombre}
+							</div>
 
-						<div class="mb-1 text-sm leading-tight font-normal" title={ramo.nombre}>
-							{ramo.nombre}
-						</div>
-
-						<div class="text-foreground/50 pointer -mt-1 flex flex-row gap-2 font-mono text-xs">
-							<span style:color={ramo.color?.lighten(ramo.color?.isDark() ? 0.4 : 0).hexa()}>
-								{ramo.sigla}
-							</span>
-							{ramo.paralelo}
+							<div class="text-foreground/50 pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
+								<span style:color={ramo.color?.lighten(ramo.color?.isDark() ? 0.4 : 0).hexa()}>
+									{ramo.sigla}
+								</span>
+								{ramo.paralelo}
+							</div>
 						</div>
 
 						<div
-							class="{isHighlighted
-								? 'bg-accent'
-								: 'bg-popover'} pointer-events-auto absolute top-0 right-1 z-10 flex h-full flex-row items-center justify-center gap-1 opacity-0 group-hover:opacity-100"
+							class="pointer-events-auto absolute top-1 right-2 z-10 flex h-10 flex-row items-center justify-center gap-1 opacity-100"
 						>
 							<Menu position="bottom" align="end" offset={4}>
 								{#snippet trigger()}
-									<Button variant="ghost" size="icon" aria-label="Options">
-										<MaterialSymbolsMenu />
+									<Button variant="outlined" size="icon" aria-label="Options">
+										<MaterialSymbolsMoreVert />
 									</Button>
 								{/snippet}
 
@@ -153,7 +153,7 @@
 						</div>
 
 						<div
-							class="pointer-events-none absolute top-0 right-0 flex h-full flex-row items-end justify-end gap-1 p-1 px-2 text-right opacity-100 transition-all duration-200 group-hover:opacity-0"
+							class="pointer-events-none absolute right-0 bottom-0 flex flex-row items-end justify-end gap-1 p-2 px-3 text-right opacity-100"
 						>
 							{#if ramo.creditos}
 								<div class="text-xs font-medium opacity-50">

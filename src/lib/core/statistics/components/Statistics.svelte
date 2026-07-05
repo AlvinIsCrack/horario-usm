@@ -123,11 +123,9 @@
 			>
 				{#each statistics as stat, i ((stat.label, i))}
 					{@const statusColors = {
-						success:
-							'bg-gradient-to-r to-green-500/20 from-green-500/40 text-green-50 border-green-500/80',
-						warning:
-							'bg-gradient-to-r to-amber-500/20 from-amber-500/40 text-amber-50 border-amber-500/80',
-						danger: 'bg-gradient-to-r to-red-500/20 from-red-500/40 text-red-50 border-red-500/80'
+						success: 'bg-green-400/20 text-green-50 border-green-400/40!',
+						warning: 'bg-amber-400/20 text-amber-50 border-amber-400/40!',
+						danger: 'bg-red-400/20 text-red-50 border-red-400/40!'
 					}}
 
 					<div>
