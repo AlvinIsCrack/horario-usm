@@ -5,9 +5,10 @@
 	import { SmartReadTracker } from '$lib/core/changes/readStatus';
 	import jsonlContent from '$lib/data/historial_cambios.jsonl?raw';
 	import { onMount } from 'svelte';
-	import Changelog from '$lib/core/changes/components/Changelog.svelte';
 	import { Config } from '$lib/core/config/store.svelte';
+	import { SettingsDialogState } from '$lib/core/config/components/dialog/SettingsDialog.svelte';
 	import Tooltip from '../ui/Tooltip.svelte';
+	import MaterialSymbolsRefresh from '$lib/icons/MaterialSymbolsRefresh.svelte';
 
 	let visible = $state(false);
 	let showChanges = $state(false);
@@ -45,18 +46,18 @@
 			: []
 	);
 
-	// Group available semesters by year for the timeline layout
-	let semestresPorAnio = $derived(
-		semestresDisponibles.reduce((acc: Record<string, string[]>, sem: string) => {
-			const [year] = sem.split('-');
-			if (!acc[year]) acc[year] = [];
-			acc[year].push(sem);
-			return acc;
-		}, {})
+	let semestreMasReciente = $derived(
+		semestresDisponibles.length > 0
+			? [...semestresDisponibles].sort((a, b) => b.localeCompare(a))[0]
+			: null
 	);
 
-	// Sort years in descending order to show recent semesters first
-	let aniosDisponibles = $derived(Object.keys(semestresPorAnio).sort((a, b) => b.localeCompare(a)));
+	let hayNuevoSemestre = $derived(
+		semestreMasReciente &&
+			Config.semestre &&
+			semestreMasReciente !== Config.semestre &&
+			semestreMasReciente > Config.semestre
+	);
 </script>
 
 {#if visible}
@@ -102,44 +103,34 @@
 					Actualizado el {Data.updateDate?.format('dddd D [de] MMM/YYYY[, a las] HH:mm')}
 				</div>
 
-				{#if semestresDisponibles.length > 0}
-					<div class="mt-6 flex w-full max-w-3xl flex-col items-center gap-1 px-2">
-						<p class="text-foreground/60 text-sm">Semestres disponibles</p>
-						<div
-							class="border-foreground/10 relative flex w-full flex-col items-center justify-center"
-						>
-							{#each aniosDisponibles as anio}
-								<div class="relative flex flex-row gap-1">
-									{#each semestresPorAnio[anio] as sem}
-										{@const isSelected = Config.semestre === sem}
-										{@const [_, semNum] = sem.split('-')}
-										{@const code = `${anio}-${semNum}`}
-
-										<Tooltip content="Seleccionar el semestre {code}">
-											<button
-												onclick={() => Config.setSemestre(sem)}
-												class="relative flex min-w-32 cursor-pointer items-center justify-center gap-2 rounded border p-3 text-base transition-all duration-200 focus:outline-none
-												{isSelected
-													? 'bg-primary text-primary-foreground border-foreground/20 font-medium shadow-sm'
-													: 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground border-transparent bg-transparent'}"
-											>
-												<span class="tabular-nums">{code}</span>
-											</button>
-										</Tooltip>
-									{/each}
-								</div>
-							{/each}
-						</div>
-					</div>
-				{:else if Config.semestre}
+				{#if Config.sede && Config.jornada && Config.semestre}
 					<div
-						class="text-primary mt-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 shadow-sm"
+						class="text-muted-foreground [&_span]:text-foreground! mt-4 inline-flex items-center gap-1.5 text-base"
 					>
-						<span class="text-foreground/60 text-sm italic">
-							Estás viendo el semestre
-							<span class="text-primary-foreground ml-1 font-mono font-bold">{Config.semestre}</span
+						Consultando la malla del semestre
+						<Tooltip content="Cambiar semestre">
+							<button
+								class="justify-items bg-primary hover:border-primary-foreground! focus:ring-primary/50 text-primary-foreground relative flex cursor-pointer flex-row items-center gap-1 rounded border px-3 py-0.5 pl-2 font-mono text-sm font-semibold transition-colors focus:ring-2 focus:outline-none"
+								onclick={() => SettingsDialogState.open()}
+								title={hayNuevoSemestre
+									? `Semestre ${semestreMasReciente} disponible`
+									: 'Cambiar configuración'}
 							>
-						</span>
+								<MaterialSymbolsRefresh class="inline size-4 scale-110" />
+								{Config.semestre}
+
+								{#if hayNuevoSemestre}
+									<span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+										<span
+											class="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-75"
+										></span>
+										<span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500"></span>
+									</span>
+								{/if}
+							</button>
+						</Tooltip>
+						para <span class="font-medium">{Config.sede}</span>, jornada
+						<span class="font-medium">{Config.jornada}</span>.
 					</div>
 				{/if}
 			</div>
