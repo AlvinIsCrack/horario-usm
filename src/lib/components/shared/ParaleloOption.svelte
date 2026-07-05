@@ -1,10 +1,11 @@
 <script lang="ts">
-	import Button from '$lib/components/ui/Button.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import ProfessorCard from '$lib/core/professors/components/ProfessorCard.svelte';
 	import type { Ramo } from '$lib/core/ramos/types';
 	import { Calendario } from '$lib/states/calendario.svelte';
 	import { cn } from '$lib/utils';
+	import DialogComponent from '../ui/Dialog.svelte';
+	import MaterialSymbolsInfo from '$lib/icons/MaterialSymbolsInfo.svelte';
 
 	/**
 	 * Component props configuration for Parallel Options.
@@ -20,7 +21,6 @@
 
 	/**
 	 * Extracts the section/parallel code and potential modality info from the text.
-	 * Target format example: "Paralelo 1 (modalidad Virtual)" -> ["Paralelo 1", "Virtual"]
 	 */
 	const [code, extraInfo] = $derived(
 		paralelo.paralelo.replace(/\(modalidad (\w+)\)/gi, ';$1').split(';')
@@ -28,29 +28,35 @@
 
 	/**
 	 * Evaluates whether the current parallel conflicts with scheduled hours.
-	 * Returns false if the course is already added to prevent self-collision highlights.
 	 */
 	const hasCollision = $derived(
 		Calendario.hasRamo({ sigla: paralelo.sigla }) ? false : Calendario.checkCollision(paralelo)
 	);
+
+	/**
+	 * State to manage the currently inspected professor for the decoupled dialog.
+	 */
+	let inspectedProfessor = $state<string | null>(null);
 </script>
 
 <div class="{disabled ? 'pointer-events-none opacity-40 grayscale' : ''} flex w-full">
-	<Button
+	<div
+		role="button"
+		tabindex="0"
 		class={cn([
-			'relative flex min-h-10! w-full items-center gap-2 border p-2!',
+			'relative flex min-h-10 w-full cursor-pointer items-center gap-2 rounded border p-2 text-left transition-colors',
 			!selected
-				? 'bg-background! hover:bg-accent! hover:border-accent-foreground/20 active:bg-accent/80'
-				: 'bg-primary! text-primary-foreground ring-primary/20 hover:bg-primary/90! shadow-md ring-1',
-			hasCollision && 'border-amber-600! hover:bg-amber-600/20!',
-			hasCollision && selected && 'bg-amber-900!'
+				? 'bg-background hover:border-accent-foreground/20 hover:bg-accent active:bg-accent/80'
+				: 'bg-primary text-primary-foreground ring-primary/20 hover:bg-primary/90 shadow-md ring-1',
+			hasCollision && 'border-amber-600 hover:bg-amber-600/20',
+			hasCollision && selected && 'bg-amber-900'
 		])}
 		{onclick}
-		type="button"
+		onkeydown={(e) => e.key === 'Enter' && onclick?.()}
 	>
 		{@render codeSection()}
 		{@render professorsSection()}
-	</Button>
+	</div>
 </div>
 
 {#snippet codeSection()}
@@ -76,23 +82,44 @@
 {/snippet}
 
 {#snippet professorsSection()}
-	<div class="flex flex-1 flex-col overflow-hidden text-left leading-snug">
+	<div class="z-10 flex flex-1 flex-col items-end overflow-hidden text-right leading-snug">
 		{#each paralelo.profesor as professor (professor)}
-			{#snippet tooltipContent()}
-				<div class="p-1">
-					<ProfessorCard id={professor} />
-				</div>
-			{/snippet}
-
-			<div class="truncate text-sm font-medium">
-				<Tooltip interactive offset={50} position="right" content={tooltipContent}>
-					<span
-						class="decoration-foreground/50 cursor-help underline decoration-dotted hover:decoration-solid"
+			<div class="my-auto truncate text-sm font-medium">
+				{#if professor.includes('NN')}
+					<span class="opacity-50">{professor}</span>
+				{:else}
+					<button
+						type="button"
+						class="group inline-flex cursor-help items-center justify-end gap-1 rounded-sm align-middle outline-none focus-visible:ring-2"
+						onclick={(e) => {
+							e.stopPropagation();
+							inspectedProfessor = professor;
+						}}
 					>
-						{professor}
-					</span>
-				</Tooltip>
+						<Tooltip content="Ver información del profesor" wrapperClass="gap-1 items-center">
+							<MaterialSymbolsInfo
+								class="text-muted-foreground hover:text-accent-foreground size-4 transition-opacity"
+							/>
+
+							<span
+								class="decoration-foreground/50 underline decoration-dotted transition-colors group-hover:decoration-solid"
+							>
+								{professor}
+							</span>
+						</Tooltip>
+					</button>
+				{/if}
 			</div>
 		{/each}
 	</div>
 {/snippet}
+
+<DialogComponent
+	open={!!inspectedProfessor}
+	onclose={() => (inspectedProfessor = null)}
+	class="max-w-md gap-0 p-4"
+>
+	{#if inspectedProfessor}
+		<ProfessorCard id={inspectedProfessor} />
+	{/if}
+</DialogComponent>

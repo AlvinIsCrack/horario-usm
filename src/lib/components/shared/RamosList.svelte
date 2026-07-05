@@ -2,18 +2,19 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import Add from '$lib/icons/add.svelte';
-	import Circles from '$lib/icons/circles.svelte';
 	import Edit from '$lib/icons/edit.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import Badge from '../ui/Badge.svelte';
 	import RamoWindow from '../sidebar/windows/RamoWindow.svelte';
 	import ProfessorCard from '$lib/core/professors/components/ProfessorCard.svelte';
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
-	import MaterialSymbolsMenu from '$lib/icons/MaterialSymbolsMenu.svelte';
-	import MenuItem from '../ui/menu/MenuItem.svelte';
-	import { Menu } from '../ui/menu';
-	import { cn } from '$lib/utils';
 	import MaterialSymbolsMoreVert from '$lib/icons/MaterialSymbolsMoreVert.svelte';
+	import MenuItem from '../ui/menu/MenuItem.svelte';
+	import { Menu, MenuSeparator } from '../ui/menu';
+	import { cn } from '$lib/utils';
+
+	// UI Components for the Dialog solution
+	import DialogComponent from '../ui/Dialog.svelte';
+	import Teachers from '$lib/icons/teachers.svelte';
 
 	/**
 	 * Total credits (SCT) calculated reactively from the registered academic subjects.
@@ -22,32 +23,30 @@
 
 	/**
 	 * UI styling and tooltip messaging derived from the total credit load thresholds.
-	 * Thresholds: Underload (< 17 SCT), Overload (> 35 SCT), Standard (17 - 35 SCT).
 	 */
 	const sctStatus = $derived.by(() => {
-		if (totalSCT === 0) {
-			return { color: '', tooltip: 'Créditos totales (SCT)' };
-		}
-
-		if (totalSCT < 17) {
+		// ... (Keep existing sctStatus logic exactly as is)
+		if (totalSCT === 0) return { color: '', tooltip: 'Créditos totales (SCT)' };
+		if (totalSCT < 17)
 			return {
 				color: 'bg-red-500/20 text-red-300 border-red-500/50 border',
 				tooltip: 'Menos de 17 SCT (Riesgo de alumno parcial/pérdida de beneficios).'
 			};
-		}
-
-		if (totalSCT > 35) {
+		if (totalSCT > 35)
 			return {
 				color: 'bg-amber-500/20 text-amber-300 border-amber-500/50 border',
 				tooltip: 'Más de 35 SCT (Requiere autorización de sobrecarga).'
 			};
-		}
-
 		return {
 			color: 'bg-green-500/20 text-green-200 border-green-500/50 border',
 			tooltip: 'Carga académica estándar (17-35 SCT).'
 		};
 	});
+
+	/**
+	 * State to manage which subject's professors are currently being inspected in the Dialog.
+	 */
+	let inspectedRamoForProfessors = $state<(typeof Calendario.ramos)[0] | null>(null);
 </script>
 
 <div class="flex h-full flex-col gap-2 overflow-x-visible overflow-y-auto">
@@ -61,11 +60,11 @@
 					wrapperClass="starting:opacity-0 opacity-100 duration-400 text-xs text-muted-foreground"
 					content={sctStatus.tooltip}
 				>
-					<span>
-						<b class={cn('text-foreground', sctStatus.color, 'border-none! bg-transparent!')}
+					<span
+						><b class={cn('text-foreground', sctStatus.color, 'border-none! bg-transparent!')}
 							>{totalSCT} SCT</b
-						> en total
-					</span>
+						> en total</span
+					>
 				</Tooltip>
 			{/if}
 		</div>
@@ -75,23 +74,6 @@
 				{@const isHighlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
 					Calendario.ramoPreview?.paralelo === ramo.paralelo}
-				{@const isLocalHover = Calendario.ramoPreview === ramo}
-
-				{#snippet professorTooltip()}
-					<div class="max-h-200 space-y-1 overflow-y-visible p-1 text-left">
-						<h1 class="w-full text-left text-base font-medium">Profesores</h1>
-						<div class="my-2 mb-4 w-full scale-x-200 border-b"></div>
-						{#each ramo.profesor as professor (professor)}
-							<div class="bg-card mr-2 overflow-hidden rounded-lg border p-3">
-								{#if professor.includes('NN')}
-									<p class="font-medium opacity-50">NN (Profesor aún no asignado)</p>
-								{:else}
-									<ProfessorCard id={professor} />
-								{/if}
-							</div>
-						{/each}
-					</div>
-				{/snippet}
 
 				{#snippet ramoCard()}
 					<div
@@ -108,7 +90,6 @@
 							<div class="mb-1 line-clamp-2 text-sm leading-tight font-normal" title={ramo.nombre}>
 								{ramo.nombre}
 							</div>
-
 							<div class="text-foreground/50 pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
 								<span style:color={ramo.color?.lighten(ramo.color?.isDark() ? 0.4 : 0).hexa()}>
 									{ramo.sigla}
@@ -120,7 +101,7 @@
 						<div
 							class="pointer-events-auto absolute top-1 right-2 z-10 flex h-10 flex-row items-center justify-center gap-1 opacity-100"
 						>
-							<Menu position="bottom" align="end" offset={4}>
+							<Menu position="bottom" align="start" offset={4}>
 								{#snippet trigger()}
 									<Button variant="outlined" size="icon" aria-label="Options">
 										<MaterialSymbolsMoreVert />
@@ -129,12 +110,21 @@
 
 								{#snippet children()}
 									<MenuItem
+										disabled={!ramo.profesor.length}
+										onclick={() => {
+											inspectedRamoForProfessors = ramo;
+										}}
+									>
+										<Teachers class="mr-2 size-4 scale-120" />
+										<span>Ver Profesores</span>
+									</MenuItem>
+
+									<MenuSeparator />
+
+									<MenuItem
 										onclick={() =>
 											SidebarState.open(RamoWindow, {
-												edit: {
-													sigla: ramo.sigla,
-													paralelo: ramo.paralelo
-												}
+												edit: { sigla: ramo.sigla, paralelo: ramo.paralelo }
 											})}
 									>
 										<Edit class="mr-2 size-4 scale-120" />
@@ -164,16 +154,40 @@
 					</div>
 				{/snippet}
 
-				<Tooltip
-					position="right"
-					interactive
-					content={professorTooltip}
-					class="bg-card/50! max-w-2xs! overflow-hidden 2xl:max-w-xs!"
-					forceVisible={Boolean(ramo.profesor.length) && isHighlighted && !isLocalHover}
-				>
-					{@render ramoCard()}
-				</Tooltip>
+				{@render ramoCard()}
 			{/each}
 		</div>
 	{/if}
 </div>
+
+<DialogComponent
+	open={!!inspectedRamoForProfessors}
+	onclose={() => (inspectedRamoForProfessors = null)}
+	class="max-w-xl gap-0 p-0"
+>
+	{#if inspectedRamoForProfessors}
+		<div class="bg-card border-b p-4 pb-3">
+			<h2 class="text-lg leading-none font-bold">Docentes asignados</h2>
+			<p class="text-muted-foreground mt-1 text-xs">
+				{inspectedRamoForProfessors.nombre} - Paralelo {inspectedRamoForProfessors.paralelo}
+			</p>
+		</div>
+		<div class="bg-muted/10 flex max-h-[60vh] flex-col gap-3 overflow-y-auto p-4">
+			{#each inspectedRamoForProfessors.profesor as professor (professor)}
+				{#if professor.includes('NN')}
+					<div
+						class="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center opacity-50"
+					>
+						<Teachers class="mb-2 size-8 opacity-50" />
+						<p class="font-medium">Profesor por asignar (NN)</p>
+						<p class="text-xs">La universidad aún no define el docente para este paralelo.</p>
+					</div>
+				{:else}
+					<div class="bg-card overflow-hidden rounded-lg border p-4 shadow-sm">
+						<ProfessorCard id={professor} />
+					</div>
+				{/if}
+			{/each}
+		</div>
+	{/if}
+</DialogComponent>
