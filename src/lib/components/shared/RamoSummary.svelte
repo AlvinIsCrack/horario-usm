@@ -83,7 +83,7 @@
 			{#snippet horaCell(value: number, suffix: string)}
 				<div class="relative text-center {value === 0 ? 'opacity-50' : ''}">
 					<Tooltip
-						content="El ramo contempla {value}hrs {suffix}"
+						content="El ramo contempla {value}hrs/sem. {suffix}"
 						wrapperClass="cursor-help h-full"
 					>
 						<span class="w-fit tabular-nums">
