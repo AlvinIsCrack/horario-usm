@@ -56,7 +56,7 @@
 				></div>
 				<div
 					class="{segmentVariant({ size, className: className?.toString() })} {isEven
-						? 'bg-primary/80 -hue-rotate-5'
+						? 'bg-primary'
 						: ''}"
 					{...props}
 				></div>
