@@ -127,7 +127,7 @@
 			bind:this={menuRef}
 			id="select-options"
 			class={optionsWrapper()}
-			style="width: {triggerRef?.offsetWidth}px"
+			style="min-width: {triggerRef?.offsetWidth}px"
 			role="listbox"
 		>
 			<div class="scroller max-h-75 overflow-y-auto p-1">
