@@ -27,12 +27,12 @@
 
 	// Estilos del Contenedor del Menú
 	const optionsWrapper = tv({
-		base: 'relative z-50 min-w-[8rem] overflow-hidden rounded border bg-popover text-popover-foreground shadow-md outline-none'
+		base: 'relative z-50 min-w-full w-max overflow-hidden rounded border bg-popover text-popover-foreground shadow-md outline-none'
 	});
 
 	// Estilos de cada Opción
 	const optionItem = tv({
-		base: 'relative flex w-full cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors',
+		base: 'relative flex w-full cursor-pointer select-none items-center rounded py-1.5 pl-2 pr-8 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 transition-colors',
 		variants: {
 			selected: {
 				true: 'bg-accent/50 text-accent-foreground font-medium'
@@ -130,7 +130,7 @@
 			style="width: {triggerRef?.offsetWidth}px"
 			role="listbox"
 		>
-			<div class="scroller max-h-[300px] overflow-y-auto p-1">
+			<div class="scroller max-h-75 overflow-y-auto p-1">
 				{#if items.length === 0}
 					<div class="text-muted-foreground py-2 text-center text-sm">Sin opciones</div>
 				{:else}
