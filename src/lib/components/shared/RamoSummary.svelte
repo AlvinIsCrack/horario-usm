@@ -112,8 +112,8 @@
 		<div
 			class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-2 px-4 py-2.5"
 		>
-			<div class="max-w-1/2 text-xs">
-				<p class="truncate" title={carrera?.departamento || ramo.departamento}>
+			<div class="line-clamp-2 max-w-1/2 flex-1 text-xs wrap-break-word whitespace-pre-wrap">
+				<p title={carrera?.departamento || ramo.departamento}>
 					{carrera?.departamento || ramo.departamento}
 				</p>
 			</div>
@@ -122,7 +122,7 @@
 				<Button
 					size="sm"
 					variant="secondary"
-					class="h-8 w-full shrink-0 gap-1.5 text-xs sm:w-auto"
+					class="right-0 ml-auto h-8 shrink-0 gap-1 text-xs"
 					onclick={() => {
 						window.open(programa.programa, '_blank');
 					}}
