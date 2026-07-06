@@ -408,7 +408,7 @@
 				<div class="w-full pb-2"></div>
 
 				<div
-					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-2 text-xs *:my-auto *:leading-tight"
+					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-1 text-xs *:my-auto *:leading-tight"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
