@@ -41,18 +41,17 @@
 			.hex()}55);"
 		class="text-foreground flex flex-col justify-between gap-4 overflow-hidden p-4 shadow-sm! drop-shadow-md/50 **:text-shadow-sm!"
 	>
-		<div class="flex flex-col">
+		<div>
 			<div class="flex flex-row flex-wrap items-center justify-between gap-2">
 				<span class="font-mono text-sm tracking-wider" style:color={color?.lighten(0.5).hex()}
 					>{ramo.sigla}</span
 				>
-				<div class="flex translate-x-2 -translate-y-2 flex-row flex-wrap gap-1">
+				<div class="flex flex-row flex-wrap gap-1">
 					{#if programa}
 						<SemesterAvailability size="lg" curricularType={programa.tipo} />
 					{/if}
 				</div>
 			</div>
-
 			<h3 class="line-clamp-2 text-base leading-tight font-bold tracking-tight">{ramo.nombre}</h3>
 		</div>
 
@@ -87,16 +86,10 @@
 						wrapperClass="cursor-help h-full"
 					>
 						<span class="w-fit tabular-nums">
-							<b class={cn(value ? 'text-foreground' : '')}>{value}</b>
+							<b style:color={value ? color?.lighten(0.6).desaturate(0.2).hexa() : ''}>{value}</b>
 							{suffix.replace('de ', '').slice(0, 3)}.
 						</span>
 					</Tooltip>
-					{#if value}
-						<div
-							class="absolute right-0 -bottom-2 left-0 h-1 w-auto rounded-full"
-							style:background-color={color?.hex()}
-						></div>
-					{/if}
 				</div>
 			{/snippet}
 			<div
@@ -110,9 +103,9 @@
 		{/if}
 
 		<div
-			class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-2 px-4 py-2.5"
+			class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-4 p-2"
 		>
-			<div class="line-clamp-2 max-w-1/2 flex-1 text-xs wrap-break-word whitespace-pre-wrap">
+			<div class="line-clamp-2 max-w-1/2 flex-1 pl-2 text-xs wrap-break-word whitespace-pre-wrap">
 				<p title={carrera?.departamento || ramo.departamento}>
 					{carrera?.departamento || ramo.departamento}
 				</p>
@@ -122,12 +115,12 @@
 				<Button
 					size="sm"
 					variant="secondary"
-					class="right-0 ml-auto h-8 shrink-0 gap-1 text-xs"
+					class="ml-auto h-8 shrink-0 gap-1 text-xs"
 					onclick={() => {
 						window.open(programa.programa, '_blank');
 					}}
 				>
-					<MdiAttachment class="inline size-4" /> Ver programa
+					<MdiAttachment class="inline size-4" /> Programa
 				</Button>
 			{:else}
 				<Tooltip content="Programa del ramo no encontrado">

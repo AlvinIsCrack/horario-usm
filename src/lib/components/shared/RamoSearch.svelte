@@ -27,7 +27,7 @@
 	});
 
 	const itemStyle = tv({
-		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer',
+		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer justify-center items-center place-content-center',
 		variants: {
 			active: {
 				true: 'bg-primary/20!'
@@ -322,9 +322,7 @@
 						</span>
 
 						{#if ramo.tipoCurricular}
-							<span>
-								<SemesterAvailability curricularType={ramo.tipoCurricular} />
-							</span>
+							<SemesterAvailability curricularType={ramo.tipoCurricular} />
 						{:else}
 							<span class="text-center"> &mdash; </span>
 						{/if}

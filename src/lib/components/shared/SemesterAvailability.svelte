@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import MingcuteHashtagLine from '$lib/icons/MingcuteHashtagLine.svelte';
 	import type { RamoPrograma } from '$lib/types/horario';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { tv, type VariantProps } from 'tailwind-variants';
@@ -8,8 +9,8 @@
 		base: 'aspect-square rounded-full border transition-colors text-center text-[11px] text-primary-foreground/60',
 		variants: {
 			size: {
-				default: 'h-3 w-3 min-h-3 min-w-3 ',
-				lg: 'h-5 w-5 min-h-5 min-w-5 '
+				default: 'h-4 w-4 min-h-4 min-w-4',
+				lg: 'h-5 w-5 min-h-5 min-w-5'
 			}
 		},
 		defaultVariants: {
@@ -43,9 +44,9 @@
 
 <span>
 	<Tooltip content={tooltipText} wrapperClass="w-full">
-		<span class="flex w-full flex-row items-center justify-center gap-1">
+		<span class="flex w-full cursor-help flex-row items-center justify-center gap-1">
 			{#if isElective}
-				<span class="scale-110 text-center font-mono text-base font-light"> # </span>
+				<MingcuteHashtagLine class={segmentVariant.variants.size[size || 'default']} />
 			{:else}
 				<div
 					class="{segmentVariant({ size, className: className?.toString() })} {isOdd
