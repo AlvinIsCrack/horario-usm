@@ -81,17 +81,26 @@
 
 		{#if carrera?.horas}
 			{#snippet horaCell(value: number, suffix: string)}
-				<div class="text-center {value === 0 ? 'opacity-50' : ''}">
-					<Tooltip content="El ramo contempla {value}hrs {suffix}" wrapperClass="cursor-help">
+				<div class="relative text-center {value === 0 ? 'opacity-50' : ''}">
+					<Tooltip
+						content="El ramo contempla {value}hrs {suffix}"
+						wrapperClass="cursor-help h-full"
+					>
 						<span class="w-fit tabular-nums">
 							<b class={cn(value ? 'text-foreground' : '')}>{value}</b>
 							{suffix.replace('de ', '').slice(0, 3)}.
 						</span>
 					</Tooltip>
+					{#if value}
+						<div
+							class="absolute right-0 -bottom-2 left-0 h-1 w-auto rounded-full"
+							style:background-color={color?.hex()}
+						></div>
+					{/if}
 				</div>
 			{/snippet}
 			<div
-				class="bg-muted text-muted-foreground relative z-10 -mx-4 -mt-4 flex w-auto items-center justify-evenly gap-0.5 border-b py-2 text-sm"
+				class="bg-muted text-muted-foreground relative z-10 -mx-4 -mt-4 flex w-auto items-center justify-evenly gap-0.5 overflow-hidden border-b py-2 text-sm"
 			>
 				{@render horaCell(carrera.horas.teoricas, 'teóricas')}
 				{@render horaCell(carrera.horas.ayudantias, 'de ayudantías')}
