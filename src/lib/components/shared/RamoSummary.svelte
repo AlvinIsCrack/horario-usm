@@ -106,8 +106,8 @@
 			class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-4 p-2"
 		>
 			<div class="line-clamp-2 max-w-1/2 flex-1 pl-2 text-xs wrap-break-word whitespace-pre-wrap">
-				<p title={carrera?.departamento || ramo.departamento}>
-					{carrera?.departamento || ramo.departamento}
+				<p title={programa?.departamento || carrera?.departamento || ramo.departamento}>
+					{programa?.departamento || carrera?.departamento || ramo.departamento || 'N/A'}
 				</p>
 			</div>
 
