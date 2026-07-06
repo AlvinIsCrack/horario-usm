@@ -25,7 +25,6 @@
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
 	});
-
 	const itemStyle = tv({
 		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer justify-center items-center place-content-center',
 		variants: {
@@ -43,7 +42,6 @@
 			}
 		}
 	});
-
 	const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
 
 	let {
@@ -62,37 +60,30 @@
 
 	let query = $state('');
 	let debouncedQuery = $state('');
-
 	let isFocused = $state(false);
 	let highlightedIndex = $state(0);
 	let itemNodes: Array<HTMLLIElement> = $state([]);
 	let containerEl: HTMLDivElement | undefined = $state();
-
 	// --- Lógica de Malla Interactiva ---
 	const mallaState = new MallaState();
-
 	// Opciones del Select con redacción formal
 	const filterOptions = [
 		{ value: 'none', label: 'Mostrar todos los ramos' },
 		{ value: 'malla', label: 'Solo asignaturas de tu carrera' },
 		{ value: 'available', label: 'Solo asignaturas matriculables' }
 	];
-
 	// Compatibilidad: plan seleccionado y coincidencia de Sede/Jornada
 	const isMallaCompatible = $derived(
 		!!mallaState.selectedPlanId &&
 			mallaState.selectedSede === Config.sede &&
 			mallaState.selectedJornada === Config.jornada
 	);
-
 	// Resetear filtro si deja de ser compatible
 	$effect(() => {
 		if (!isMallaCompatible) filterMode = 'none';
 	});
-
 	// Guard to prevent autofocus on initial component render
 	let isInitialMount = true;
-
 	$effect(() => {
 		// Dependency: executes whenever the filter mode changes
 		const _ = [filterMode];
@@ -117,7 +108,6 @@
 			});
 		});
 	});
-
 	// Derivados para optimizar la búsqueda
 	const allowedSiglas = $derived.by(() => {
 		if (!isMallaCompatible) return new Set<string>();
@@ -125,7 +115,6 @@
 		mallaState.rawMalla.flat().forEach((r) => s.add(r.sigla));
 		return s;
 	});
-
 	const availableSiglas = $derived.by(() => {
 		if (!isMallaCompatible) return new Set<string>();
 		const s = new Set<string>();
@@ -135,7 +124,6 @@
 		});
 		return s;
 	});
-
 	const updateDebouncedQuery = debounce((query: string) => {
 		debouncedQuery = query;
 	}, 200);
@@ -145,7 +133,6 @@
 	});
 
 	const cachedRamos = Object.entries(Data.cachedRamos);
-
 	const filteredItems = $derived.by(async () => {
 		if (disabled) return [];
 		const q = debouncedQuery.trim();
@@ -187,14 +174,12 @@
 		}
 		return results;
 	});
-
 	$effect(() => {
 		// Reset index on query change
 		highlightedIndex = 0;
 		// Wait for render update then scroll
 		if (itemNodes[0]) itemNodes[0].scrollIntoView({ block: 'nearest' });
 	});
-
 	$effect(() => {
 		if (highlightedIndex >= 0 && itemNodes[highlightedIndex]) {
 			itemNodes[highlightedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -208,7 +193,8 @@
 		if (key === 'ArrowDown' || key === 'ArrowUp') {
 			event.preventDefault();
 			const nextIndex = key === 'ArrowDown' ? highlightedIndex + 1 : highlightedIndex - 1;
-			const len = itemNodes.length || 1; // Corrección menor: usar length de nodos o items
+			const len = itemNodes.length || 1;
+			// Corrección menor: usar length de nodos o items
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
@@ -363,52 +349,55 @@
 				</li>
 			{/snippet}
 
-			<div class="bg-card sticky top-0 z-10 rounded-tl-lg border-b p-3 pb-0 text-sm">
-				<p>
-					Para el semestre <span class="highlight">{Config.semestre}</span> hay
-					<span class="highlight">{cachedRamos.length}</span> ramos registrados.
-				</p>
+			<div
+				class="bg-card sticky top-0 z-10 flex flex-col gap-1 rounded-tl-lg border-b pt-3 text-sm"
+			>
+				<div class="flex w-full flex-row justify-between gap-4 pr-2">
+					<div>
+						<p class="px-3">
+							Para el semestre <span class="highlight">{Config.semestre}</span> hay
+							<span class="highlight">{cachedRamos.length}</span> ramos registrados.
+						</p>
 
-				{#await filteredItems then items}
-					<div transition:slide={{ axis: 'y' }} class="flex flex-col gap-0.5">
-						{#if query.length && cachedRamos.length !== items.length}
-							<p>
-								Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
-							</p>
-						{/if}
+						{#await filteredItems then items}
+							<div transition:slide={{ axis: 'y' }} class="flex flex-col gap-0.5 px-3">
+								{#if query.length && cachedRamos.length !== items.length}
+									<p>
+										Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
+									</p>
+								{/if}
 
-						{#if filterMode === 'malla'}
-							<p>
-								Mostrando <span class="highlight tertiary">{items.length}</span> ramos de tu carrera.
-							</p>
-						{:else if filterMode === 'available'}
-							<p>
-								Mostrando <span class="highlight tertiary">{items.length}</span> ramos matriculables
-								de tu carrera.
-							</p>
-						{/if}
+								{#if filterMode === 'malla'}
+									<p>
+										Mostrando <span class="highlight tertiary">{items.length}</span> ramos de tu carrera.
+									</p>
+								{:else if filterMode === 'available'}
+									<p>
+										Mostrando <span class="highlight tertiary">{items.length}</span> ramos matriculables
+										de tu carrera.
+									</p>
+								{/if}
+							</div>
+						{/await}
 					</div>
-				{/await}
 
-				{#if isMallaCompatible}
-					<button
-						transition:slide={{ axis: 'y' }}
-						class="w-full"
-						onmousedown={(e) => e.preventDefault()}
-					>
-						<Select
-							items={filterOptions}
-							bind:value={filterMode}
-							class="w-full"
-							placeholder="Filtrar búsqueda..."
-						/>
-					</button>
-				{/if}
+					{#if isMallaCompatible}
+						<button transition:slide={{ axis: 'x' }} onmousedown={(e) => e.preventDefault()}>
+							<Select
+								items={filterOptions}
+								bind:value={filterMode}
+								size="sm"
+								class="min-w-xs"
+								placeholder="Filtrar búsqueda..."
+							/>
+						</button>
+					{/if}
+				</div>
 
 				<div class="w-full pb-2"></div>
 
 				<div
-					class="text-primary-foreground/60 bg-primary/60 -mx-3 {GRID_CLASSES} gap-4 border-t px-4 py-1 text-xs *:my-auto *:leading-tight"
+					class="text-primary-foreground/60 bg-primary/60 {GRID_CLASSES} gap-4 border-t px-4 py-1 text-xs *:my-auto *:leading-tight"
 				>
 					<span>Sigla</span>
 					<span>Asignatura</span>
@@ -452,7 +441,6 @@
 
 <style lang="postcss">
 	@reference "tailwindcss";
-
 	.highlight {
 		&.secondary {
 			color: var(--color-amber-500);
