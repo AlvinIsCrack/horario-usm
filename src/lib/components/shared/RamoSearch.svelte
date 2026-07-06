@@ -254,6 +254,8 @@
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
+			updateDebouncedQuery.flush();
+
 			if (highlightedIndex > -1 && filteredItems[highlightedIndex]) {
 				const targetSigla = filteredItems[highlightedIndex][0];
 				onItemClicked(targetSigla);
@@ -262,6 +264,14 @@
 			isFocused = false;
 			(event.target as HTMLElement).blur();
 		}
+	}
+
+	function handleBlur(event: FocusEvent) {
+		const nextFocus = event.relatedTarget as HTMLElement;
+		// Si el usuario clickeó algo dentro de nuestro propio buscador/filtros, ignorar el cierre
+		if (containerEl?.contains(nextFocus)) return;
+
+		isFocused = false;
 	}
 
 	let blurTimeout: any;
@@ -295,8 +305,12 @@
 			aria-autocomplete="list"
 			aria-controls="listbox-ramo-search"
 			aria-expanded={isFocused}
+			aria-owns="listbox-ramo-search"
+			aria-activedescendant={highlightedIndex > -1
+				? `option-ramo-search-${highlightedIndex}`
+				: undefined}
 			onfocus={() => !disabled && (isFocused = true)}
-			onblur={() => (blurTimeout = setTimeout(() => (isFocused = false), 100))}
+			onblur={handleBlur}
 			onkeydown={handleKeydown}
 		/>
 	</div>
@@ -471,6 +485,12 @@
 					{@render ramoRow(sigla, ramo, paralelos, inHorario, i)}
 				{/each}
 			{/if}
+
+			<div class="sr-only" aria-live="polite" aria-atomic="true">
+				{#if filteredItems.length > 0 && isFocused}
+					{filteredItems.length} asignaturas encontradas.
+				{/if}
+			</div>
 		</ul>
 	</Floating>
 </div>
