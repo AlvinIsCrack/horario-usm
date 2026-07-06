@@ -6,8 +6,8 @@
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import Separator from '$lib/components/ui/Separator.svelte';
 	import RamoSummary from '../../shared/RamoSummary.svelte';
-	import ParaleloOption from '../../shared/ParaleloOption.svelte';
 	import { slide } from 'svelte/transition';
+	import ParaleloList from '../../shared/ParaleloList.svelte';
 
 	let {
 		edit
@@ -99,27 +99,7 @@
 			{/if}
 		</div>
 
-		<div class="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
-			{#each paraleloOptions as paraleloOption (paraleloOption.value)}
-				{@const ramo = { ...Data.cachedRamos[selectedRamo][paraleloOption.value!] }}
-				{@const selected = paraleloOption.value === selectedParalelo}
-
-				<ParaleloOption
-					disabled={Calendario.hasRamo({ sigla: ramo.sigla, paralelo: ramo.paralelo })}
-					onclick={() => {
-						if (selected) {
-							selectedParalelo = '';
-							Calendario.ramoPreview = undefined;
-						} else {
-							selectedParalelo = paraleloOption.value;
-							Calendario.ramoPreview = ramo;
-						}
-					}}
-					{selected}
-					paralelo={ramo}
-				/>
-			{/each}
-		</div>
+		<ParaleloList sigla={selectedRamo} bind:selectedParalelo />
 	{/if}
 
 	{#if Calendario.ramoPreview}
