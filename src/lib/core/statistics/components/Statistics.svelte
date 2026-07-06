@@ -119,7 +119,7 @@
 			</div>
 		{:then statistics}
 			<div
-				class="flex w-full flex-1 flex-col gap-1 overflow-y-auto pr-1 text-justify text-sm transition-colors duration-1000 2xl:gap-1.5"
+				class="flex w-full flex-1 flex-col gap-0.5 overflow-y-auto pr-1 text-justify text-sm transition-colors duration-1000 2xl:gap-1"
 			>
 				{#each statistics as stat, i ((stat.label, i))}
 					{@const statusColors = {
@@ -150,10 +150,10 @@
 
 								<div
 									title={stat.label}
-									class="block min-w-0 shrink truncate overflow-hidden mix-blend-lighten select-none"
+									class="text-foreground block min-w-0 shrink truncate overflow-hidden select-none"
 								>
 									<span
-										class="decoration-foreground/50 truncate underline decoration-dotted underline-offset-2 opacity-90 group-hover:decoration-solid"
+										class="decoration-foreground/50 truncate underline decoration-dotted underline-offset-2 group-hover:decoration-solid"
 									>
 										{stat.label}
 									</span>
