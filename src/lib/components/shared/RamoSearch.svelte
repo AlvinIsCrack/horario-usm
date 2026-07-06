@@ -156,10 +156,10 @@
 	// Static options based on the Ramo interface definition
 	const tipoOptions = [
 		{ value: 'all', label: 'Cualquier tipo' },
-		{ value: 'PAR', label: 'Semestre Par' },
-		{ value: 'IMPAR', label: 'Semestre Impar' },
-		{ value: 'AMBOS', label: 'Ambos Semestres' },
-		{ value: 'ELECTIVO', label: 'Electivo' }
+		{ value: 'PAR', label: 'Ramo Par' },
+		{ value: 'IMPAR', label: 'Ramo Impar' },
+		{ value: 'AMBOS', label: 'Ramo Par/Impar' },
+		{ value: 'ELECTIVO', label: 'Ramo Electivo' }
 	];
 
 	const filteredItems = $derived.by(async () => {
