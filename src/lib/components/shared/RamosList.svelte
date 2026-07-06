@@ -68,7 +68,7 @@
 			{/if}
 		</div>
 
-		<div class="flex h-full w-full flex-col gap-0.5 overflow-y-auto">
+		<div class="flex h-full w-full flex-col gap-1 overflow-y-auto">
 			{#each Calendario.ramos as ramo, index (index)}
 				{@const isHighlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
@@ -77,32 +77,49 @@
 				{#snippet ramoCard()}
 					<div
 						role="listitem"
-						class="group pointer-events-auto relative min-h-18 w-full rounded-md border px-3 py-2 {isHighlighted
-							? 'text-accent-foreground'
-							: 'text-popover-foreground'}"
-						style:border-color={ramo.color?.hexa()}
-						style:background={ramo.color?.darken(0.2).fade(0.8).hexa()}
+						class="group bg-card pointer-events-auto relative w-full rounded border bg-linear-to-r from-transparent p-2 shadow-sm/50 {isHighlighted
+							? 'border-white!'
+							: ''}"
+						style:--tw-gradient-from={ramo.color?.hexa()}
+						style:--tw-gradient-to={ramo.color
+							?.fade(0.2)
+							.rotate(30)
+							.lighten(0.3)
+							.desaturate(0.25)
+							.hexa()}
 						onmouseenter={() => (Calendario.ramoPreview = ramo)}
 						onmouseleave={() => (Calendario.ramoPreview = undefined)}
 					>
 						<div class="w-full pr-10">
-							<div class="mb-1 line-clamp-2 text-sm leading-tight font-normal" title={ramo.nombre}>
+							<div class="line-clamp-2 text-sm leading-tight font-medium" title={ramo.nombre}>
 								{ramo.nombre}
 							</div>
-							<div class="text-foreground/50 pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
-								<span style:color={ramo.color?.lighten(ramo.color?.isDark() ? 0.4 : 0).hexa()}>
+							<div class="text-foreground pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
+								<b
+									class="text-shadow-sm"
+									style:color={ramo.color?.lighten(-0.5).saturate(0.2).hex()}
+								>
 									{ramo.sigla}
-								</span>
-								{ramo.paralelo}
+								</b>
+								<Tooltip content="Paralelo {ramo.paralelo}">
+									<span class="text-shadow-sm">{ramo.paralelo}</span>
+								</Tooltip>
+								{#if ramo.creditos !== undefined}
+									<div class="font-bold tabular-nums opacity-60">
+										<Tooltip content="Créditos SCT del ramo">
+											<span class="text-shadow-sm">{ramo.creditos} SCT</span>
+										</Tooltip>
+									</div>
+								{/if}
 							</div>
 						</div>
 
 						<div
-							class="pointer-events-auto absolute top-1 right-2 z-10 flex h-10 flex-row items-center justify-center gap-1 opacity-100"
+							class="pointer-events-auto absolute top-1/2 right-2 z-10 flex h-10 -translate-y-1/2 flex-row items-center justify-center gap-1 opacity-100"
 						>
 							<Menu position="bottom" align="start" offset={4}>
 								{#snippet trigger()}
-									<Button variant="outlined" size="icon" aria-label="Options">
+									<Button variant="secondary" size="icon" aria-label="Options">
 										<MaterialSymbolsMoreVert />
 									</Button>
 								{/snippet}
@@ -139,16 +156,6 @@
 									</MenuItem>
 								{/snippet}
 							</Menu>
-						</div>
-
-						<div
-							class="pointer-events-none absolute right-0 bottom-0 flex flex-row items-end justify-end gap-1 p-2 px-3 text-right opacity-100"
-						>
-							{#if ramo.creditos}
-								<div class="text-xs font-medium opacity-50">
-									<p>{ramo.creditos} SCT</p>
-								</div>
-							{/if}
 						</div>
 					</div>
 				{/snippet}
