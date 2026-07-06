@@ -40,7 +40,7 @@
 					? 'bloque-highlighted ring-2 ring-white'
 					: ''} bloque-con-brillo z-10 overflow-hidden text-left leading-4 bg-blend-multiply shadow-md/50 inset-shadow-xs inset-shadow-white/50"
 				class:text-white={esOscuro}
-				class:text-gray-900={!esOscuro}
+				class:text-black={!esOscuro}
 				style:background="linear-gradient(to bottom right, {color.hexa()}, {color
 					.rotate(30)
 					.lighten(0.3)
