@@ -7,8 +7,6 @@ import type { ProfessorView } from './types';
 const normalizedRegistryLookup = new Map<string, ProfessorView>();
 const similarityCache = new Map<string, ProfessorView | null>();
 
-preIndexRegistry();
-
 /**
  * Pre-indexes the registry to allow O(1) lookups on exact matches.
  * This completely avoids the O(N) Dice scanning for standard cases.

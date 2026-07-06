@@ -6,9 +6,11 @@
 	import Toaster from '$lib/components/ui/sonner/Toaster.svelte';
 	import { page } from '$app/state';
 	import { fade } from 'svelte/transition';
+	import { preIndexRegistry } from '$lib/core/professors/matcher';
 
 	$effect(() => {
 		Calendario.init(localStorage);
+		preIndexRegistry();
 	});
 
 	let { children } = $props();
