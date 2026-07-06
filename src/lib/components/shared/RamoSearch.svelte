@@ -352,7 +352,7 @@
 			<div
 				class="bg-card sticky top-0 z-10 flex flex-col gap-1 rounded-tl-lg border-b pt-3 text-sm"
 			>
-				<div class="flex w-full flex-row justify-between gap-4 pr-2">
+				<div class="flex w-full flex-row items-center justify-between gap-4 pr-2">
 					<div>
 						<p class="px-3">
 							Para el semestre <span class="highlight">{Config.semestre}</span> hay
