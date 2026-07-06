@@ -165,7 +165,11 @@
 		{ value: 'ELECTIVO', label: 'Ramo Electivo' }
 	];
 
-	const filteredItems = $derived.by(async () => {
+	/**
+	 * Synchronously filters and prioritizes the cached courses data matrix.
+	 * Evaluates queries against tags, names, departments, and enrollment criteria.
+	 */
+	const filteredItems = $derived.by(() => {
 		if (disabled) return [];
 		const q = debouncedQuery.trim();
 
@@ -175,16 +179,11 @@
 			.split(/\s+|\*+/g)
 			.filter(Boolean);
 
-		let count = 0;
-
-		// SEPARATE TRANSITIONAL POOLS: Isolate standard courses from low-information entries
-		// to guarantee that items with missing metadata are always appended at the end.
 		const standardResults: (readonly [string, Record<string, Ramo>])[] = [];
 		const lowInfoResults: (readonly [string, Record<string, Ramo>])[] = [];
 
 		const entries = cachedRamos;
 
-		// FILTERING LOGIC
 		for (const [k, paralelos] of entries) {
 			if (isMallaCompatible && filterMode !== 'none') {
 				if (filterMode === 'malla' && !allowedSiglas.has(k)) continue;
@@ -212,46 +211,52 @@
 			if (matches) {
 				const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular;
 
-				// SORTING INJECTION: Route the matched entry to its respective structural pool
 				if (hasLowInfo) {
 					lowInfoResults.push([k, paralelos] as const);
 				} else {
 					standardResults.push([k, paralelos] as const);
 				}
-				count++;
 			}
 		}
 
-		// MERGE TRANSACTIONS: Combine both pools preserving the trailing order for low-info entries
 		return [...standardResults, ...lowInfoResults];
 	});
 
 	$effect(() => {
-		// Reset index on query change
+		const _ = filteredItems;
 		highlightedIndex = 0;
-		// Wait for render update then scroll
-		if (itemNodes[0]) itemNodes[0].scrollIntoView({ block: 'nearest' });
+		itemNodes = [];
+
+		tick().then(() => {
+			if (itemNodes[0]) itemNodes[0].scrollIntoView({ block: 'nearest' });
+		});
 	});
+
 	$effect(() => {
 		if (highlightedIndex >= 0 && itemNodes[highlightedIndex]) {
 			itemNodes[highlightedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 		}
 	});
 
+	/**
+	 * Processes keyboard interaction coordinates for structural accessibility.
+	 * Guarantees cycle overflows over computed reference node array lengths.
+	 */
 	function handleKeydown(event: KeyboardEvent) {
-		if (!filteredItems) return;
+		if (!filteredItems || filteredItems.length === 0) return;
 		const { key } = event;
 
 		if (key === 'ArrowDown' || key === 'ArrowUp') {
 			event.preventDefault();
 			const nextIndex = key === 'ArrowDown' ? highlightedIndex + 1 : highlightedIndex - 1;
-			const len = itemNodes.length || 1;
-			// Corrección menor: usar length de nodos o items
+			const len = filteredItems.length;
+
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
-			if (highlightedIndex > -1) {
-				onItemClicked(itemNodes[highlightedIndex]?.dataset.sigla ?? '');
+			if (highlightedIndex > -1 && filteredItems[highlightedIndex]) {
+				const targetSigla = filteredItems[highlightedIndex][0];
+				onItemClicked(targetSigla);
 			}
 		} else if (key === 'Escape') {
 			isFocused = false;
@@ -447,33 +452,25 @@
 				</div>
 			</div>
 
-			{#await filteredItems}
-				<li class="text-muted-foreground animate-pulse p-4 text-center text-sm">
-					Buscando asignaturas...
+			{#if filteredItems.length === 0}
+				<li class="text-muted-foreground p-4 text-sm">
+					{#if query}
+						No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Config.semestre},
+						y comprueba si el ramo que buscas tiene registrado horario para ese semestre.
+					{:else}
+						Escribe para empezar a filtrar ramos.
+					{/if}
 				</li>
-			{:then items}
-				{#if items.length === 0}
-					<li class="text-muted-foreground p-4 text-sm">
-						{#if query}
-							No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Config.semestre},
-							y comprueba si el ramo que buscas tiene registrado horario para ese semestre.
-						{:else}
-							Escribe para empezar a filtrar ramos.
-						{/if}
-					</li>
-				{:else}
-					{#each items as item, i (item[0])}
-						{@const sigla = item[0]}
-						{@const paralelos = Object.values(item[1])}
-						{@const ramo = paralelos.at(0)!}
-						{@const inHorario = Calendario.hasRamo({ sigla })}
+			{:else}
+				{#each filteredItems as item, i (item[0])}
+					{@const sigla = item[0]}
+					{@const paralelos = Object.values(item[1])}
+					{@const ramo = paralelos.at(0)!}
+					{@const inHorario = Calendario.hasRamo({ sigla })}
 
-						{@render ramoRow(sigla, ramo, paralelos, inHorario, i)}
-					{/each}
-				{/if}
-			{:catch error}
-				<li class="text-destructive p-2 text-sm">Error: {error.message}</li>
-			{/await}
+					{@render ramoRow(sigla, ramo, paralelos, inHorario, i)}
+				{/each}
+			{/if}
 		</ul>
 	</Floating>
 </div>
