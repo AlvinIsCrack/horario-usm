@@ -1,4 +1,4 @@
-import type { ProfessorRegistry, ProfessorView, TagDefinition } from './types';
+import type { EvaluationDimensionKey, EvaluationSubDimensionKey, ProcessedDimensionStructure, ProcessedSubDimension, ProfessorRegistry, ProfessorView, TagDefinition } from './types';
 // 🔥 CAMBIO CLAVE: Importamos la vista agregada, no las reviews crudas
 // @ts-ignore
 import viewData from '$lib/data/professors_view.json';
@@ -61,7 +61,7 @@ function resolveMetricLabel(subDimDef: any, valueObj: any): string {
 }
 
 /**
- * Genera la estructura para la UI consumiendo la nueva View Layer
+ * Strongly-typed adapter layer transforming raw statistics into presentation-ready domain aggregates.
  */
 export function getProfessorRenderData(input: string | ProfessorView | null) {
     if (!input) return null;
@@ -70,21 +70,20 @@ export function getProfessorRenderData(input: string | ProfessorView | null) {
     if (!profile) return null;
 
     const stats = profile.stats || {};
-    const meta: Record<string, any> = {};
+    const meta: Record<string, ProcessedDimensionStructure> = {};
     let hasAnyData = false;
 
-    for (const [dimKey, dimDef] of Object.entries(EVALUATION_DIMENSIONS)) {
-        const subMetas: Record<string, any> = {};
+    for (const [dimKey, dimDef] of Object.entries(EVALUATION_DIMENSIONS) as [EvaluationDimensionKey, any][]) {
+        const subMetas: Record<string, ProcessedSubDimension> = {};
         let hasDimData = false;
 
-        for (const [subKey, subDef] of Object.entries(dimDef.sub_dimensions)) {
-            // Buscamos la métrica. Ahora 'val' es un objeto MetricStats { avg, stdev... }
+        for (const [subKey, subDef] of Object.entries(dimDef.sub_dimensions) as [EvaluationSubDimensionKey<typeof dimKey>, any][]) {
             const statObj = stats[subDef.id];
 
             if (statObj) {
                 subMetas[subKey] = {
-                    val: statObj.avg, // Usamos el promedio para sliders/números
-                    stats: statObj,   // Pasamos el objeto completo por si queremos mostrar distribución
+                    val: statObj.avg,
+                    stats: statObj,
                     label: resolveMetricLabel(subDef, statObj),
                     def: subDef
                 };

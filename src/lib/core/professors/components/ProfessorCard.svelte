@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import MaterialSymbolsInfo from '$lib/icons/MaterialSymbolsInfo.svelte';
 	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/core/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/core/professors/repository.svelte';
@@ -12,6 +11,8 @@
 	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
 	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
 	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
+	import { calculateConfidenceStatus } from '../types';
+	import { formatRelativeTime } from '../utils';
 
 	let {
 		id,
@@ -43,29 +44,12 @@
 		}
 	});
 
-	// Helper para fecha relativa
-	function timeAgo(isoDate?: string) {
-		if (!isoDate) return '';
-		const diff = Date.now() - new Date(isoDate).getTime();
-		const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-		if (days < 7) return 'Reciente';
-		if (days < 30) return `Hace ${days}d`;
-		if (days < 365) return `Hace ${Math.floor(days / 30)} meses`;
-		return '+1 año';
-	}
-
-	const status = $derived.by(() => {
-		const meta = renderData?.sampleMeta;
-		// 1. Prioridad: Archivado
-		if (meta?.isArchived) return 'ARCHIVED';
-
-		const count = meta?.reviewCount ?? 0;
-		// 2. Niveles de confianza por cantidad de votos
-		if (count === 0) return 'UNRATED';
-		if (count < 3) return 'PRELIMINARY';
-		if (count < 6) return 'SOLID';
-		return 'HIGHLIGHTED'; // Nuevo nivel (6+ votos)
-	});
+	const status = $derived(
+		calculateConfidenceStatus(
+			renderData?.sampleMeta?.reviewCount ?? 0,
+			renderData?.sampleMeta?.isArchived
+		)
+	);
 
 	// [NUEVO] Configuración UI Driven (Single Source of Truth para estilos)
 	const STATUS_UI = {
@@ -169,7 +153,7 @@
 						{/if}
 						<p class="text-xs">
 							<MaterialSymbolsNestClockFarsightAnalogOutline class="inline size-4" />
-							<span>{timeAgo(renderData.sampleMeta.lastUpdated)}</span>
+							<span>{formatRelativeTime(renderData.sampleMeta.lastUpdated)}</span>
 						</p>
 					</div>
 				{/snippet}

@@ -1,5 +1,50 @@
+// Dynamic extractors for Dimensions and Subdimensions keys
+export type EvaluationDimensionKey = keyof typeof EVALUATION_DIMENSIONS;
+
+export type EvaluationSubDimensionKey<D extends EvaluationDimensionKey> =
+    keyof typeof EVALUATION_DIMENSIONS[D]['sub_dimensions'];
+
+// Universal safe interface for dynamically computed metrics
+export interface ProcessedSubDimension {
+    val: number;
+    stats: MetricStats;
+    label: string;
+    def: {
+        id: string;
+        label: string;
+        description: string;
+        type: string;
+        levels: Record<number, { label: string; description: string }>;
+    };
+}
+
+export interface ProcessedDimensionStructure {
+    label: string;
+    id: string;
+    subs: Record<string, ProcessedSubDimension>;
+}
+
+export type ConfidenceStatus = 'ARCHIVED' | 'UNRATED' | 'PRELIMINARY' | 'SOLID' | 'HIGHLIGHTED';
+
+export const CONFIDENCE_THRESHOLDS = {
+    PRELIMINARY_MAX: 2, // Up to 2 votes
+    SOLID_MAX: 5,       // From 3 up to 5 votes
+    HIGHLIGHTED_MIN: 6  // 6 or more votes
+} as const;
+
+/**
+ * Domain function determining statistical confidence level based on business rules.
+ */
+export function calculateConfidenceStatus(reviewCount: number, isArchived?: boolean): ConfidenceStatus {
+    if (isArchived) return 'ARCHIVED';
+    if (reviewCount === 0) return 'UNRATED';
+    if (reviewCount <= CONFIDENCE_THRESHOLDS.PRELIMINARY_MAX) return 'PRELIMINARY';
+    if (reviewCount <= CONFIDENCE_THRESHOLDS.SOLID_MAX) return 'SOLID';
+    return 'HIGHLIGHTED';
+}
+
 // ==========================================
-// 1. DIMENSIONES (Métricas) - Se mantiene igual
+// 1. DIMENSIONES (Métricas)
 // ==========================================
 export const EVALUATION_DIMENSIONS = {
     didactica: {
