@@ -30,7 +30,7 @@
 	 * Evaluates whether the current parallel conflicts with scheduled hours.
 	 */
 	const hasCollision = $derived(
-		true // || Calendario.hasRamo({ sigla: paralelo.sigla }) ? false : Calendario.checkCollision(paralelo)
+		Calendario.hasRamo({ sigla: paralelo.sigla }) ? false : Calendario.checkCollision(paralelo)
 	);
 
 	/**
