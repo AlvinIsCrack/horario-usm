@@ -86,7 +86,7 @@
 	let isInitialMount = true;
 	$effect(() => {
 		// Dependency: executes whenever the filter mode changes
-		const _ = [filterMode];
+		const _ = [filterMode, selectedDepto, selectedTipo];
 
 		untrack(() => {
 			// Skip execution on the first render to prevent unwanted autofocus
@@ -133,6 +133,35 @@
 	});
 
 	const cachedRamos = Object.entries(Data.cachedRamos);
+
+	// Filter state for Department and Course Type
+	let selectedDepto = $state<string>('all');
+	let selectedTipo = $state<string>('all');
+
+	// Dynamically extract unique departments from the cached data
+	const deptoOptions = $derived.by(() => {
+		const deptos = new Set<string>();
+		for (const [_, paralelos] of cachedRamos) {
+			const ramo = Object.values(paralelos).at(0);
+			if (ramo?.departamento) deptos.add(ramo.departamento);
+		}
+		return [
+			{ value: 'all', label: 'Todos los deptos.' },
+			...Array.from(deptos)
+				.sort()
+				.map((d) => ({ value: d, label: d }))
+		];
+	});
+
+	// Static options based on the Ramo interface definition
+	const tipoOptions = [
+		{ value: 'all', label: 'Cualquier tipo' },
+		{ value: 'PAR', label: 'Semestre Par' },
+		{ value: 'IMPAR', label: 'Semestre Impar' },
+		{ value: 'AMBOS', label: 'Ambos Semestres' },
+		{ value: 'ELECTIVO', label: 'Electivo' }
+	];
+
 	const filteredItems = $derived.by(async () => {
 		if (disabled) return [];
 		const q = debouncedQuery.trim();
@@ -156,6 +185,10 @@
 
 			const ramo = Object.values(paralelos).at(0);
 			if (!ramo) continue;
+
+			// Apply new department and type filters
+			if (selectedDepto !== 'all' && ramo.departamento !== selectedDepto) continue;
+			if (selectedTipo !== 'all' && ramo.tipoCurricular !== selectedTipo) continue;
 
 			let matches = true;
 			for (const s of splittedQuery) {
@@ -352,7 +385,15 @@
 			<div
 				class="bg-card sticky top-0 z-10 flex flex-col gap-1 rounded-tl-lg border-b pt-2 text-sm"
 			>
-				<div class="flex w-full flex-row items-center justify-between gap-4 px-2">
+				<div class="flex w-full flex-row items-center justify-end gap-2 px-2">
+					<button onmousedown={(e) => e.preventDefault()}>
+						<Select items={deptoOptions} bind:value={selectedDepto} size="sm" class="min-w-36" />
+					</button>
+
+					<button onmousedown={(e) => e.preventDefault()}>
+						<Select items={tipoOptions} bind:value={selectedTipo} size="sm" class="min-w-36" />
+					</button>
+
 					{#if isMallaCompatible}
 						<button transition:slide={{ axis: 'x' }} onmousedown={(e) => e.preventDefault()}>
 							<Select
