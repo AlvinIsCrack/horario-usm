@@ -128,7 +128,7 @@
 					>3</span
 				>
 				<p class="text-muted-foreground text-xs font-bold uppercase">
-					{inHorario ? 'Reemplazar' : 'Confirmar'} ramo
+					{inHorario ? 'Actualizar' : 'Confirmar'} ramo
 				</p>
 			</div>
 
@@ -144,7 +144,6 @@
 		</div>
 		<Button
 			disabled={!selectedRamo || !selectedParalelo}
-			variant={inHorario ? 'destructive' : 'primary'}
 			onclick={async () => {
 				if (!Calendario.ramoPreview) return;
 				Calendario.addRamo({ ...Calendario.ramoPreview });
@@ -152,7 +151,7 @@
 				SidebarState.close();
 			}}
 		>
-			{inHorario ? 'Reemplazar' : 'Confirmar'} ramo
+			Aceptar
 		</Button>
 	{/if}
 </div>
