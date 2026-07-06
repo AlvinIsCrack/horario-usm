@@ -73,6 +73,7 @@
 				{@const isHighlighted =
 					Calendario.ramoPreview?.sigla === ramo.sigla &&
 					Calendario.ramoPreview?.paralelo === ramo.paralelo}
+				{@const esOscuro = ramo.color?.isDark()}
 
 				{#snippet ramoCard()}
 					<div
@@ -91,7 +92,12 @@
 						onmouseleave={() => (Calendario.ramoPreview = undefined)}
 					>
 						<div class="w-full pr-10">
-							<div class="line-clamp-2 text-sm leading-tight font-medium" title={ramo.nombre}>
+							<div
+								class="mb-1 line-clamp-2 text-sm leading-none font-medium"
+								title={ramo.nombre}
+								class:text-white={esOscuro}
+								class:text-black={!esOscuro}
+							>
 								{ramo.nombre}
 							</div>
 							<div class="text-foreground pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
