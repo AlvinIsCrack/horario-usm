@@ -32,6 +32,7 @@
 	import { SettingsDialogState } from '$lib/core/config/components/dialog/SettingsDialog.svelte';
 	import MaterialSymbolsSettings from '$lib/icons/MaterialSymbolsSettings.svelte';
 	import RamosList from '../shared/RamosList.svelte';
+	import MaterialSymbolsContactSupport from '$lib/icons/MaterialSymbolsContactSupport.svelte';
 </script>
 
 <div
@@ -165,7 +166,7 @@
 								variant="outlined"
 								size="sm"
 								onclick={ContactState.open}
-								startDecorator={MaterialSymbolsFeedback}
+								startDecorator={MaterialSymbolsContactSupport}
 							>
 								Contacto
 							</Button>
