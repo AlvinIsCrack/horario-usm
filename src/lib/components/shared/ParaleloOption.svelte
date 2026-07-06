@@ -118,6 +118,7 @@
 	open={!!inspectedProfessor}
 	onclose={() => (inspectedProfessor = null)}
 	class="max-w-md gap-0 p-4"
+	showCloseButton={false}
 >
 	{#if inspectedProfessor}
 		<ProfessorCard id={inspectedProfessor} />
