@@ -176,10 +176,15 @@
 			.filter(Boolean);
 
 		let count = 0;
-		const results = [];
+
+		// SEPARATE TRANSITIONAL POOLS: Isolate standard courses from low-information entries
+		// to guarantee that items with missing metadata are always appended at the end.
+		const standardResults: (readonly [string, Record<string, Ramo>])[] = [];
+		const lowInfoResults: (readonly [string, Record<string, Ramo>])[] = [];
+
 		const entries = cachedRamos;
 
-		// Filtering logic
+		// FILTERING LOGIC
 		for (const [k, paralelos] of entries) {
 			if (isMallaCompatible && filterMode !== 'none') {
 				if (filterMode === 'malla' && !allowedSiglas.has(k)) continue;
@@ -189,8 +194,6 @@
 			const ramo = Object.values(paralelos).at(0);
 			if (!ramo) continue;
 
-			// CONSERVATIVE FILTERING: Only exclude courses if metadata is explicitly defined and mismatched.
-			// This prevents newly registered courses lacking metadata fields from being aggressively hidden.
 			if (selectedDepto !== 'all' && ramo.departamento && ramo.departamento !== selectedDepto)
 				continue;
 			if (selectedTipo !== 'all' && ramo.tipoCurricular && ramo.tipoCurricular !== selectedTipo)
@@ -207,11 +210,20 @@
 				}
 			}
 			if (matches) {
-				results.push([k, paralelos] as const);
+				const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular;
+
+				// SORTING INJECTION: Route the matched entry to its respective structural pool
+				if (hasLowInfo) {
+					lowInfoResults.push([k, paralelos] as const);
+				} else {
+					standardResults.push([k, paralelos] as const);
+				}
 				count++;
 			}
 		}
-		return results;
+
+		// MERGE TRANSACTIONS: Combine both pools preserving the trailing order for low-info entries
+		return [...standardResults, ...lowInfoResults];
 	});
 
 	$effect(() => {
