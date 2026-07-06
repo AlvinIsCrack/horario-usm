@@ -47,7 +47,7 @@
 <div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
 	{#if !edit}
 		{#await import('../../shared/RamoSearch.svelte') then { default: RamoSearch }}
-			<div class="mt-1 flex flex-col gap-1">
+			<div class="flex flex-col gap-1">
 				<div class="mb-1 flex items-center gap-2">
 					<span
 						class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -72,12 +72,14 @@
 	{/if}
 
 	{#if selectedRamo}
-		<RamoSummary sigla={selectedRamo} />
+		<div class="shrink-0">
+			<RamoSummary sigla={selectedRamo} />
+		</div>
 	{/if}
 
 	{#if selectedRamo && paraleloOptions.length}
-		<Separator />
-		<div class="flex flex-col gap-1">
+		<Separator class="shrink-0" />
+		<div class="flex shrink-0 flex-col gap-1">
 			<div class="mb-1 flex items-center gap-2">
 				<span
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -96,7 +98,8 @@
 				</div>
 			{/if}
 		</div>
-		<div class="flex w-full shrink flex-col gap-2 overflow-y-auto">
+
+		<div class="flex min-h-0 w-full flex-1 flex-col gap-2 overflow-y-auto">
 			{#each paraleloOptions as paraleloOption (paraleloOption.value)}
 				{@const ramo = { ...Data.cachedRamos[selectedRamo][paraleloOption.value!] }}
 				{@const selected = paraleloOption.value === selectedParalelo}
@@ -121,7 +124,7 @@
 
 	{#if Calendario.ramoPreview}
 		<Separator class="mt-auto" />
-		<div class="flex flex-col gap-1">
+		<div class="flex shrink-0 flex-col gap-1 pb-4">
 			<div class="mb-1 flex items-center gap-2">
 				<span
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -132,26 +135,17 @@
 				</p>
 			</div>
 
-			{#if !Calendario.ramoPreview && !Calendario.ramos.length}
-				<div
-					class="text-muted-foreground text-xs leading-relaxed"
-					transition:slide={{ duration: 150, axis: 'y' }}
-				>
-					Haz click en un paralelo para previsualizarlo en tu horario. Pulsa de nuevo para detener
-					la previsualización.
-				</div>
-			{/if}
+			<Button
+				disabled={!selectedRamo || !selectedParalelo}
+				onclick={async () => {
+					if (!Calendario.ramoPreview) return;
+					Calendario.addRamo({ ...Calendario.ramoPreview });
+					await tick();
+					SidebarState.close();
+				}}
+			>
+				Aceptar
+			</Button>
 		</div>
-		<Button
-			disabled={!selectedRamo || !selectedParalelo}
-			onclick={async () => {
-				if (!Calendario.ramoPreview) return;
-				Calendario.addRamo({ ...Calendario.ramoPreview });
-				await tick();
-				SidebarState.close();
-			}}
-		>
-			Aceptar
-		</Button>
 	{/if}
 </div>
