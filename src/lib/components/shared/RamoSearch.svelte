@@ -176,8 +176,8 @@
 		const results = [];
 		const entries = cachedRamos;
 
+		// Filtering logic
 		for (const [k, paralelos] of entries) {
-			// --- Lógica de Filtro ---
 			if (isMallaCompatible && filterMode !== 'none') {
 				if (filterMode === 'malla' && !allowedSiglas.has(k)) continue;
 				if (filterMode === 'available' && !availableSiglas.has(k)) continue;
@@ -186,9 +186,12 @@
 			const ramo = Object.values(paralelos).at(0);
 			if (!ramo) continue;
 
-			// Apply new department and type filters
-			if (selectedDepto !== 'all' && ramo.departamento !== selectedDepto) continue;
-			if (selectedTipo !== 'all' && ramo.tipoCurricular !== selectedTipo) continue;
+			// CONSERVATIVE FILTERING: Only exclude courses if metadata is explicitly defined and mismatched.
+			// This prevents newly registered courses lacking metadata fields from being aggressively hidden.
+			if (selectedDepto !== 'all' && ramo.departamento && ramo.departamento !== selectedDepto)
+				continue;
+			if (selectedTipo !== 'all' && ramo.tipoCurricular && ramo.tipoCurricular !== selectedTipo)
+				continue;
 
 			let matches = true;
 			for (const s of splittedQuery) {
@@ -207,6 +210,7 @@
 		}
 		return results;
 	});
+
 	$effect(() => {
 		// Reset index on query change
 		highlightedIndex = 0;
