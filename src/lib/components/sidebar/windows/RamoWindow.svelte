@@ -42,14 +42,6 @@
 	);
 
 	const inHorario = $derived(Calendario.hasRamo({ sigla: selectedRamo }));
-
-	let ramoSearch: HTMLInputElement | undefined = $state(undefined);
-	$effect(() => {
-		if (ramoSearch) {
-			ramoSearch.focus();
-			ramoSearch.select();
-		}
-	});
 </script>
 
 <div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
@@ -74,7 +66,7 @@
 					</div>
 				{/if}
 
-				<RamoSearch bind:this={ramoSearch as any} bind:value={selectedRamo} />
+				<RamoSearch bind:value={selectedRamo} />
 			</div>
 		{/await}
 	{/if}

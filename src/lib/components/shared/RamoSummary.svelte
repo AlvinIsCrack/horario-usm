@@ -9,6 +9,7 @@
 	import { Config } from '$lib/core/config/store.svelte';
 	import { generateColorForRamo } from '$lib/core/ramos/colors';
 	import SemesterAvailability from './SemesterAvailability.svelte';
+	import { cn } from '$lib/utils';
 
 	/**
 	 * @param sigla - Unique academic code identifying the course target (e.g., "INF-123").
@@ -43,7 +44,7 @@
 				<span class="font-mono text-sm tracking-wider" style:color={color?.lighten(0.5).hex()}
 					>{ramo.sigla}</span
 				>
-				<div class="flex flex-row flex-wrap gap-1">
+				<div class="flex translate-x-2 -translate-y-2 flex-row flex-wrap gap-1">
 					{#if programa}
 						<SemesterAvailability size="lg" curricularType={programa.tipo} />
 					{/if}
@@ -53,24 +54,49 @@
 			<h3 class="line-clamp-2 text-base leading-tight font-bold tracking-tight">{ramo.nombre}</h3>
 		</div>
 
-		<div class="bg-muted/30 -mx-4 flex w-auto border-y py-2.5 text-sm font-medium *:flex-1">
+		<div
+			class="bg-muted/30 relative z-10 -mx-4 flex w-auto border-y py-2 text-sm font-medium *:flex-1"
+		>
 			<Tooltip content="Cantidad de alumnos máximos por paralelo">
 				<div
-					class="text-foreground hover:text-foreground border-border/40 flex w-full items-center justify-center gap-2 border-r transition-colors"
+					class="text-foreground hover:text-foreground flex w-full cursor-help items-center justify-center gap-1 transition-colors"
 				>
 					<Ticket class="text-muted-foreground size-4 stroke-[1.75]" />
 					<span>{ramo.cupo} <span class="text-muted-foreground font-normal">cupos</span></span>
 				</div>
 			</Tooltip>
 			{#if ramo.creditos}
-				<div
-					class="text-foreground hover:text-foreground flex w-full items-center justify-center gap-2 transition-colors"
-				>
-					<Circles class="text-muted-foreground size-4 stroke-[1.75]" />
-					<span>{ramo.creditos} <span class="text-muted-foreground font-normal">SCT</span></span>
-				</div>
+				<Tooltip content="Créditos SCT del ramo">
+					<div
+						class="text-foreground hover:text-foreground flex w-full cursor-help items-center justify-center gap-1 transition-colors"
+					>
+						<Circles class="text-muted-foreground size-4 stroke-[1.75]" />
+						<span>{ramo.creditos} <span class="text-muted-foreground font-normal">SCT</span></span>
+					</div>
+				</Tooltip>
 			{/if}
 		</div>
+
+		{#if carrera?.horas}
+			{#snippet horaCell(value: number, suffix: string)}
+				<div class="text-center {value === 0 ? 'opacity-50' : ''}">
+					<Tooltip content="El ramo contempla {value}hrs {suffix}" wrapperClass="cursor-help">
+						<span class="w-fit tabular-nums">
+							<b class={cn(value ? 'text-foreground' : '')}>{value}</b>
+							{suffix.replace('de ', '').slice(0, 3)}.
+						</span>
+					</Tooltip>
+				</div>
+			{/snippet}
+			<div
+				class="bg-muted text-muted-foreground relative z-10 -mx-4 -mt-4 flex w-auto items-center justify-evenly gap-0.5 border-b py-2 text-sm"
+			>
+				{@render horaCell(carrera.horas.teoricas, 'teóricas')}
+				{@render horaCell(carrera.horas.ayudantias, 'de ayudantías')}
+				{@render horaCell(carrera.horas.laboratorios, 'de laboratorios')}
+				{@render horaCell(carrera.horas.practicas, 'prácticas')}
+			</div>
+		{/if}
 
 		{#if programa}
 			<div
@@ -85,7 +111,7 @@
 				<Button
 					size="sm"
 					variant="secondary"
-					class="h-8 w-full gap-1.5 text-xs sm:w-auto"
+					class="h-8 w-full shrink-0 gap-1.5 text-xs sm:w-auto"
 					onclick={() => {
 						window.open(programa.programa, '_blank');
 					}}
