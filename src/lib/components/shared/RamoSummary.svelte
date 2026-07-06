@@ -10,6 +10,8 @@
 	import { generateColorForRamo } from '$lib/core/ramos/colors';
 	import SemesterAvailability from './SemesterAvailability.svelte';
 	import { cn } from '$lib/utils';
+	import MdiAttachment from '$lib/icons/MdiAttachment.svelte';
+	import MdiAttachmentOff from '$lib/icons/MdiAttachmentOff.svelte';
 
 	/**
 	 * @param sigla - Unique academic code identifying the course target (e.g., "INF-123").
@@ -98,16 +100,16 @@
 			</div>
 		{/if}
 
-		{#if programa}
-			<div
-				class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-2 px-4 py-2.5"
-			>
-				<div class="max-w-1/2 text-xs">
-					<p class="truncate" title={ramo.departamento}>
-						{ramo.departamento}
-					</p>
-				</div>
+		<div
+			class="bg-card text-card-foreground -mx-4 -my-4 flex w-auto items-center justify-between gap-2 px-4 py-2.5"
+		>
+			<div class="max-w-1/2 text-xs">
+				<p class="truncate" title={carrera?.departamento || ramo.departamento}>
+					{carrera?.departamento || ramo.departamento}
+				</p>
+			</div>
 
+			{#if programa}
 				<Button
 					size="sm"
 					variant="secondary"
@@ -116,9 +118,13 @@
 						window.open(programa.programa, '_blank');
 					}}
 				>
-					<Clip class="inline h-3.5 w-3.5" /> Ver programa
+					<MdiAttachment class="inline size-4" /> Ver programa
 				</Button>
-			</div>
-		{/if}
+			{:else}
+				<Tooltip content="Programa del ramo no encontrado">
+					<MdiAttachmentOff class="text-muted-foreground inline size-4" />
+				</Tooltip>
+			{/if}
+		</div>
 	</Card>
 {/if}
