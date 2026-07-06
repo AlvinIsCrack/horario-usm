@@ -39,6 +39,9 @@
 			},
 			added: {
 				true: 'opacity-70 bg-green-500/5 hover:bg-green-500/10 border-green-500/20'
+			},
+			missingMetadata: {
+				true: 'opacity-60 hover:opacity-80 saturated-50 transition-opacity duration-300'
 			}
 		}
 	});
@@ -309,6 +312,8 @@
 				inHorario: boolean,
 				index: number
 			)}
+				{@const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular}
+
 				<li
 					bind:this={itemNodes[index]}
 					data-sigla={sigla}
@@ -322,7 +327,8 @@
 						class="{itemStyle({
 							active: highlightedIndex === index,
 							added: inHorario,
-							tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any
+							tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any,
+							missingMetadata: hasLowInfo
 						})} {GRID_CLASSES} items-center gap-4 text-sm"
 						onmousedown={(e) => {
 							e.preventDefault();
@@ -339,15 +345,19 @@
 
 						<span
 							class="text-muted-foreground/70 truncate text-left text-xs"
-							title="DEPTO. DE {ramo.departamento}"
+							title={ramo.departamento
+								? `DEPTO. DE ${ramo.departamento}`
+								: 'Sin departamento asignado'}
 						>
-							{ramo.departamento ?? 'N/A'}
+							{ramo.departamento ?? 'Sin depto.'}
 						</span>
 
 						{#if ramo.tipoCurricular}
 							<SemesterAvailability curricularType={ramo.tipoCurricular} />
 						{:else}
-							<span class="text-center"> &mdash; </span>
+							<span class="text-muted-foreground/40 text-center text-xs italic select-none"
+								>Sin datos</span
+							>
 						{/if}
 
 						<span class="text-right font-medium *:w-full">
