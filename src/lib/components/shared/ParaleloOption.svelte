@@ -44,7 +44,7 @@
 		role="button"
 		tabindex="0"
 		class={cn([
-			'relative flex min-h-10 w-full cursor-pointer items-center gap-2 rounded border p-2 text-left transition-colors',
+			'relative flex min-h-10 w-full cursor-pointer items-center gap-2 rounded border p-2 py-1 text-left transition-colors',
 			!selected
 				? 'bg-background hover:border-accent-foreground/20 hover:bg-accent active:bg-accent/80'
 				: 'bg-primary text-primary-foreground ring-primary/20 hover:bg-primary/90 shadow-md ring-1',
@@ -61,10 +61,10 @@
 
 {#snippet codeSection()}
 	<div
-		class="relative flex h-full min-w-12 flex-col items-center justify-center overflow-hidden leading-tight"
+		class="relative flex h-full min-w-12 flex-col items-start justify-center overflow-hidden leading-tight"
 	>
 		<div
-			class="text-xs font-black tracking-tighter md:scale-150 xl:scale-200 {hasCollision
+			class="text-2xl font-black tracking-tighter {hasCollision
 				? '-translate-y-1 text-amber-600'
 				: 'opacity-60'}"
 		>
