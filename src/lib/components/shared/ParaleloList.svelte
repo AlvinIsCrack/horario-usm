@@ -107,7 +107,7 @@
 				<div class="z-10 flex flex-1 flex-col items-end overflow-hidden text-right leading-snug">
 					{#each ramo.profesor as professor (professor)}
 						<div class="my-auto truncate text-sm font-medium">
-							{#if professor.includes('NN')}
+							{#if professor.includes('NN') || professor.includes('profesor')}
 								<span class="opacity-50">{professor}</span>
 							{:else}
 								<button
