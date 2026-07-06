@@ -350,37 +350,9 @@
 			{/snippet}
 
 			<div
-				class="bg-card sticky top-0 z-10 flex flex-col gap-1 rounded-tl-lg border-b pt-3 text-sm"
+				class="bg-card sticky top-0 z-10 flex flex-col gap-1 rounded-tl-lg border-b pt-2 text-sm"
 			>
-				<div class="flex w-full flex-row items-center justify-between gap-4 pr-2">
-					<div>
-						<p class="px-3">
-							Para el semestre <span class="highlight">{Config.semestre}</span> hay
-							<span class="highlight">{cachedRamos.length}</span> ramos registrados.
-						</p>
-
-						{#await filteredItems then items}
-							<div transition:slide={{ axis: 'y' }} class="flex flex-col gap-0.5 px-3">
-								{#if query.length && cachedRamos.length !== items.length}
-									<p>
-										Actualmente filtrando <span class="highlight secondary">{items.length}</span> ramos.
-									</p>
-								{/if}
-
-								{#if filterMode === 'malla'}
-									<p>
-										Mostrando <span class="highlight tertiary">{items.length}</span> ramos de tu carrera.
-									</p>
-								{:else if filterMode === 'available'}
-									<p>
-										Mostrando <span class="highlight tertiary">{items.length}</span> ramos matriculables
-										de tu carrera.
-									</p>
-								{/if}
-							</div>
-						{/await}
-					</div>
-
+				<div class="flex w-full flex-row items-center justify-between gap-4 px-2">
 					{#if isMallaCompatible}
 						<button transition:slide={{ axis: 'x' }} onmousedown={(e) => e.preventDefault()}>
 							<Select
@@ -394,7 +366,7 @@
 					{/if}
 				</div>
 
-				<div class="w-full pb-2"></div>
+				<div class="w-full"></div>
 
 				<div
 					class="text-primary-foreground/60 bg-primary/60 {GRID_CLASSES} gap-4 border-t px-4 py-1 text-xs *:my-auto *:leading-tight"
