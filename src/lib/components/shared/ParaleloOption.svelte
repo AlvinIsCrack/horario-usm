@@ -30,7 +30,7 @@
 	 * Evaluates whether the current parallel conflicts with scheduled hours.
 	 */
 	const hasCollision = $derived(
-		Calendario.hasRamo({ sigla: paralelo.sigla }) ? false : Calendario.checkCollision(paralelo)
+		true // || Calendario.hasRamo({ sigla: paralelo.sigla }) ? false : Calendario.checkCollision(paralelo)
 	);
 
 	/**
@@ -49,7 +49,7 @@
 				? 'bg-background hover:border-accent-foreground/20 hover:bg-accent active:bg-accent/80'
 				: 'bg-primary text-primary-foreground ring-primary/20 hover:bg-primary/90 shadow-md ring-1',
 			hasCollision && 'border-amber-600 hover:bg-amber-600/20',
-			hasCollision && selected && 'bg-amber-900'
+			hasCollision && selected && 'bg-amber-800/40'
 		])}
 		{onclick}
 		onkeydown={(e) => e.key === 'Enter' && onclick?.()}
@@ -64,17 +64,16 @@
 		class="relative flex h-full min-w-12 flex-col items-start justify-center overflow-hidden leading-tight"
 	>
 		<div
-			class="text-2xl font-black tracking-tighter {hasCollision
-				? '-translate-y-1 text-amber-600'
-				: 'opacity-60'}"
+			class={cn(
+				'text-muted-foreground text-center text-2xl font-black tracking-tighter',
+				hasCollision && 'text-amber-600'
+			)}
 		>
 			{code}
+			{#if hasCollision}
+				<div class="-mt-2 text-xs font-semibold tracking-normal text-amber-600">TOPE</div>
+			{/if}
 		</div>
-		{#if hasCollision}
-			<div class="absolute bottom-0 left-1/2 -translate-x-1/2 text-xs font-medium text-amber-600">
-				TOPE
-			</div>
-		{/if}
 		{#if extraInfo}
 			<p class="text-[10px] font-medium uppercase opacity-40">{extraInfo}</p>
 		{/if}
