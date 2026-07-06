@@ -167,41 +167,51 @@
 			{/if}
 		</div>
 
-		<div class="flex flex-wrap gap-1">
-			{#if repoData?.campuses}
-				{#each Array.from(repoData.campuses) as sede}
-					<span
-						class="text-secondary-foreground border-secondary-foreground/10 -ml-0.5 rounded-full border bg-sky-900/80 px-1.5 text-[10px] shadow-sm/50 select-none"
+		<div class="flex flex-wrap items-center gap-1.5">
+			{#if repoData?.campuses && repoData.campuses.size > 0}
+				<Tooltip content={`Sedes disponibles: ${Array.from(repoData.campuses).sort().join(', ')}`}>
+					<div
+						class="-ml-0.5 flex cursor-help items-center gap-1 rounded border border-sky-500! bg-sky-950/40 px-1.5 text-xs font-medium text-sky-400 shadow-sm/50 select-none"
+						role="note"
+						aria-label={`Disponible en sedes: ${Array.from(repoData.campuses).join(', ')}`}
 					>
-						{sede}
-					</span>
-				{/each}
+						<span>Sedes</span>
+					</div>
+				</Tooltip>
 			{/if}
-			{#each repoData?.subjects.slice(0, 4) as subject}
+
+			{#each repoData?.subjects.slice(0, 6) as subject}
 				<Tooltip content={subject.name}>
 					<span
-						class="bg-accent text-muted-foreground border-border/50 rounded border px-1 font-mono text-xs font-bold tracking-tight shadow-sm/50"
+						class="bg-accent text-muted-foreground border-border/50 rounded border px-1.5 font-mono text-xs font-bold tracking-tight shadow-sm/50"
 					>
 						{subject.sigla}
 					</span>
 				</Tooltip>
 			{/each}
-			{#if repoData?.subjects.length > 4}
+
+			{#if repoData?.subjects.length > 6}
 				<Tooltip
 					content={repoData.subjects
-						.slice(4)
-						.map((s) => `${s.sigla} <span class="opacity-50">(${s.name})</span>`)
+						.slice(6)
+						.map((s) => `${s.sigla} (${s.name})`)
 						.join(', ')}
 				>
-					<span class="text-muted-foreground px-1 py-0.5 text-[10px] select-none">
-						+{repoData.subjects.length - 4} más
+					<span
+						class="text-muted-foreground cursor-help px-1 py-0.5 text-[10px] font-medium select-none"
+						role="status"
+						aria-label={`Más asignaturas disponibles`}
+					>
+						+{repoData.subjects.length - 6} más
 					</span>
 				</Tooltip>
 			{/if}
 		</div>
 	</div>
 	{#if renderData?.meta && status !== 'ARCHIVED' && status !== 'UNRATED'}
-		<div class="inset-0 flex w-full flex-row flex-wrap justify-center gap-2 xl:gap-2.5">
+		<div
+			class="inset-0 flex w-full flex-row flex-wrap items-center justify-center gap-2 xl:gap-2.5"
+		>
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div class="flex flex-row flex-wrap gap-px">
 					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}

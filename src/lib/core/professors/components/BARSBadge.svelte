@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { tv } from 'tailwind-variants';
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-	import MdiEmoticonAngry from '$lib/icons/MdiEmoticonAngry.svelte';
+
 	import RiEmotionUnhappyFill from '$lib/icons/RiEmotionUnhappyFill.svelte';
 	import RiEmotionNormalFill from '$lib/icons/RiEmotionNormalFill.svelte';
 	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
 	import RiEmotionLaughFill from '$lib/icons/RiEmotionLaughFill.svelte';
 	import MingcuteAngelFill from '$lib/icons/MingcuteAngelFill.svelte';
-	import MaterialSymbolsLocalFireDepartmentRounded from '$lib/icons/MaterialSymbolsLocalFireDepartmentRounded.svelte';
 	import MaterialSymbolsElectricBoltRounded from '$lib/icons/MaterialSymbolsElectricBoltRounded.svelte';
 	import StreamlineJusticeHammerRemix from '$lib/icons/StreamlineJusticeHammerRemix.svelte';
 	import TablerHeartOff from '$lib/icons/TablerHeartOff.svelte';
@@ -34,9 +33,9 @@
 		base: 'overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
 		variants: {
 			dimension: {
-				didactica: 'rounded-sm',
-				exigencia: 'rounded-sm',
-				temperamento: 'rounded-sm'
+				didactica: 'rounded',
+				exigencia: 'rounded',
+				temperamento: 'rounded'
 			},
 			extreme: {
 				false: 'grayscale-20',
@@ -147,47 +146,54 @@
 	});
 </script>
 
-<div
-	class={base({ dimension: dimension.id, extreme: isExtreme })}
-	style:--badge-bg="var(--color-{color.solid.replace('bg-', '')})"
-	class:is-extreme={isExtreme}
-	class:custom-card={true}
->
-	{#if currentIcon}
-		{@const Icon = currentIcon}
-		<Icon class="relative drop-shadow-sm/80 z-10 size-full transition-all" />
-	{/if}
-
-	{#if isExtreme}
-		<div
-			class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full mix-blend-plus-lighter"
-		></div>
-	{/if}
-
-	{#snippet tooltipContent()}
-		<div class="items-center justify-center space-y-1 text-left leading-tight">
-			<p>
-				<span class="mr-1 font-medium opacity-50">{dimension.label}, {subdimension.def.label}:</span
-				>
-				<b class={color.text}>{subdimension.label}</b>
-				<span class="opacity-50"
-					>(Puntaje {isInverseMetric ? 6 - roundedValue : roundedValue}/5)</span
-				>.
-				{subdimension.def.levels[roundedValue].description}
-			</p>
-			<p class="mt-2 text-xs opacity-50">
-				<b>{subdimension.def.label}:</b>
-				{subdimension.def.description}
-			</p>
-		</div>
-	{/snippet}
-
-	<Tooltip
-		content={tooltipContent}
-		wrapperClass="absolute! peer left-0 top-0 z-10 pointer-events-auto w-full h-full"
+<div class="flex flex-col items-center gap-0.5">
+	<div
+		class={base({ dimension: dimension.id, extreme: isExtreme })}
+		style:--badge-bg="var(--color-{color.solid.replace('bg-', '')})"
+		class:is-extreme={isExtreme}
+		class:custom-card={true}
 	>
-		<div></div>
-	</Tooltip>
+		{#if currentIcon}
+			{@const Icon = currentIcon}
+			<Icon class="relative z-10 size-full drop-shadow-sm/80 transition-all" />
+		{/if}
+
+		{#if isExtreme}
+			<div
+				class="animate-shimmer pointer-events-none absolute inset-0 z-6 size-full mix-blend-plus-lighter"
+			></div>
+		{/if}
+
+		{#snippet tooltipContent()}
+			<div class="items-center justify-center space-y-1 text-left leading-tight">
+				<p>
+					<span class="mr-1 font-medium opacity-50"
+						>{dimension.label}, {subdimension.def.label}:</span
+					>
+					<b class={color.text}>{subdimension.label}</b>
+					<span class="opacity-50"
+						>(Puntaje {isInverseMetric ? 6 - roundedValue : roundedValue}/5)</span
+					>.
+					{subdimension.def.levels[roundedValue].description}
+				</p>
+				<p class="mt-2 text-xs opacity-50">
+					<b>{subdimension.def.label}:</b>
+					{subdimension.def.description}
+				</p>
+			</div>
+		{/snippet}
+
+		<Tooltip
+			content={tooltipContent}
+			wrapperClass="absolute! peer left-0 top-0 z-10 pointer-events-auto w-full h-full"
+		>
+			<div></div>
+		</Tooltip>
+	</div>
+
+	<span class="font-mono text-[10px] leading-none font-bold tracking-tighter {color.text}">
+		{isInverseMetric ? 6 - roundedValue : roundedValue}/5
+	</span>
 </div>
 
 <style>
