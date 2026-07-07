@@ -446,7 +446,11 @@
 					</button>
 
 					{#if isMallaCompatible}
-						<button transition:slide={{ axis: 'x' }} onmousedown={(e) => e.preventDefault()}>
+						<button
+							transition:slide={{ axis: 'x' }}
+							onmousedown={(e) => e.preventDefault()}
+							class="relative"
+						>
 							<Select
 								items={filterOptions}
 								bind:value={filterMode}
@@ -454,6 +458,10 @@
 								class="min-w-xs"
 								placeholder="Filtrar búsqueda..."
 							/>
+
+							{#if filterMode !== 'none'}
+								<div class="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-amber-500"></div>
+							{/if}
 						</button>
 					{/if}
 				</div>
