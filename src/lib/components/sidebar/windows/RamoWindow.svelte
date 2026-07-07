@@ -47,8 +47,8 @@
 <div class="flex h-full max-h-[calc(100%-4rem)] w-full flex-col gap-2 overflow-visible">
 	{#if !edit}
 		{#await import('../../shared/RamoSearch.svelte') then { default: RamoSearch }}
-			<div class="flex flex-col gap-1">
-				<div class="mb-1 flex items-center gap-2">
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center gap-2">
 					<span
 						class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 						>1</span
@@ -66,7 +66,7 @@
 					</div>
 				{/if}
 
-				<RamoSearch bind:value={selectedRamo} />
+				<RamoSearch bind:value={selectedRamo} autofocus />
 			</div>
 		{/await}
 	{/if}
@@ -79,8 +79,8 @@
 
 	{#if selectedRamo && paraleloOptions.length}
 		<Separator class="shrink-0" />
-		<div class="flex shrink-0 flex-col gap-1">
-			<div class="mb-1 flex items-center gap-2">
+		<div class="flex shrink-0 flex-col gap-2">
+			<div class="flex items-center gap-2">
 				<span
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 					>2</span
@@ -104,8 +104,8 @@
 
 	{#if Calendario.ramoPreview}
 		<Separator class="mt-auto" />
-		<div class="flex shrink-0 flex-col gap-1 pb-4">
-			<div class="mb-1 flex items-center gap-2">
+		<div class="flex shrink-0 flex-col gap-2 pb-4">
+			<div class="flex items-center gap-2">
 				<span
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 					>3</span

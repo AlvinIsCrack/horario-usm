@@ -21,6 +21,7 @@
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
 	import SemesterAvailability from './SemesterAvailability.svelte';
+	import Input from '../ui/Input.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -53,13 +54,21 @@
 		placeholder = 'Buscar ramo por sigla, nombre...',
 		disabled = false,
 		class: _class,
+		autofocus = false,
 		...props
 	}: {
 		this?: HTMLInputElement;
 		value?: string;
 		placeholder?: string;
 		disabled?: boolean;
+		autofocus?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
+
+	$effect(() => {
+		if (autofocus && _this) {
+			_this.focus();
+		}
+	});
 
 	let query = $state('');
 	let debouncedQuery = $state('');
@@ -291,14 +300,11 @@
 	class:opacity-50={disabled}
 	{...props}
 >
-	<div class="relative">
-		<Search
-			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-5 -translate-y-1/2"
-		/>
-		<input
+	<Tooltip content="Desplegar catálogo de asignaturas" wrapperClass="w-full! block!">
+		<Input
 			bind:this={_this}
-			class="border-input! hover:border-foreground! focus-within:border-foreground! placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded border-2 bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
 			bind:value={query}
+			startDecorator={Search}
 			{placeholder}
 			{disabled}
 			role="combobox"
@@ -313,7 +319,7 @@
 			onblur={handleBlur}
 			onkeydown={handleKeydown}
 		/>
-	</div>
+	</Tooltip>
 
 	<Floating
 		trigger={containerEl}
