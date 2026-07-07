@@ -1,6 +1,8 @@
 <script module>
 	// Current query filter mode applied to search operations
 	let filterMode = $state<'none' | 'malla' | 'available'>('none');
+
+	const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
 </script>
 
 <script lang="ts">
@@ -22,31 +24,37 @@
 	import { cn } from '$lib/utils';
 	import SemesterAvailability from './SemesterAvailability.svelte';
 	import Input from '../ui/Input.svelte';
+	import MaterialSymbolsOverviewKeyOutlineSharp from '$lib/icons/MaterialSymbolsOverviewKeyOutlineSharp.svelte';
+	import MaterialSymbolsCheck from '$lib/icons/MaterialSymbolsCheck.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
 	});
+
 	const itemStyle = tv({
-		base: 'relative w-full text-left py-2.5 px-4 transition-all duration-150 border-b border-border/50! group-even:bg-black/40 overflow-hidden hover:cursor-pointer justify-center items-center place-content-center',
+		base: [
+			'relative w-full text-left py-2.5 px-4 transition-all duration-150',
+			`${GRID_CLASSES} items-center gap-4 text-sm`,
+			'border-b border-border/50! group-even:bg-black/20 overflow-hidden',
+			'hover:cursor-pointer justify-center items-center place-content-center',
+			'group-aria-selected:bg-primary/20 hover:bg-muted/50'
+		],
 		variants: {
-			active: {
-				true: 'bg-primary/20!'
-			},
-			tipo: {
-				AMBOS: 'to-green-500/40',
-				PAR: 'to-amber-400/40',
-				IMPAR: 'to-sky-500/40',
-				ELECTIVO: 'to-rose-600/40'
-			},
 			added: {
-				true: 'opacity-70 bg-green-500/5 hover:bg-green-500/10 border-green-500/20'
+				true: [
+					'bg-green-500/5 border-green-500/20',
+					'hover:bg-green-500/10',
+					'group-aria-selected:bg-green-500/25'
+				]
+			},
+			hasAllColliding: {
+				true: ['bg-amber-500/5', 'hover:bg-amber-400/10', 'group-aria-selected:bg-amber-400/20']
 			},
 			missingMetadata: {
-				true: 'opacity-60 hover:opacity-80 saturated-50 transition-opacity duration-300'
+				true: 'opacity-70 hover:opacity-100 saturated-50 transition-opacity duration-300'
 			}
 		}
 	});
-	const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
 
 	let {
 		this: _this = $bindable(),
@@ -347,6 +355,7 @@
 				ramo: Ramo,
 				paralelos: Ramo[],
 				inHorario: boolean,
+				todoConTope: boolean,
 				index: number
 			)}
 				{@const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular}
@@ -361,12 +370,11 @@
 					class="group list-none"
 				>
 					<button
-						class="{itemStyle({
-							active: highlightedIndex === index,
+						class={itemStyle({
 							added: inHorario,
-							tipo: (ramo?.tipoCurricular ?? '').toUpperCase() as any,
-							missingMetadata: hasLowInfo
-						})} {GRID_CLASSES} items-center gap-4 text-sm"
+							missingMetadata: hasLowInfo,
+							hasAllColliding: todoConTope
+						})}
 						onmousedown={(e) => {
 							e.preventDefault();
 							onItemClicked(sigla);
@@ -376,8 +384,10 @@
 							{sigla}
 						</span>
 
-						<span class="text-muted-foreground truncate text-left font-medium" title={ramo.nombre}>
-							{ramo.nombre}
+						<span class="text-muted-foreground text-left font-medium" title={ramo.nombre}>
+							<span class="truncate">
+								{ramo.nombre}
+							</span>
 						</span>
 
 						<span
@@ -495,8 +505,9 @@
 					{@const paralelos = Object.values(item[1])}
 					{@const ramo = paralelos.at(0)!}
 					{@const inHorario = Calendario.hasRamo({ sigla })}
+					{@const todoConTope = !inHorario && paralelos.every((p) => Calendario.checkCollision(p))}
 
-					{@render ramoRow(sigla, ramo, paralelos, inHorario, i)}
+					{@render ramoRow(sigla, ramo, paralelos, inHorario, todoConTope, i)}
 				{/each}
 			{/if}
 
