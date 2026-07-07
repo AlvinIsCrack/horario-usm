@@ -24,8 +24,6 @@
 	import { cn } from '$lib/utils';
 	import SemesterAvailability from './SemesterAvailability.svelte';
 	import Input from '../ui/Input.svelte';
-	import MaterialSymbolsOverviewKeyOutlineSharp from '$lib/icons/MaterialSymbolsOverviewKeyOutlineSharp.svelte';
-	import MaterialSymbolsCheck from '$lib/icons/MaterialSymbolsCheck.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -384,10 +382,8 @@
 							{sigla}
 						</span>
 
-						<span class="text-muted-foreground text-left font-medium" title={ramo.nombre}>
-							<span class="truncate">
-								{ramo.nombre}
-							</span>
+						<span class="text-muted-foreground truncate text-left font-medium" title={ramo.nombre}>
+							{ramo.nombre}
 						</span>
 
 						<span
