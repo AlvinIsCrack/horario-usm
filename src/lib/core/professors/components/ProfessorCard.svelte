@@ -5,7 +5,7 @@
 	import { professorRepo, type ProfessorEntry } from '$lib/core/professors/repository.svelte';
 	import { hasPendingReview } from '$lib/core/reviews/api';
 	import { onMount } from 'svelte';
-	import BARSBadge from './BARSBadge.svelte';
+	import ProfessorBadge from './ProfessorBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
 	import { fade } from 'svelte/transition';
 	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
@@ -215,7 +215,7 @@
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div class="flex flex-row flex-wrap gap-px">
 					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
-						<BARSBadge dimension={dim} subdimension={sub} />
+						<ProfessorBadge dimension={dim} subdimension={sub} />
 					{/each}
 				</div>
 			{/each}
