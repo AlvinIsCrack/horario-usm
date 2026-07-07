@@ -1,3 +1,41 @@
+<script module>
+	/**
+	 * Map containing descriptive text and UI configuration corresponding to each confidence level.
+	 */
+	const STATUS_METADATA = {
+		ARCHIVED: {
+			icon: MaterialSymbolsSearchActivityRounded,
+			label: 'Archivado',
+			confidence: 'insuficiente',
+			description: 'Datos históricos o insuficientes para generar una estadística actual confiable.'
+		},
+		UNRATED: {
+			icon: OcticonUnverified16,
+			label: 'Sin datos',
+			confidence: 'nula',
+			description: 'Datos históricos o insuficientes para generar una estadística actual confiable.'
+		},
+		PRELIMINARY: {
+			icon: OcticonUnverified16,
+			label: 'Preliminar',
+			confidence: 'preliminar',
+			description: 'Nivel de confianza estadística:'
+		},
+		SOLID: {
+			icon: OcticonVerified16,
+			label: 'Confiable',
+			confidence: 'confiable',
+			description: 'Nivel de confianza estadística:'
+		},
+		HIGHLIGHTED: {
+			icon: OcticonVerified16,
+			label: 'Sólido',
+			confidence: 'sólido',
+			description: 'Nivel de confianza estadística:'
+		}
+	} as const;
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { tv } from 'tailwind-variants';
@@ -66,18 +104,6 @@
 		}
 	});
 
-	const STATUS_METADATA = {
-		ARCHIVED: {
-			icon: MaterialSymbolsSearchActivityRounded,
-			label: 'Archivado',
-			confidence: 'insuficiente'
-		},
-		UNRATED: { icon: OcticonUnverified16, label: 'Sin datos', confidence: 'nula' },
-		PRELIMINARY: { icon: OcticonUnverified16, label: 'Preliminar', confidence: 'preliminar' },
-		SOLID: { icon: OcticonVerified16, label: 'Confiable', confidence: 'confiable' },
-		HIGHLIGHTED: { icon: OcticonVerified16, label: 'Sólido', confidence: 'sólido' }
-	} as const;
-
 	const currentUiStyles = $derived(statusVariants({ status }));
 	const currentMeta = $derived(STATUS_METADATA[status]);
 	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
@@ -95,10 +121,9 @@
 	{#if renderData?.sampleMeta}
 		<div class="space-y-2 leading-tight">
 			<p>
-				{#if status === 'ARCHIVED'}
-					Datos históricos o insuficientes para generar una estadística actual confiable.
-				{:else}
-					Nivel de confianza estadística: <b>{currentMeta.confidence}</b>.
+				{currentMeta.description}
+				{#if !isDataDeficient}
+					<b>{currentMeta.confidence}</b>.
 					<br />
 					<span class="text-xs opacity-50"
 						>Basado en {renderData.sampleMeta.reviewCount} votos.</span
