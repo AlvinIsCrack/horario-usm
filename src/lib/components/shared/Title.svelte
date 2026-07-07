@@ -105,9 +105,7 @@
 				</div>
 
 				{#if Config.sede && Config.jornada && Config.semestre}
-					<div
-						class="text-muted-foreground [&_span]:text-foreground! mt-4 inline-flex items-center gap-1.5 text-base"
-					>
+					<div class="mt-4 inline-flex items-center gap-2 text-base [&_span]:text-amber-500!">
 						Consultando la malla del semestre
 						<Tooltip
 							content={hayNuevoSemestre
@@ -118,6 +116,7 @@
 								onclick={() => SettingsDialogState.open()}
 								size="sm"
 								startDecorator={MaterialSymbolsRefresh}
+								class="shadow-sm/20"
 							>
 								{Config.semestre}
 
@@ -132,7 +131,7 @@
 							</Button>
 						</Tooltip>
 						para <span class="font-medium">{Config.sede}</span>, jornada
-						<span class="font-medium">{Config.jornada}</span>.
+						<p><span class="font-medium">{Config.jornada}</span>.</p>
 					</div>
 				{/if}
 			</div>
