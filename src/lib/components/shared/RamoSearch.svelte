@@ -302,7 +302,7 @@
 >
 	<Tooltip content="Desplegar catálogo de asignaturas" wrapperClass="w-full! block!">
 		<Input
-			bind:this={_this}
+			bind:el={_this}
 			bind:value={query}
 			startDecorator={Search}
 			{placeholder}

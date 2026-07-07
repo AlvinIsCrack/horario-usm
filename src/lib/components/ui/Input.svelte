@@ -32,9 +32,11 @@
 		startDecorator: StartDecorator,
 		class: _class,
 		disabled = false,
+		el = $bindable(),
 		...props
 	}: {
 		value?: string | number | null;
+		el?: HTMLInputElement;
 		startDecorator?: Component;
 	} & HTMLInputAttributes = $props();
 
@@ -47,5 +49,5 @@
 		<StartDecorator class={decorator()} />
 	{/if}
 
-	<input bind:value {disabled} class={input()} {...props} />
+	<input bind:this={el} bind:value {disabled} class={input()} {...props} />
 </div>
