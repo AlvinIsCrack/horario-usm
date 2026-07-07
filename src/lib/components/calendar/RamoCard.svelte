@@ -16,9 +16,12 @@
 				'text-left leading-4 bg-blend-multiply',
 				'shadow-md/50 inset-shadow-xs inset-shadow-white/50 bloque-con-brillo'
 			],
-			titleText: ['font-medium leading-tight line-clamp-2', 'text-xs @xs:text-sm @md:text-base'],
-			subtitleText: ['mt-0.5 font-mono font-medium', 'text-xs @xs:text-sm'],
-			typeLabel: ['font-bold tracking-wider uppercase', 'text-[10px] @xs:text-xs']
+			titleText: [
+				'font-medium leading-tight line-clamp-2',
+				'text-xs @4xs:text-sm @3xs:text-base @2xs:text-base'
+			],
+			subtitleText: ['font-medium', 'text-xs @4xs:text-sm @2xs:text-base'],
+			typeLabel: ['font-bold tracking-wider uppercase', 'text-[10px] @4xs:text-xs @2xs:text-base']
 		},
 		variants: {
 			isLecture: {
@@ -127,7 +130,7 @@
 			{#if salaVálida}
 				<CornerBadge
 					position="bottom-right"
-					class="{esCátedra ? 'rounded-br-lg' : ''} text-[10px]! @xs:text-xs! @sm:text-sm!"
+					class="{esCátedra ? 'rounded-br-lg' : ''} text-[10px]! @3xs:text-xs! @2xs:text-sm!"
 					icon={Location}
 				>
 					{bloqueObject.sala}
