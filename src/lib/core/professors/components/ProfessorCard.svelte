@@ -1,48 +1,52 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import { tv } from 'tailwind-variants';
+
 	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import MaterialSymbolsNestClockFarsightAnalogOutline from '$lib/icons/MaterialSymbolsNestClockFarsightAnalogOutline.svelte';
+	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
+	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
+	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
+
 	import { findProfessor, getProfessorRenderData, orderTags } from '$lib/core/professors';
 	import { professorRepo, type ProfessorEntry } from '$lib/core/professors/repository.svelte';
 	import { hasPendingReview } from '$lib/core/reviews/api';
-	import { onMount } from 'svelte';
-	import ProfessorBadge from './ProfessorBadge.svelte';
-	import ProfessorTag from './ProfessorTag.svelte';
-	import { fade } from 'svelte/transition';
-	import OcticonVerified16 from '$lib/icons/OcticonVerified16.svelte';
-	import OcticonUnverified16 from '$lib/icons/OcticonUnverified16.svelte';
-	import MaterialSymbolsSearchActivityRounded from '$lib/icons/MaterialSymbolsSearchActivityRounded.svelte';
 	import { calculateConfidenceStatus } from '../types';
 	import { formatRelativeTime } from '../utils';
+	import ProfessorBadge from './ProfessorBadge.svelte';
+	import ProfessorTag from './ProfessorTag.svelte';
 
-	let {
-		id,
-		professor
-	}: {
+	// Component contracts and properties definition
+	interface Props {
 		id?: string;
 		professor?: ProfessorEntry;
-	} = $props();
+	}
 
+	let { id, professor }: Props = $props();
+
+	// Component reactive state
 	let isVisible = $state(false);
+	let isPendingMyVote = $state(false);
+	let commentIndex = $state(0);
+	let isPaused = $state(false);
+
+	// Custom viewport action for lazy intersection tracking
 	function viewport(node: HTMLElement) {
 		const observer = new IntersectionObserver((entries) => {
 			isVisible = entries[0].isIntersecting;
 		});
 		observer.observe(node);
-		return { destroy: () => observer.disconnect() };
+		return {
+			destroy: () => observer.disconnect()
+		};
 	}
 
+	// Reactive derived business logic
 	const nameToSearch = $derived(professor?.name ?? id ?? '');
 	const registryProfile = $derived(findProfessor(nameToSearch));
 	const renderData = $derived(getProfessorRenderData(registryProfile));
 	const repoData = $derived(professor ?? professorRepo.search(nameToSearch)[0]);
-
-	let isPendingMyVote = $state(false);
-	onMount(() => {
-		// Verificamos si el usuario votó recientemente por este profesor
-		if (renderData?.profile) {
-			isPendingMyVote = hasPendingReview(renderData.profile.name);
-		}
-	});
 
 	const status = $derived(
 		calculateConfidenceStatus(
@@ -51,67 +55,75 @@
 		)
 	);
 
-	// [NUEVO] Configuración UI Driven (Single Source of Truth para estilos)
-	const STATUS_UI = {
+	// UI status mappings leveraging tailwind-variants for conditional scaling
+	const statusVariants = tv({
+		slots: {
+			bg: '',
+			iconClass: ''
+		},
+		variants: {
+			status: {
+				ARCHIVED: { bg: 'bg-red-500/20', iconClass: 'text-rose-500' },
+				UNRATED: { bg: 'bg-accent', iconClass: 'text-muted-foreground/50' },
+				PRELIMINARY: { bg: 'bg-amber-500/20', iconClass: 'text-orange-400' },
+				SOLID: {
+					bg: 'bg-sky-500/20',
+					iconClass: 'text-cyan-400 drop-shadow-sm/100! drop-shadow-cyan-500'
+				},
+				HIGHLIGHTED: {
+					bg: 'bg-fuchsia-500/20',
+					iconClass: 'text-fuchsia-400 drop-shadow-sm/100! drop-shadow-fuchsia-600'
+				}
+			}
+		}
+	});
+
+	const STATUS_METADATA = {
 		ARCHIVED: {
-			bg: 'bg-red-500/20',
 			icon: MaterialSymbolsSearchActivityRounded,
-			iconClass: 'text-rose-500',
 			label: 'Archivado',
 			confidence: 'insuficiente'
 		},
-		UNRATED: {
-			bg: 'bg-accent',
-			icon: OcticonUnverified16,
-			iconClass: 'text-muted-foreground/50', // Más discreto que el preliminar
-			label: 'Sin datos',
-			confidence: 'nula'
-		},
-		PRELIMINARY: {
-			bg: 'bg-amber-500/20',
-			icon: OcticonUnverified16,
-			iconClass: 'text-orange-400',
-			label: 'Preliminar',
-			confidence: 'preliminar'
-		},
-		SOLID: {
-			bg: 'bg-sky-500/20',
-			icon: OcticonVerified16,
-			iconClass: 'text-cyan-400 drop-shadow-sm/100! drop-shadow-cyan-500',
-			label: 'Confiable',
-			confidence: 'confiable'
-		},
-		HIGHLIGHTED: {
-			bg: 'bg-fuchsia-500/20',
-			icon: OcticonVerified16,
-			iconClass: 'text-fuchsia-400 drop-shadow-sm/100! drop-shadow-fuchsia-600',
-			label: 'Sólido',
-			confidence: 'sólido'
-		}
+		UNRATED: { icon: OcticonUnverified16, label: 'Sin datos', confidence: 'nula' },
+		PRELIMINARY: { icon: OcticonUnverified16, label: 'Preliminar', confidence: 'preliminar' },
+		SOLID: { icon: OcticonVerified16, label: 'Confiable', confidence: 'confiable' },
+		HIGHLIGHTED: { icon: OcticonVerified16, label: 'Sólido', confidence: 'sólido' }
 	} as const;
-	const currentUi = $derived(STATUS_UI[status]);
+
+	const currentUiStyles = $derived(statusVariants({ status }));
+	const currentMeta = $derived(STATUS_METADATA[status]);
 
 	const name = $derived(repoData?.name ?? registryProfile?.name ?? id ?? 'Profesor Desconocido');
-	let commentIndex = $state(0);
-	let isPaused = $state(false);
 
+	onMount(() => {
+		if (renderData?.profile) {
+			isPendingMyVote = hasPendingReview(renderData.profile.name);
+		}
+	});
+
+	// Cyclic background scheduler for multi-comment rotation
 	$effect(() => {
 		if (!isVisible) return;
 
+		// Explicit tracking dependency assignment
 		const _ = [isPaused];
-		let interval: any;
+		let intervalId: ReturnType<typeof setInterval> | undefined;
 
-		if ((renderData?.profile.comments?.length ?? 0) > 1 && !isPaused) {
-			interval = setInterval(() => {
-				commentIndex = (commentIndex + 1) % renderData!.profile.comments!.length;
+		const totalComments = renderData?.profile?.comments?.length ?? 0;
+		if (totalComments > 1 && !isPaused) {
+			intervalId = setInterval(() => {
+				commentIndex = (commentIndex + 1) % totalComments;
 			}, 4000);
 		}
-		return () => clearInterval(interval);
+
+		return () => {
+			if (intervalId) clearInterval(intervalId);
+		};
 	});
 </script>
 
 <div class="relative h-full w-full space-y-2.5 text-left" use:viewport>
-	<div class="{currentUi.bg} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
+	<div class="{currentUiStyles.bg({})} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
 				<h1 class="text-foreground leading-tight font-medium capitalize select-none">
@@ -123,21 +135,19 @@
 			</div>
 
 			{#if renderData?.sampleMeta}
-				{@const Icon = currentUi.icon}
+				{@const Icon = currentMeta.icon}
 
 				{#snippet tooltipContent()}
 					<div class="space-y-2 leading-tight">
 						<p>
 							{#if status === 'ARCHIVED'}
 								Datos históricos o insuficientes para generar una estadística actual confiable.
-							{:else if status === 'UNRATED'}
-								Aún no hay suficientes votos para generar estadísticas.
 							{:else}
-								Nivel de confianza estadística: <b>{currentUi.confidence}</b>.
+								Nivel de confianza estadística: <b>{currentMeta.confidence}</b>.
 								<br />
-								<span class="text-xs opacity-50"
-									>Basado en {renderData.sampleMeta.reviewCount} votos.</span
-								>
+								<span class="text-xs opacity-50">
+									Basado en {renderData.sampleMeta.reviewCount} votos.
+								</span>
 							{/if}
 						</p>
 
@@ -161,7 +171,7 @@
 					<div
 						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:hover:opacity-100"
 					>
-						<Icon class={currentUi.iconClass} />
+						<Icon class={currentUiStyles.iconClass({})} />
 					</div>
 				</Tooltip>
 			{/if}
@@ -180,7 +190,7 @@
 				</Tooltip>
 			{/if}
 
-			{#each repoData?.subjects.slice(0, 6) as subject}
+			{#each repoData?.subjects.slice(0, 6) ?? [] as subject}
 				<Tooltip content={subject.name}>
 					<span
 						class="bg-accent text-muted-foreground border-border/50 rounded border px-1.5 font-mono text-xs font-bold tracking-tight shadow-sm/50"
@@ -190,7 +200,7 @@
 				</Tooltip>
 			{/each}
 
-			{#if repoData?.subjects.length > 6}
+			{#if repoData?.subjects && repoData.subjects.length > 6}
 				<Tooltip
 					content={repoData.subjects
 						.slice(6)
@@ -200,7 +210,7 @@
 					<span
 						class="text-muted-foreground cursor-help px-1 py-0.5 text-[10px] font-medium select-none"
 						role="status"
-						aria-label={`Más asignaturas disponibles`}
+						aria-label="Más asignaturas disponibles"
 					>
 						+{repoData.subjects.length - 6} más
 					</span>
@@ -208,13 +218,14 @@
 			{/if}
 		</div>
 	</div>
+
 	{#if renderData?.meta && status !== 'ARCHIVED' && status !== 'UNRATED'}
 		<div
 			class="inset-0 flex w-full flex-row flex-wrap items-center justify-center gap-2 xl:gap-2.5"
 		>
 			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
 				<div class="flex flex-row flex-wrap gap-px">
-					{#each Object.entries<any>(dim.subs) as [subKey, sub] (subKey)}
+					{#each Object.entries(dim.subs) as [subKey, sub] (subKey)}
 						<ProfessorBadge dimension={dim} subdimension={sub} />
 					{/each}
 				</div>
@@ -233,7 +244,6 @@
 		{@const topTags = sortedTags.slice(0, 5)}
 		{@const maxScore = topTags[0]?.score || 1}
 		{@const minScore = topTags[topTags.length - 1]?.score || 0}
-
 		{@const hasSignificantVariation = (maxScore - minScore) / maxScore > 0.2}
 
 		<div class="flex flex-wrap gap-1">
@@ -246,8 +256,8 @@
 		</div>
 	{/if}
 
-	{#if renderData?.profile.comments?.length}
-		{@const activeComment = renderData!.profile.comments![commentIndex]}
+	{#if renderData?.profile?.comments?.length}
+		{@const activeComment = renderData.profile.comments[commentIndex]}
 
 		<div
 			onmouseenter={() => (isPaused = true)}
@@ -263,9 +273,9 @@
 					<span>PALABRAS</span>
 				</div>
 
-				{#if renderData!.profile.comments!.length > 1}
+				{#if renderData.profile.comments.length > 1}
 					<div class="flex gap-1">
-						{#each renderData!.profile.comments! as _, i}
+						{#each renderData.profile.comments as _, i}
 							<button
 								aria-label="Breadcrumb"
 								onclick={() => {
@@ -294,13 +304,6 @@
 							class="text-muted-foreground -mx-3 flex items-center justify-between space-x-2 border-t border-white/10 px-3 pt-2 text-xs"
 						>
 							<span class="text-nowrap">{new Date(activeComment.date).toLocaleDateString()}</span>
-							<!-- {#if activeComment.tags?.length}
-									<div class="flex gap-1">
-										{#each activeComment.tags.slice(0, 3) as tag}
-											<ProfessorTag {tag} />
-										{/each}
-									</div>
-								{/if} -->
 						</div>
 					</div>
 				{/snippet}
@@ -324,10 +327,6 @@
 								</p>
 							</div>
 						</Tooltip>
-
-						<!-- <MaterialSymbolsAndroidMessages
-							class="absolute right-2 bottom-0 z-0 h-8 w-auto opacity-50"
-						/> -->
 					</div>
 				{/key}
 			</div>

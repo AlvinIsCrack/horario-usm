@@ -57,7 +57,7 @@
 
 	// --- VIRTUALIZACIÓN / SCROLL INFINITO ---
 	let renderLimit = $state(20);
-	const BATCH_SIZE = 20;
+	const BATCH_SIZE = 12;
 	let scrollContainer: HTMLElement;
 
 	// --- ESTADO DEL MODAL DE EVALUACIÓN ---
@@ -298,15 +298,8 @@
 </script>
 
 <div class="flex h-full w-full flex-col">
-	<div class="mx-auto w-full max-w-4xl space-y-4 p-6 pb-2">
-		<div class="text-muted-foreground flex items-center justify-between px-1 text-xs">
-			<span>Mostrando {allResults.length} profesores</span>
-			{#if ProfessorPageState.query}<span>Resultados para "{ProfessorPageState.query}"</span>{/if}
-		</div>
-	</div>
-
-	<div class="flex-1 overflow-y-auto p-6 pt-2" bind:this={scrollContainer}>
-		<div class="mx-auto grid max-w-4xl grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+	<div class="flex-1 overflow-y-auto p-6 pt-8" bind:this={scrollContainer}>
+		<div class="mx-auto flex max-w-4xl flex-col gap-2">
 			{#each visibleResults as prof (prof.name)}
 				<div
 					class="bg-card group relative flex h-full w-full flex-col space-y-2 rounded-lg border p-4 text-left shadow-sm/50"
