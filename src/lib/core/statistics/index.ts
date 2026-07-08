@@ -29,21 +29,14 @@ function groupStatItems(items: StatItem[]): StatItem[] {
 
     for (const item of items) {
         if (!grouped.has(item.label)) {
-            // Clonamos el item para no mutar referencias originales
             grouped.set(item.label, { ...item });
         } else {
             const existing = grouped.get(item.label)!;
-
-            // 1. Fusionar Valores
-            // Ej: "Ineficiente (Lunes)" + "Ineficiente (Jueves)" -> "Ineficiente (Lunes) • Ineficiente (Jueves)"
             existing.value = `${existing.value} • ${item.value}`;
 
-            // 2. Fusionar Tooltips
-            // Agregamos un separador visual para que no se mezclen los textos
-            const separator = `<div class="my-2 border-t border-white/20"></div>`;
+            const separator = `<div class="my-2 -mx-2 w-auto border-t border-white/20"></div>`;
             existing.tooltip = `${existing.tooltip}${separator}${item.tooltip}`;
 
-            // 3. Fusionar Status (Gana el más severo)
             const currentSeverity = severityMap[existing.status || 'null'] ?? 2;
             const newSeverity = severityMap[item.status || 'null'] ?? 2;
 
