@@ -1,9 +1,10 @@
 <script module lang="ts">
 	const cardStyles = tv({
 		base: [
-			'relative flex flex-col rounded border text-left select-none',
+			'relative flex flex-col rounded border text-left select-none overflow-hidden',
 			'hover:cursor-pointer hover:ring-2 ring-0 ring-ring shadow-lg/40',
 			'transition-[background-color,scale,border-color,color,box-shadow,filter] duration-400 ease-out',
+			'before:content-[""] before:absolute before:size-full before:left-0 before:top-0',
 
 			'w-36 lg:w-38 2xl:w-40',
 			'p-2 @2xs:p-3 @xs:p-4',
@@ -14,7 +15,7 @@
 				'z-10 w-full font-semibold text-wrap text-xs line-clamp-3 truncate leading-tight',
 				'2xl:text-sm'
 			],
-			credits: ['absolute bottom-0 right-1 p-2 text-[10px] lg:text-xs'],
+			credits: ['absolute bottom-0 font-medium right-1 p-2 text-[10px] lg:text-xs'],
 			sigla: ['opacity-80 tracking-wider text-[10px] lg:text-xs'],
 			header: 'block! -space-y-1'
 		},
@@ -31,18 +32,24 @@
 				coreq: 'ring-2 ring-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)] z-50',
 				child: 'ring-2 ring-lime-500 shadow-[0_0_20px_rgba(34,197,94,0.5)] z-50',
 				unlock: 'ring-2 ring-white shadow-[0_0_20px_rgba(255,255,255,1)] z-50'
+			},
+			odd: {
+				true: {
+					base: 'before:bg-black/20'
+				},
+				false: {}
 			}
 		},
 		defaultVariants: {
 			status: 'disponible',
-			relation: 'none'
+			relation: 'none',
+			odd: false
 		},
 		compoundVariants: [
 			{
 				status: 'aprobado',
 				class: {
-					sigla: 'text-background/60',
-					credits: 'text-background/40'
+					sigla: 'text-background/60'
 				}
 			},
 			{
@@ -109,7 +116,7 @@
 		title: cardTitle,
 		sigla: cardSigla,
 		header: cardHeader
-	} = $derived(cardStyles({ status, relation }));
+	} = $derived(cardStyles({ status, relation, odd: semesterIndex % 2 === 0 }));
 </script>
 
 <button
