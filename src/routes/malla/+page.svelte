@@ -169,6 +169,10 @@
 				</svg>
 
 				{#each mallaState.currentMalla as semestre, i (i)}
+					{#if i !== 0}
+						<div class="bg-border -my-3.5 h-full w-px mask-b-from-80%"></div>
+					{/if}
+
 					<div
 						class="-my-3.5 flex flex-col gap-2 px-1 py-4 {i % 2 === 0
 							? 'bg-linear-to-b from-black/30 from-75% to-transparent'
