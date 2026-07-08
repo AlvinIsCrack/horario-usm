@@ -84,7 +84,7 @@
 }
 
 * {
-  @apply border-border outline-ring/50;
+  @apply border-border outline-ring/50 decoration-muted-foreground/80;
 }
 
 @layer base {
@@ -125,6 +125,8 @@
   body {
     width: 100%;
     height: 100vh;
+
+    @apply underline-offset-2;
   }
 
   a {
@@ -139,6 +141,12 @@
 
   h4 {
     @apply font-bold -mb-1 not-first:mt-2;
+  }
+}
+
+@layer utilities {
+  .tooltip-underline {
+    @apply underline cursor-help decoration-dotted hover:decoration-solid hover:decoration-current;
   }
 }
 
