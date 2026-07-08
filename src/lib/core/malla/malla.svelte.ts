@@ -4,22 +4,35 @@ import { Calendario } from '$lib/states/calendario.svelte';
 import { Data } from '$lib/data/data.svelte';
 import { Config } from '../config/store.svelte';
 
+/**
+ * Represents the state management for a student's academic curriculum (Malla).
+ * Handles progress tracking, prerequisite validation, and persistence.
+ */
 export class MallaState {
+    // --- Reactive States ---
     _selectedSede = $state<string>('');
     _selectedJornada = $state<string>('');
+    selectedPlanId = $state<string>('');
+    approvedSigs = $state<Set<string>>(new Set());
+    customNames = $state<Record<string, string>>({});
+    hoverSig = $state<string | null>(null);
 
+    /**
+     * Computes academic statistics based on the current curriculum progress.
+     */
     get stats() {
         let totalCreditos = 0;
         let approvedCreditos = 0;
         let totalRamos = 0;
         let approvedRamos = 0;
-        let unlockableRamos = 0; // Ramos que podría tomar ahora mismo
+        let unlockableRamos = 0;
         let maxSemestres = 0;
 
         if (this.rawMalla) {
             this.rawMalla.forEach((semestre, i) => {
-                // Asumimos que el índice del array es el semestre (0-based)
-                if (semestre.length > 0) maxSemestres = Math.max(maxSemestres, i + 1);
+                if (semestre.length > 0) {
+                    maxSemestres = Math.max(maxSemestres, i + 1);
+                }
 
                 semestre.forEach((ramo) => {
                     totalCreditos += ramo.creditos;
@@ -30,14 +43,11 @@ export class MallaState {
                         approvedCreditos += ramo.creditos;
                         approvedRamos++;
                     } else {
-                        // Lógica para saber si está desbloqueado (disponible para cursar)
-                        // Un ramo está desbloqueado si NO está aprobado Y cumple sus prerrequisitos
+                        // Evaluates if all groups of prerequisites have at least one approved requirement (OR logic)
                         const requirementsMet = ramo.requisitos.every(reqGroup =>
-                            // reqGroup es un array (OR), basta con cumplir uno del grupo
                             reqGroup.some(req => this.approvedSigs.has(req.sigla))
                         );
 
-                        // Nota: Asumimos que si no tiene requisitos, está desbloqueado por defecto
                         if (requirementsMet || ramo.requisitos.length === 0) {
                             unlockableRamos++;
                         }
@@ -47,10 +57,7 @@ export class MallaState {
         }
 
         const percent = totalCreditos > 0 ? Math.round((approvedCreditos / totalCreditos) * 100) : 0;
-
-        // Estimación de tiempo (Nominal)
         const yearsTotal = maxSemestres / 2;
-        // Estimación burda de progreso en años basada en créditos (SCT)
         const yearsProgress = totalCreditos > 0 ? (approvedCreditos / totalCreditos) * yearsTotal : 0;
         const yearsRemaining = Math.max(0, yearsTotal - yearsProgress);
 
@@ -69,12 +76,10 @@ export class MallaState {
         };
     }
 
-    // Getters y Setters para Sede y Jornada
     get selectedSede() { return this._selectedSede; }
     set selectedSede(value: string) {
         if (this._selectedSede === value) return;
         this._selectedSede = value;
-        // Al cambiar sede, reseteamos plan y validamos jornada
         this.selectedPlanId = '';
         this.validateJornada();
     }
@@ -83,46 +88,50 @@ export class MallaState {
     set selectedJornada(value: string) {
         if (this._selectedJornada === value) return;
         this._selectedJornada = value;
-        // Al cambiar jornada, reseteamos plan
         this.selectedPlanId = '';
     }
 
-    selectedPlanId = $state<string>('');
-    approvedSigs = $state<Set<string>>(new Set());
-    customNames = $state<Record<string, string>>({});
-    hoverSig = $state<string | null>(null);
+    // --- Derived States ---
 
-    // Datos crudos
+    /** Raw curriculum structure retrieved from data sources based on selected plan. */
     rawMalla = $derived(fetchMallaData(this.selectedPlanId));
 
-    // Malla procesada con lógica de bloqueos y relaciones
+    /** Processed curriculum tracking blocking states and interactive relationships. */
     currentMalla = $derived.by(() => {
         if (!this.rawMalla.length) return [];
         const existingSiglas = new Set(this.rawMalla.flat().map((r) => r.sigla));
 
-        return this.rawMalla.map((semestre) => {
-            return semestre.map((ramo) => {
+        return this.rawMalla.map((semester, semesterIndex) => {
+            return semester.map((ramo) => {
                 const isChecked = this.approvedSigs.has(ramo.sigla);
 
-                // --- Lógica de Bloqueo ---
+                // --- Lock Logic Evaluation ---
                 let isLocked = false;
                 if (!isChecked && ramo.requisitos.length > 0) {
+                    // Evaluate whether the course is unlocked by inspecting its requirement groups.
+                    // Each requirement group represents an alternate path to satisfy prerequisites.
+                    // Co-requisites are ignored for unlocking purposes and requirements not present
+                    // in the current curriculum are excluded to avoid false blocking states.
+                    // A group with no strict prerequisites is considered to unlock the course by default.
+                    // Otherwise the course is unlocked only when every valid prerequisite in a group
+                    // has been approved by the student.
                     const isUnlocked = ramo.requisitos.some((grupoAnd) => {
-                        const validReqs = grupoAnd.filter((r) => r && r.sigla);
-                        if (validReqs.some(r => !existingSiglas.has(r.sigla))) return false;
-                        if (validReqs.length === 0) return true;
+                        const validPrereqs = grupoAnd.filter((r) =>
+                            r &&
+                            r.sigla &&
+                            r.tipo !== 'CO' &&
+                            existingSiglas.has(r.sigla)
+                        );
 
-                        return validReqs.every((reqObj) => {
-                            if (reqObj.tipo === 'CO') return true;
-                            const reqSigla = reqObj.sigla;
-                            if (this.approvedSigs.has(reqSigla)) return true;
-                            return false;
-                        });
+                        if (validPrereqs.length === 0) return true;
+
+                        return validPrereqs.every((reqObj) => this.approvedSigs.has(reqObj.sigla));
                     });
+
                     isLocked = !isUnlocked;
                 }
 
-                // --- Lógica de Relaciones (Hover) ---
+                // --- Hover Relationship Analysis ---
                 let isDep = false;
                 let isPre = false;
                 let isCo = false;
@@ -130,7 +139,8 @@ export class MallaState {
 
                 if (this.hoverSig) {
                     const hoverRamo = this.findRamo(this.hoverSig);
-                    // 1. Backward: ¿Es este ramo un requisito del Hover?
+
+                    // Backward checks: Is current course a prerequisite of the hovered course?
                     if (hoverRamo) {
                         const reqEncontrado = hoverRamo.requisitos.flat().find((r) => r.sigla === ramo.sigla);
                         if (reqEncontrado) {
@@ -139,18 +149,16 @@ export class MallaState {
                         }
                     }
 
-                    // 2. Forward: ¿Es el Hover un requisito de este ramo? (Dependencia)
+                    // Forward checks: Is hovered course a requirement for the current course?
                     const forwardReq = ramo.requisitos.flat().find((r) => r.sigla === this.hoverSig);
-
                     if (forwardReq) {
-                        // Si es Co-requisito, marcamos isCo (Cyan) en lugar de isDep (Verde)
                         if (forwardReq.tipo === 'CO') {
                             isCo = true;
                         } else {
                             isDep = true;
                         }
 
-                        // LÓGICA DE DESBLOQUEO TOTAL
+                        // Verifies if approving the hovered course fully unlocks this course
                         isUnlock = ramo.requisitos.some((grupoAnd) => {
                             if (!grupoAnd.some((r) => r.sigla === this.hoverSig)) return false;
                             return grupoAnd.every((req) => {
@@ -178,8 +186,7 @@ export class MallaState {
     });
 
     constructor() {
-        // 1. Cargar Estado (Síncrono si es posible, o en onMount)
-        // Usamos variables privadas (_) para NO activar los setters y borrar el planId
+        // Hydrate state from localStorage synchronously during instantiation
         if (typeof localStorage !== 'undefined') {
             const saved = localStorage.getItem('malla_progress');
             if (saved) {
@@ -191,7 +198,7 @@ export class MallaState {
                     this.approvedSigs = new Set(data.approved || []);
                     this.customNames = data.customNames || {};
                 } catch (e) {
-                    console.error('Error loading state', e);
+                    console.error('Error loading state from localStorage:', e);
                     this._selectedSede = Config.sede;
                     this._selectedJornada = Config.jornada;
                 }
@@ -201,50 +208,52 @@ export class MallaState {
             }
         }
 
-        // 2. Auto-guardado Reactivo (Svelte 5 Effect en constructor vincula al componente)
+        // Declarative reactive synchronization effect for automated persistence
         $effect(() => {
-            const data = {
+            const statePayload = {
                 planId: this.selectedPlanId,
                 approved: Array.from(this.approvedSigs),
                 customNames: this.customNames,
                 sede: this._selectedSede,
                 jornada: this._selectedJornada
             };
-            localStorage.setItem('malla_progress', JSON.stringify(data));
+            localStorage.setItem('malla_progress', JSON.stringify(statePayload));
         });
     }
 
+    /**
+     * Validates and normalizes selected shift availability based on the campus configuration ruleset.
+     */
     validateJornada() {
-        if (
-            this._selectedSede &&
-            Data.jornadasCarreras[this._selectedSede] &&
-            !Data.jornadasCarreras[this._selectedSede].includes(this._selectedJornada)
-        ) {
-            this._selectedJornada = Data.jornadasCarreras[this._selectedSede][0] || '';
+        const campusShifts = Data.jornadasCarreras[this._selectedSede];
+        if (this._selectedSede && campusShifts && !campusShifts.includes(this._selectedJornada)) {
+            this._selectedJornada = campusShifts[0] || '';
         }
     }
 
+    /**
+     * Finds a specific course configuration within the curriculum matrix.
+     */
     findRamo(sigla: string): RamoMalla | null {
         return this.rawMalla.flat().find((r) => r.sigla === sigla) || null;
     }
 
+    /**
+     * Toggles the approval state of a course.
+     */
     toggleRamo(sigla: string) {
-        if (this.approvedSigs.has(sigla)) this.approvedSigs.delete(sigla);
-        else this.approvedSigs.add(sigla);
-        this.approvedSigs = new Set(this.approvedSigs); // Trigger reactivity
-        this.save();
+        if (this.approvedSigs.has(sigla)) {
+            this.approvedSigs.delete(sigla);
+        } else {
+            this.approvedSigs.add(sigla);
+        }
+        this.approvedSigs = new Set(this.approvedSigs);
     }
 
+    /**
+     * Assigns a custom local alias or name override to a specific course code.
+     */
     setCustomName(sigla: string, name: string) {
         this.customNames[sigla] = name;
-        this.save();
-    }
-
-    save() {
-        localStorage.setItem('malla_progress', JSON.stringify({
-            planId: this.selectedPlanId,
-            approved: Array.from(this.approvedSigs),
-            customNames: this.customNames
-        }));
     }
 }
