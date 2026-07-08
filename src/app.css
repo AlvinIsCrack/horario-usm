@@ -84,7 +84,7 @@
 }
 
 * {
-  @apply border-border outline-ring/50 decoration-muted-foreground/80;
+  @apply border-border outline-ring/50 decoration-current/80;
 }
 
 @layer base {
