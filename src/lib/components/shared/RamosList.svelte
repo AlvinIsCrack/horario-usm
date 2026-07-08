@@ -79,7 +79,7 @@
 					<div
 						role="listitem"
 						class="group bg-card pointer-events-auto relative w-full rounded border bg-linear-to-r from-transparent p-2 shadow-sm/50 {isHighlighted
-							? 'border-white!'
+							? 'bloque-highlighted border-white!'
 							: ''}"
 						style:--tw-gradient-from={ramo.color?.hexa()}
 						style:--tw-gradient-to={ramo.color
