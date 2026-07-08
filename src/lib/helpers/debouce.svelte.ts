@@ -13,12 +13,15 @@ export function createDebouncedState<T>(initialState: T, delayMs: number = 200) 
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     $effect(() => {
+        // Synchronously capture the state to register it as a reactive dependency
+        const nextValue = currentValue;
+
         if (timeoutId !== null) {
             clearTimeout(timeoutId);
         }
 
         timeoutId = setTimeout(() => {
-            debouncedValue = currentValue;
+            debouncedValue = nextValue;
         }, delayMs);
 
         return () => {
