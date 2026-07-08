@@ -10,7 +10,6 @@
 	// Importaciones de lógica modularizada
 	import { MallaState } from '$lib/core/malla/malla.svelte';
 	import { getCenter, generatePath, romanize } from '$lib/core/malla/visuals';
-	import { cardStyles } from '$lib/core/malla/styles';
 	import type { Connection, RamoMalla } from '$lib/core/malla/types';
 
 	// UI Components
@@ -20,6 +19,7 @@
 	import { onDestroy, onMount } from 'svelte';
 	import MallaWindow from '$lib/components/sidebar/windows/MallaWindow.svelte';
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
+	import RamoCard from '$lib/core/malla/components/RamoCard.svelte';
 
 	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
@@ -29,7 +29,7 @@
 			{},
 			{
 				title: 'Malla Interactiva',
-				description: 'Planifica tu trayectoria académica de forma visual e interactiva'
+				description: 'Planifica tu trayectoria académica interactivamente'
 			}
 		);
 		MallaPageState.malla = mallaState;
@@ -40,7 +40,6 @@
 		MallaPageState.malla = undefined;
 	});
 
-	// --- Lógica de Interacción (Visual + Eventos) ---
 	function handleRamoClick(ramo: RamoMalla) {
 		mallaState.hoverSig = ramo.sigla;
 		if ((ramo.esElectivo || ramo.esHumanista) && !mallaState.approvedSigs.has(ramo.sigla)) {
@@ -52,7 +51,6 @@
 		mallaState.toggleRamo(ramo.sigla);
 	}
 
-	// 2. Cálculo de Líneas ($effect se queda aquí porque necesita el DOM)
 	let connections = $state<Connection[]>([]);
 	let containerRef = $state<HTMLDivElement>();
 
@@ -120,9 +118,6 @@
 
 		connections = newConnections;
 	});
-
-	// Desestructurar estilos para el template
-	const { base: card, credits: cardCredits, title: cardTitle, sigla: cardSigla } = cardStyles();
 </script>
 
 <div class="flex h-screen w-full flex-col overflow-hidden">
@@ -131,21 +126,21 @@
 		class="relative flex-1 overflow-auto p-3.5"
 	>
 		<div
-			class="pointer-events-none fixed inset-0 top-0 left-0 z-[5] bg-black/30 transition-opacity duration-500"
+			class="pointer-events-none fixed inset-0 top-0 left-0 z-5 bg-black/40 transition-opacity duration-500"
 			class:opacity-0={!mallaState.hoverSig}
 			class:opacity-100={!!mallaState.hoverSig}
 		></div>
 
 		{#if mallaState.currentMalla.length > 0}
-			<div class="relative mx-auto flex w-fit flex-row" bind:this={containerRef}>
+			<div class="relative mx-auto flex h-full w-fit flex-row" bind:this={containerRef}>
 				<svg class="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
 					{#each connections as conn, i (conn.path + conn.type)}
 						{@const color =
 							conn.type === 'pre'
-								? 'var(--color-amber-500)'
+								? 'var(--color-amber-300)'
 								: conn.type === 'co'
-									? 'var(--color-cyan-500)'
-									: 'var(--color-green-500)'}
+									? 'var(--color-cyan-300)'
+									: 'var(--color-lime-300)'}
 						{@const maskId = `mask-${i}-${conn.type}`}
 
 						<mask id={maskId} maskUnits="userSpaceOnUse">
@@ -156,7 +151,7 @@
 								}}
 								d={conn.path}
 								stroke="white"
-								stroke-width="4"
+								class="stroke-2 2xl:stroke-3"
 								fill="none"
 							/>
 						</mask>
@@ -175,12 +170,12 @@
 
 				{#each mallaState.currentMalla as semestre, i (i)}
 					<div
-						class="-my-3.5 flex flex-col gap-2 px-2 py-4 md:px-3 {i % 2 === 0
-							? 'bg-gradient-to-b from-black/30 from-75% to-transparent'
-							: 'bg-gradient-to-b from-white/5 from-75% to-transparent'}"
+						class="-my-3.5 flex flex-col gap-2 px-1 py-4 {i % 2 === 0
+							? 'bg-linear-to-b from-black/30 from-75% to-transparent'
+							: 'bg-linear-to-b from-white/5 from-75% to-transparent'}"
 					>
 						<div
-							class="relative z-10 mb-2 flex items-center justify-between border-b border-white/50 px-1"
+							class="relative z-10 -mx-1 mt-2 flex items-center justify-between border-b border-white/50 px-2"
 						>
 							<span class="text-foreground text-lg font-bold">{romanize(i + 1)}</span>
 							<span class="text-xs font-medium text-white/40 uppercase">
@@ -189,61 +184,10 @@
 						</div>
 
 						<div
-							class="flex max-h-[calc(100vh-14rem)] w-max flex-col flex-wrap content-start gap-2"
+							class="flex max-h-[calc(100vh-8rem)] w-max min-w-38 flex-col flex-wrap content-center gap-2"
 						>
-							{#each semestre as ramo, j (ramo.sigla)}
-								{@const status = ramo.checked
-									? 'aprobado'
-									: ramo.locked
-										? 'bloqueado'
-										: 'disponible'}
-								{@const relation = ramo.isCoRequisite
-									? 'coreq'
-									: ramo.isPreRequisite
-										? 'parent'
-										: ramo.isUnlock // <--- Prioridad Alta
-											? 'unlock'
-											: ramo.isDependency // <--- Prioridad Baja
-												? 'child'
-												: mallaState.hoverSig === ramo.sigla
-													? 'self'
-													: 'none'}
-								{@const hoverRamo = mallaState.hoverSig
-									? mallaState.findRamo(mallaState.hoverSig)
-									: null}
-								{@const semesterDiff = hoverRamo
-									? Math.abs(
-											i -
-												mallaState.currentMalla.findIndex((s) =>
-													s.some((r) => r.sigla === mallaState.hoverSig)
-												)
-										)
-									: i}
-								{@const delay = semesterDiff * 100}
-
-								<button
-									id="ramo-{ramo.sigla}"
-									onclick={() => handleRamoClick(ramo)}
-									onmouseenter={() => (mallaState.hoverSig = ramo.sigla)}
-									onmouseleave={() => (mallaState.hoverSig = null)}
-									class={card({
-										status,
-										relation
-									})}
-									style:transition-delay={!['self', 'none'].includes(relation)
-										? `${delay}ms`
-										: '0ms'}
-								>
-									<span class={cardSigla({ status })}>{ramo.sigla}</span>
-									<Tooltip content={mallaState.customNames[ramo.sigla] || ramo.nombre}>
-										<span class={cardTitle({ status })}>
-											{mallaState.customNames[ramo.sigla] || ramo.nombre}
-										</span>
-									</Tooltip>
-									<div class="mt-1 flex items-center justify-between">
-										<span class={cardCredits({ status })}>{ramo.creditos} SCT</span>
-									</div>
-								</button>
+							{#each semestre as ramo (ramo.sigla)}
+								<RamoCard {ramo} semesterIndex={i} {mallaState} onclick={handleRamoClick} />
 							{/each}
 						</div>
 					</div>
