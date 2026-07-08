@@ -89,8 +89,8 @@ export async function generateScheduleStatistics(
         categories.forEach(cat => {
             if (!aiResult[cat].isLowConfidence) {
                 aiStats.push({
-                    icon: icons.Magic,
-                    label: 'IA Insight', // Label común para agrupar
+                    icon: icons.Triangle,
+                    label: 'Forma',
                     value: aiResult[cat].label,
                     tooltip: aiResult[cat].description,
                     status: null

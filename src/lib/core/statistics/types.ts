@@ -20,6 +20,7 @@ import MingcuteBrainLine from "$lib/icons/MingcuteBrainLine.svelte";
 import MajesticonsTicket from "$lib/icons/MajesticonsTicket.svelte";
 import MaterialSymbolsWeight from "$lib/icons/MaterialSymbolsWeight.svelte";
 import type { Días, Ramo } from '../ramos/types';
+import LucideTriangle from '$lib/icons/LucideTriangle.svelte';
 
 export const ICONS = {
     Leaf: MaterialSymbolsNestEcoLeaf,
@@ -40,7 +41,8 @@ export const ICONS = {
     Magic: MaterialSymbolsMagicButton,
     Brain: MingcuteBrainLine,
     Ticket: MajesticonsTicket,
-    Weight: MaterialSymbolsWeight
+    Weight: MaterialSymbolsWeight,
+    Triangle: LucideTriangle
 } as const;
 
 export const STAT_LABELS = {
