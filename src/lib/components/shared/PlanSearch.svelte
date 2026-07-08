@@ -2,15 +2,15 @@
 	import { tv } from 'tailwind-variants';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Search from '$lib/icons/search.svelte';
-	import pkg from 'lodash';
-	const { debounce } = pkg;
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
+	import { SearchMatcher } from '$lib/helpers/search';
+	import { createDebouncedState } from '$lib/helpers/debouce.svelte';
 
-	// Eliminamos 'inputStyle' antiguo ya que usaremos clases directas en el input
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
 	});
+
 	const itemStyle = tv({
 		base: 'relative w-full text-left p-2 px-4 rounded-md transition-all duration-150 border border-transparent group overflow-hidden hover:cursor-pointer',
 		variants: {
@@ -37,37 +37,21 @@
 		disabled?: boolean;
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
-	let query = $state('');
-	let debouncedQuery = $state('');
+	const searchQuery = createDebouncedState('', 200);
+
 	let isFocused = $state(false);
 	let highlightedIndex = $state(0);
 	let containerEl: HTMLDivElement | undefined = $state();
 	let itemNodes: Array<HTMLElement> = $state([]);
 	let inputEl: HTMLInputElement | undefined = $state();
 
-	const updateDebouncedQuery = debounce((q: string) => {
-		debouncedQuery = q;
-	}, 200);
-
-	$effect(() => {
-		updateDebouncedQuery(query);
+	const matcher = new SearchMatcher<{ label: string; value: string; plan: string }>({
+		extractors: [(item) => item.label, (item) => item.value, (item) => item.plan]
 	});
 
-	// Filtrado de planes avanzado
 	const filteredItems = $derived.by(() => {
 		if (disabled) return [];
-		const q = debouncedQuery.trim();
-		if (!q) return items;
-		const splittedQuery = q
-			.deaccent()
-			.toLowerCase()
-			.split(/\s+|\*+/g)
-			.filter(Boolean);
-		return items.filter((item) => {
-			const normalizedLabel = item.label.deaccent().toLowerCase();
-			const normalizedValue = item.value.deaccent().toLowerCase();
-			return splittedQuery.every((s) => normalizedLabel.includes(s) || normalizedValue.includes(s));
-		});
+		return matcher.filter(items, searchQuery.debounced);
 	});
 
 	$effect(() => {
@@ -90,6 +74,7 @@
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
+			searchQuery.flush();
 			if (filteredItems[highlightedIndex]) selectItem(filteredItems[highlightedIndex]);
 		} else if (key === 'Escape') {
 			isFocused = false;
@@ -99,7 +84,8 @@
 
 	function selectItem(item: { label: string; value: string }) {
 		value = item.value;
-		query = '';
+		searchQuery.current = '';
+		searchQuery.flush();
 		isFocused = false;
 		inputEl?.blur();
 	}
@@ -121,7 +107,7 @@
 		<input
 			bind:this={inputEl}
 			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
-			bind:value={query}
+			bind:value={searchQuery.current}
 			placeholder={currentLabel || placeholder}
 			{disabled}
 			role="combobox"
@@ -144,14 +130,14 @@
 	>
 		<ul
 			transition:fade={{ duration: 200 }}
-			class="{listStyle()} h-auto max-h-[var(--max-h)] min-w-[300px] overflow-y-auto"
+			class="{listStyle()} h-auto max-h-(--max-h) min-w-[300px] overflow-y-auto"
 			style="width: {containerEl?.offsetWidth}px"
 			role="listbox"
 			id="listbox-plan-search"
 		>
 			<div class="relative p-3 px-4 text-sm">
 				<p>Hay <span class="highlight">{items.length}</span> planes de estudio disponibles.</p>
-				{#if query.length}
+				{#if searchQuery.current.length}
 					{#if items.length !== filteredItems.length}
 						<p transition:slide={{ axis: 'y' }}>
 							Filtrando <span class="highlight secondary">{filteredItems.length}</span> resultados.
@@ -214,7 +200,6 @@
 		color: var(--color-primary);
 		@apply font-medium! mix-blend-plus-lighter;
 	}
-	/* ... estilos de scrollbar se mantienen igual ... */
 	ul {
 		&::-webkit-scrollbar {
 			@apply w-2;

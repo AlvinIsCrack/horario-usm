@@ -1,8 +1,32 @@
 <script module>
-	// Current query filter mode applied to search operations
+	import { SearchMatcher } from '$lib/helpers/search';
+	import type { Ramo } from '$lib/core/ramos/types';
+
+	// Shared constant layout grid metrics configuration
+	export const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
+
+	// Shared query filter mode applied to search operations
 	let filterMode = $state<'none' | 'malla' | 'available'>('none');
 
-	const GRID_CLASSES = 'grid grid-cols-[100px_4fr_1fr_60px_40px_40px]';
+	// Static lookup arrays declared at module scope to prevent instance re-allocations
+	export const FILTER_OPTIONS = [
+		{ value: 'none', label: 'Mostrar todos los ramos' },
+		{ value: 'malla', label: 'Solo asignaturas de tu carrera' },
+		{ value: 'available', label: 'Solo asignaturas matriculables' }
+	];
+
+	export const TIPO_OPTIONS = [
+		{ value: 'all', label: 'Cualquier tipo' },
+		{ value: 'PAR', label: 'Ramo Par' },
+		{ value: 'IMPAR', label: 'Ramo Impar' },
+		{ value: 'AMBOS', label: 'Ramo Par/Impar' },
+		{ value: 'ELECTIVO', label: 'Ramo Electivo' }
+	];
+
+	// Shared stateless processing engine initialized exactly once across the runtime instance lifecycle
+	export const matcher = new SearchMatcher<Ramo>({
+		extractors: [(ramo) => ramo.sigla, (ramo) => ramo.nombre]
+	});
 </script>
 
 <script lang="ts">
@@ -11,19 +35,17 @@
 	import type { HTMLAttributes } from 'svelte/elements';
 	import Search from '$lib/icons/search.svelte';
 	import { Calendario } from '$lib/states/calendario.svelte';
-	import pkg from 'lodash';
-	const { debounce } = pkg;
 	import Floating from '$lib/components/ui/Floating.svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { MallaState } from '$lib/core/malla/malla.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
 	import { tick, untrack } from 'svelte';
 	import { Config } from '$lib/core/config/store.svelte';
-	import type { Ramo } from '$lib/core/ramos/types';
 	import Tooltip from '../ui/Tooltip.svelte';
 	import { cn } from '$lib/utils';
 	import SemesterAvailability from './SemesterAvailability.svelte';
 	import Input from '../ui/Input.svelte';
+	import { createDebouncedState } from '$lib/helpers/debouce.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-0 flex flex-col max-h-100 overflow-y-auto overflow-x-hidden'
@@ -76,87 +98,66 @@
 		}
 	});
 
-	let query = $state('');
-	let debouncedQuery = $state('');
+	const searchQuery = createDebouncedState('', 200);
+
 	let isFocused = $state(false);
 	let highlightedIndex = $state(0);
 	let itemNodes: Array<HTMLLIElement> = $state([]);
 	let containerEl: HTMLDivElement | undefined = $state();
-	// --- Lógica de Malla Interactiva ---
+
 	const mallaState = new MallaState();
-	// Opciones del Select con redacción formal
-	const filterOptions = [
-		{ value: 'none', label: 'Mostrar todos los ramos' },
-		{ value: 'malla', label: 'Solo asignaturas de tu carrera' },
-		{ value: 'available', label: 'Solo asignaturas matriculables' }
-	];
-	// Compatibilidad: plan seleccionado y coincidencia de Sede/Jornada
+
 	const isMallaCompatible = $derived(
 		!!mallaState.selectedPlanId &&
 			mallaState.selectedSede === Config.sede &&
 			mallaState.selectedJornada === Config.jornada
 	);
-	// Resetear filtro si deja de ser compatible
+
 	$effect(() => {
 		if (!isMallaCompatible) filterMode = 'none';
 	});
-	// Guard to prevent autofocus on initial component render
+
 	let isInitialMount = true;
 	$effect(() => {
-		// Dependency: executes whenever the filter mode changes
 		const _ = [filterMode, selectedDepto, selectedTipo];
 
 		untrack(() => {
-			// Skip execution on the first render to prevent unwanted autofocus
 			if (isInitialMount) {
 				isInitialMount = false;
 				return;
 			}
 
-			// If the filter changed, we assume user interaction.
-			// Cancel the closure timeout (in case the option click stole the focus)
 			clearTimeout(blurTimeout);
 
-			// Ensure the dropdown state is set to 'open'
 			if (!isFocused) isFocused = true;
 
-			// Politely return focus to the input element
 			tick().then(() => {
 				_this?.focus();
 			});
 		});
 	});
-	// Derivados para optimizar la búsqueda
+
 	const allowedSiglas = $derived.by(() => {
 		if (!isMallaCompatible) return new Set<string>();
 		const s = new Set<string>();
 		mallaState.rawMalla.flat().forEach((r) => s.add(r.sigla));
 		return s;
 	});
+
 	const availableSiglas = $derived.by(() => {
 		if (!isMallaCompatible) return new Set<string>();
 		const s = new Set<string>();
-		// 'available' = ni aprobado (checked) ni bloqueado (locked)
 		mallaState.currentMalla.flat().forEach((r) => {
 			if (!r.checked && !r.locked) s.add(r.sigla);
 		});
 		return s;
 	});
-	const updateDebouncedQuery = debounce((query: string) => {
-		debouncedQuery = query;
-	}, 200);
-
-	$effect(() => {
-		updateDebouncedQuery(query);
-	});
 
 	const cachedRamos = Object.entries(Data.cachedRamos);
 
-	// Filter state for Department and Course Type
 	let selectedDepto = $state<string>('all');
 	let selectedTipo = $state<string>('all');
 
-	// Dynamically extract unique departments from the cached data
 	const deptoOptions = $derived.by(() => {
 		const deptos = new Set<string>();
 		for (const [_, paralelos] of cachedRamos) {
@@ -171,28 +172,9 @@
 		];
 	});
 
-	// Static options based on the Ramo interface definition
-	const tipoOptions = [
-		{ value: 'all', label: 'Cualquier tipo' },
-		{ value: 'PAR', label: 'Ramo Par' },
-		{ value: 'IMPAR', label: 'Ramo Impar' },
-		{ value: 'AMBOS', label: 'Ramo Par/Impar' },
-		{ value: 'ELECTIVO', label: 'Ramo Electivo' }
-	];
-
-	/**
-	 * Synchronously filters and prioritizes the cached courses data matrix.
-	 * Evaluates queries against tags, names, departments, and enrollment criteria.
-	 */
 	const filteredItems = $derived.by(() => {
 		if (disabled) return [];
-		const q = debouncedQuery.trim();
-
-		const splittedQuery = q
-			.deaccent()
-			.toLowerCase()
-			.split(/\s+|\*+/g)
-			.filter(Boolean);
+		const tokens = matcher.tokenize(searchQuery.debounced);
 
 		const standardResults: (readonly [string, Record<string, Ramo>])[] = [];
 		const lowInfoResults: (readonly [string, Record<string, Ramo>])[] = [];
@@ -213,17 +195,7 @@
 			if (selectedTipo !== 'all' && ramo.tipoCurricular && ramo.tipoCurricular !== selectedTipo)
 				continue;
 
-			let matches = true;
-			for (const s of splittedQuery) {
-				if (
-					!k.deaccent().toLowerCase().includes(s) &&
-					!ramo.nombre.deaccent().toLowerCase().includes(s)
-				) {
-					matches = false;
-					break;
-				}
-			}
-			if (matches) {
+			if (matcher.isMatch(ramo, tokens)) {
 				const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular;
 
 				if (hasLowInfo) {
@@ -253,10 +225,6 @@
 		}
 	});
 
-	/**
-	 * Processes keyboard interaction coordinates for structural accessibility.
-	 * Guarantees cycle overflows over computed reference node array lengths.
-	 */
 	function handleKeydown(event: KeyboardEvent) {
 		if (!filteredItems || filteredItems.length === 0) return;
 		const { key } = event;
@@ -269,7 +237,7 @@
 			highlightedIndex = (nextIndex + len) % len;
 		} else if (key === 'Enter') {
 			event.preventDefault();
-			updateDebouncedQuery.flush();
+			searchQuery.flush();
 
 			if (highlightedIndex > -1 && filteredItems[highlightedIndex]) {
 				const targetSigla = filteredItems[highlightedIndex][0];
@@ -283,9 +251,7 @@
 
 	function handleBlur(event: FocusEvent) {
 		const nextFocus = event.relatedTarget as HTMLElement;
-		// Si el usuario clickeó algo dentro de nuestro propio buscador/filtros, ignorar el cierre
 		if (containerEl?.contains(nextFocus)) return;
-
 		isFocused = false;
 	}
 
@@ -293,7 +259,8 @@
 	function onItemClicked(sigla: string) {
 		clearTimeout(blurTimeout);
 		value = sigla;
-		query = '';
+		searchQuery.current = '';
+		searchQuery.flush();
 		isFocused = false;
 		_this?.blur();
 	}
@@ -309,7 +276,7 @@
 	<Tooltip content="Desplegar catálogo de asignaturas" wrapperClass="w-full! block!">
 		<Input
 			bind:el={_this}
-			bind:value={query}
+			bind:value={searchQuery.current}
 			startDecorator={Search}
 			{placeholder}
 			{disabled}
@@ -342,7 +309,6 @@
 			role="listbox"
 			id="listbox-ramo-search"
 			onmousedown={(e) => {
-				// Evita que clicks en la lista (scroll, items vacíos) roben foco
 				if (e.target instanceof HTMLElement && ['INPUT', 'TEXTAREA'].includes(e.target.tagName))
 					return;
 				e.preventDefault();
@@ -357,7 +323,6 @@
 				index: number
 			)}
 				{@const hasLowInfo = !ramo.departamento && !ramo.tipoCurricular}
-
 				<li
 					bind:this={itemNodes[index]}
 					data-sigla={sigla}
@@ -448,7 +413,7 @@
 					</button>
 
 					<button onmousedown={(e) => e.preventDefault()}>
-						<Select items={tipoOptions} bind:value={selectedTipo} size="sm" class="min-w-36" />
+						<Select items={TIPO_OPTIONS} bind:value={selectedTipo} size="sm" class="min-w-36" />
 					</button>
 
 					{#if isMallaCompatible}
@@ -458,7 +423,7 @@
 							class="relative"
 						>
 							<Select
-								items={filterOptions}
+								items={FILTER_OPTIONS}
 								bind:value={filterMode}
 								size="sm"
 								class="min-w-xs"
@@ -481,14 +446,14 @@
 					<span>Asignatura</span>
 					<span>Departamento</span>
 					<span class="text-center">Tipo</span>
-					<span class="block justify-self-end text-right">Núm. Paralelos</span>
+					<span class="block justify-self-end text-right">Anuncio Paralelos</span>
 					<span class="text-right">SCT</span>
 				</div>
 			</div>
 
 			{#if filteredItems.length === 0}
 				<li class="text-muted-foreground p-4 text-sm">
-					{#if query}
+					{#if searchQuery.current}
 						No hay resultados para lo que introduciste. Revisa en SIGA horarios del semestre {Config.semestre},
 						y comprueba si el ramo que buscas tiene registrado horario para ese semestre.
 					{:else}
