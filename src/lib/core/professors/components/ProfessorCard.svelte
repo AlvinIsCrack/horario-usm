@@ -311,7 +311,7 @@
 										</div>
 
 										<div class="shrink-0">
-											<span class="text-xs font-medium @md:text-sm {color.text} tabular-nums">
+											<span class="text-xs font-medium @md:text-sm {color.text} pr-8 tabular-nums">
 												{sub.label}
 											</span>
 										</div>
