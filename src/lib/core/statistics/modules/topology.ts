@@ -36,13 +36,25 @@ export function analyzeTopology(ctx: AnalyzerContext, creditosMap: Record<string
     let maxTheoreticalStreak = 0;
 
     Object.entries(metrics).forEach(([d, m]) => {
-        const dayBlocks = ctx.ramos.flatMap(r => r.horario.map(h => ({
+        const rawDayBlocks = ctx.ramos.flatMap(r => r.horario.map(h => ({
             bloque: h.bloque,
             tipo: h.tipo || 'CAT',
             dia: h.dia
-        }))).filter(b => b.dia === Number(d)).sort((a, b) => a.bloque - b.bloque);
+        }))).filter(b => b.dia === Number(d));
 
-        if (dayBlocks.length === 0) return;
+        if (rawDayBlocks.length === 0) return;
+
+        // Deduplicate blocks: If a theoretical class overlaps with a flexible one, 
+        // the theoretical burden takes precedence to avoid false-negatives in the warning.
+        const uniqueBlocks = new Map<number, typeof rawDayBlocks[0]>();
+        for (const b of rawDayBlocks) {
+            const isCurrentFlexible = isFlexibleBlock(b.tipo);
+            if (!uniqueBlocks.has(b.bloque) || (!isCurrentFlexible && isFlexibleBlock(uniqueBlocks.get(b.bloque)!.tipo))) {
+                uniqueBlocks.set(b.bloque, b);
+            }
+        }
+
+        const dayBlocks = Array.from(uniqueBlocks.values()).sort((a, b) => a.bloque - b.bloque);
 
         let currentStreak = !isFlexibleBlock(dayBlocks[0].tipo) ? 1 : 0;
 

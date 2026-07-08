@@ -2,26 +2,48 @@ import { BLOQUE_DURATION_MINUTES, getSubjectWeight } from "$lib/constants/usm";
 import { Días } from "../../ramos/types";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 
-// 5. ESTRATEGIA ACADÉMICA (Saturación, Demanda)
+/**
+ * Evaluates academic strategy focusing on cognitive fatigue.
+ * Overlapping subjects are deduplicated by keeping the most cognitively demanding instance.
+ */
 export function analyzeAcademicStrategy(ctx: AnalyzerContext, icons: any): StatItem[] {
     const out: StatItem[] = [];
 
-    // A. Saturación Temática (Bloques de Muerte - Ramos pesados consecutivos)
+    // Helper: Safely flattens and deduplicates the schedule for streak analysis
+    const resolveDailyBlocks = (dayIndex: number) => {
+        const rawBlocks = ctx.ramos
+            .flatMap(r => r.horario.map(h => ({ ...h, sigla: r.sigla })))
+            .filter(b => b.dia === dayIndex);
+
+        const uniqueBlocks = new Map<number, typeof rawBlocks[0]>();
+
+        for (const b of rawBlocks) {
+            const currentWeight = getSubjectWeight(b.sigla);
+            const existingWeight = uniqueBlocks.has(b.bloque)
+                ? getSubjectWeight(uniqueBlocks.get(b.bloque)!.sigla)
+                : -1;
+
+            if (currentWeight > existingWeight) {
+                uniqueBlocks.set(b.bloque, b);
+            }
+        }
+
+        return Array.from(uniqueBlocks.values()).sort((a, b) => a.bloque - b.bloque);
+    };
+
+    // A. Thematic Saturation (Hard streaks)
     for (let d = 0; d <= 5; d++) {
-        // Bloques del día ordenados con su sigla
-        const bloquesObj = ctx.ramos.flatMap(r => r.horario.map(h => ({ ...h, sigla: r.sigla })))
-            .filter(b => b.dia === d)
-            .sort((a, b) => a.bloque - b.bloque);
+        // Use resolved blocks to prevent overlapping schedules from breaking the continuity check
+        const resolvedBlocks = resolveDailyBlocks(d);
 
         let hardStreak = 0;
-        let lastBloque = -1;
+        let lastBlock = -1;
 
-        for (const b of bloquesObj) {
-            const peso = getSubjectWeight(b.sigla);
-            const esDuro = peso >= 1.4; // Heurística: Ramos pesados
+        for (const b of resolvedBlocks) {
+            const isDemanding = getSubjectWeight(b.sigla) >= 1.4;
 
-            if (esDuro) {
-                if (lastBloque === -1 || b.bloque === lastBloque + 1) {
+            if (isDemanding) {
+                if (lastBlock === -1 || b.bloque === lastBlock + 1) {
                     hardStreak++;
                 } else {
                     hardStreak = 1; // Reiniciar racha
@@ -29,7 +51,7 @@ export function analyzeAcademicStrategy(ctx: AnalyzerContext, icons: any): StatI
             } else {
                 hardStreak = 0;
             }
-            lastBloque = b.bloque;
+            lastBlock = b.bloque;
 
             if (hardStreak >= 3) {
                 out.push({
