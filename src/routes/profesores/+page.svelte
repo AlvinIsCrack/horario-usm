@@ -299,14 +299,18 @@
 
 <div class="flex h-full w-full flex-col">
 	<div class="flex-1 overflow-y-auto p-6 pt-8" bind:this={scrollContainer}>
-		<div class="mx-auto flex max-w-4xl flex-col gap-2">
+		<div class="mx-auto grid max-w-2xl flex-col gap-4">
 			{#each visibleResults as prof (prof.name)}
 				<div
 					class="bg-card group relative flex h-full w-full flex-col space-y-2 rounded-lg border p-4 text-left shadow-sm/50"
 					style="content-visibility: auto; contain-intrinsic-size: 300px;"
 				>
 					<ProfessorCard professor={prof} />
-					<Button size="sm" class="mt-auto w-full" onclick={() => openEvaluationModal(prof)}>
+					<Button
+						size="sm"
+						class="mt-2 ml-auto w-fit px-4"
+						onclick={() => openEvaluationModal(prof)}
+					>
 						Evaluar Desempeño Docente
 					</Button>
 				</div>

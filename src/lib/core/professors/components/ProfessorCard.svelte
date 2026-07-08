@@ -34,6 +34,29 @@
 			description: 'Nivel de confianza estadística:'
 		}
 	} as const;
+
+	const statusVariants = tv({
+		slots: {
+			bg: 'bg-accent text-accent-foreground',
+			statusIcon: 'inline size-5 opacity-80 group-hover/status:opacity-100 transition-opacity',
+			statusContainer: 'group/status flex cursor-help items-center gap-2 mr-1'
+		},
+		variants: {
+			status: {
+				ARCHIVED: { bg: 'bg-red-500/20', statusContainer: 'text-rose-500' },
+				UNRATED: {},
+				PRELIMINARY: { bg: 'bg-amber-500/20', statusContainer: 'text-orange-400' },
+				SOLID: {
+					bg: 'bg-primary/40',
+					statusContainer: 'text-sky-400'
+				},
+				HIGHLIGHTED: {
+					bg: 'bg-primary/80',
+					statusContainer: 'text-cyan-300'
+				}
+			}
+		}
+	});
 </script>
 
 <script lang="ts">
@@ -49,9 +72,11 @@
 	import { hasPendingReview } from '$lib/core/reviews/api';
 	import { calculateConfidenceStatus } from '../types';
 	import { formatRelativeTime } from '../utils';
-	import ProfessorBadge from './ProfessorBadge.svelte';
+	import { PROFESSOR_BADGE_ICON_REGISTRY, PROFESSOR_BADGE_PALETTE } from './ProfessorBadge.svelte';
 	import ProfessorTag from './ProfessorTag.svelte';
 	import ProfessorComments from './ProfessorComments.svelte';
+	import MaterialSymbolsKeyboardArrowDownRounded from '$lib/icons/MaterialSymbolsKeyboardArrowDownRounded.svelte';
+	import MaterialSymbolsKeyboardDoubleArrowDownRounded from '$lib/icons/MaterialSymbolsKeyboardDoubleArrowDownRounded.svelte';
 
 	interface Props {
 		id?: string;
@@ -84,25 +109,6 @@
 			renderData?.sampleMeta?.isArchived
 		)
 	);
-
-	const statusVariants = tv({
-		slots: { bg: '', iconClass: '' },
-		variants: {
-			status: {
-				ARCHIVED: { bg: 'bg-red-500/20', iconClass: 'text-rose-500' },
-				UNRATED: { bg: 'bg-accent', iconClass: 'text-muted-foreground/50' },
-				PRELIMINARY: { bg: 'bg-amber-500/20', iconClass: 'text-orange-400' },
-				SOLID: {
-					bg: 'bg-sky-500/20',
-					iconClass: 'text-cyan-400 drop-shadow-sm/100! drop-shadow-cyan-500'
-				},
-				HIGHLIGHTED: {
-					bg: 'bg-fuchsia-500/20',
-					iconClass: 'text-fuchsia-400 drop-shadow-sm/100! drop-shadow-fuchsia-600'
-				}
-			}
-		}
-	});
 
 	const currentUiStyles = $derived(statusVariants({ status }));
 	const currentMeta = $derived(STATUS_METADATA[status]);
@@ -149,7 +155,7 @@
 	{/if}
 {/snippet}
 
-<div class="relative h-full w-full space-y-2.5 text-left" use:viewport>
+<div class="relative h-full w-full space-y-4 text-left" use:viewport>
 	<div class="{currentUiStyles.bg({})} relative -mx-4 -mt-4 space-y-1 rounded-t-lg border-b p-4">
 		<div class="relative flex items-start justify-between gap-2">
 			<div>
@@ -161,11 +167,10 @@
 
 			{#if renderData?.sampleMeta}
 				{@const Icon = currentMeta.icon}
-				<Tooltip wrapperClass="absolute! right-0 top-0 -m-0.5" content={confidenceTooltip}>
-					<div
-						class="cursor-help transition-opacity [&_svg]:size-4 [&_svg]:scale-120 [&_svg]:opacity-80 [&_svg]:hover:opacity-100"
-					>
-						<Icon class={currentUiStyles.iconClass({})} />
+				<Tooltip wrapperClass="absolute! right-0 top-0 -m-1" content={confidenceTooltip}>
+					<div class={currentUiStyles.statusContainer({})}>
+						<Icon class={currentUiStyles.statusIcon({})} />
+						{STATUS_METADATA[status].label}
 					</div>
 				</Tooltip>
 			{/if}
@@ -211,45 +216,140 @@
 		</div>
 	</div>
 
-	{#if renderData?.meta && !isDataDeficient}
-		<div
-			class="inset-0 flex w-full flex-row flex-wrap items-center justify-center gap-2 xl:gap-2.5"
-		>
-			{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
-				<div class="flex flex-row flex-wrap gap-px">
-					{#each Object.entries(dim.subs) as [subKey, sub] (subKey)}
-						<ProfessorBadge dimension={dim} subdimension={sub} />
-					{/each}
-				</div>
-			{/each}
-		</div>
-	{:else}
-		<div class="py-6 text-center">
-			<p class="text-muted-foreground text-xs italic">
-				Datos insuficientes o muy antiguos para generar un perfil actual.
-			</p>
-		</div>
-	{/if}
+	<div class="@container flex flex-col gap-4 rounded border p-4">
+		{#if renderData?.meta && !isDataDeficient}
+			<div class="flex flex-col justify-center gap-2">
+				{#each Object.entries(renderData.meta) as [dimKey, dim] (dimKey)}
+					<div class="flex w-full flex-row flex-wrap gap-2 *:flex-1">
+						{#each Object.entries(dim.subs) as [subKey, sub] (subKey)}
+							{@const roundedValue = Math.max(1, Math.min(5, Math.round(sub.val))) as
+								| 1
+								| 2
+								| 3
+								| 4
+								| 5}
+							{@const Icon = PROFESSOR_BADGE_ICON_REGISTRY[sub.def.id][roundedValue]}
+							{@const isInverseMetric = ['rigor_calificatorio', 'dificultad_percibida'].includes(
+								sub.def.id
+							)}
+							{@const color = (() => {
+								let scoreIndex = roundedValue - 1;
+								if (isInverseMetric) scoreIndex = 4 - scoreIndex;
+								return PROFESSOR_BADGE_PALETTE[scoreIndex];
+							})()}
+							{@const isExtreme = [1, 5].includes(roundedValue)}
 
-	{#if renderData && renderData.tags.length > 0}
-		{@const sortedTags = [...renderData.tags].sort((a, b) => b.score - a.score)}
-		{@const topTags = sortedTags.slice(0, 5)}
-		{@const maxScore = topTags[0]?.score || 1}
-		{@const minScore = topTags[topTags.length - 1]?.score || 0}
-		{@const hasSignificantVariation = (maxScore - minScore) / maxScore > 0.2}
+							<Tooltip wrapperClass="w-full block! cursor-help">
+								{#snippet content()}
+									<div class="max-w-xs space-y-2 p-2 text-left leading-snug">
+										<p class="text-xs font-semibold tracking-wider uppercase opacity-90">
+											Métrica: {sub.def.label}
+										</p>
+										<p class="text-muted-foreground text-sm">
+											{sub.def.description}
+										</p>
 
-		<div class="flex flex-wrap gap-1">
-			{#each orderTags(topTags) as tag (tag.id)}
-				{@const weight = tag.score / maxScore}
-				{@const isHeavy = hasSignificantVariation && Math.pow(weight, 2) > 0.6}
-				<ProfessorTag {tag} heavy={isHeavy} />
-			{/each}
-		</div>
-	{/if}
+										<div class="bg-border -mx-4 h-px w-auto"></div>
 
-	{#if renderData?.profile?.comments && isVisible}
-		<ProfessorComments comments={renderData.profile.comments} />
-	{/if}
+										<p class="text-xs font-semibold tracking-wider uppercase opacity-90">
+											Puntaje: {sub.label}
+										</p>
+										<p class="text-foreground text-sm">
+											<span class="text-muted-foreground font-normal">Nivel actual:</span>
+											{sub.def.levels[roundedValue].description}
+										</p>
+									</div>
+								{/snippet}
+								<div
+									class="group bg-muted relative flex flex-row items-center gap-3 overflow-hidden rounded border shadow-sm hover:brightness-125 {isExtreme
+										? `${color.border} saturate-105`
+										: 'grayscale-25'} px-3 py-1 @sm:py-2"
+								>
+									{#if isExtreme}
+										<div
+											class="absolute top-0 left-0 -z-10 size-full mask-l-to-80% {color.solid} opacity-50"
+										></div>
+									{/if}
+
+									{#if roundedValue !== 3}
+										{@const difference = roundedValue - 3}
+										{@const distance = Math.abs(difference)}
+										{@const ArrowIcon =
+											distance === 1
+												? MaterialSymbolsKeyboardArrowDownRounded
+												: MaterialSymbolsKeyboardDoubleArrowDownRounded}
+
+										<div
+											class="{color.solid} absolute top-0 left-0 -z-1 size-full opacity-20"
+										></div>
+
+										<div
+											class="absolute top-0 right-0 bottom-0 flex h-auto items-center justify-center"
+										>
+											<ArrowIcon
+												class="size-12 opacity-50 mix-blend-plus-lighter {color.text} {difference *
+													(isInverseMetric ? -1 : 1) >
+												0
+													? 'rotate-180'
+													: ''}"
+											/>
+										</div>
+									{/if}
+
+									<div
+										class="text-muted-foreground/50 absolute top-0 right-2 bottom-0 flex h-auto w-fit items-end justify-center p-1 text-2xl font-black"
+									></div>
+
+									<Icon class="size-5 @lg:size-6 {color.text}" />
+									<div class="-space-y-1 leading-none @md:-space-y-0.5">
+										<div class="flex min-w-0 shrink items-center gap-2">
+											<span
+												class="text-muted-foreground truncate text-sm font-medium tracking-tight uppercase"
+											>
+												{sub.def.label}
+											</span>
+										</div>
+
+										<div class="shrink-0">
+											<span class="text-xs font-medium @md:text-sm {color.text} tabular-nums">
+												{sub.label}
+											</span>
+										</div>
+									</div>
+								</div>
+							</Tooltip>
+						{/each}
+					</div>
+				{/each}
+			</div>
+		{:else}
+			<div class="py-6 text-center">
+				<p class="text-muted-foreground text-xs italic">
+					Datos insuficientes o muy antiguos para generar un perfil actual.
+				</p>
+			</div>
+		{/if}
+
+		{#if renderData && renderData.tags.length > 0}
+			{@const sortedTags = [...renderData.tags].sort((a, b) => b.score - a.score)}
+			{@const topTags = sortedTags.slice(0, 5)}
+			{@const maxScore = topTags[0]?.score || 1}
+			{@const minScore = topTags[topTags.length - 1]?.score || 0}
+			{@const hasSignificantVariation = (maxScore - minScore) / maxScore > 0.2}
+
+			<div class="flex w-full flex-wrap items-center justify-center gap-2">
+				{#each orderTags(topTags) as tag (tag.id)}
+					{@const weight = tag.score / maxScore}
+					{@const isHeavy = hasSignificantVariation && Math.pow(weight, 2) > 0.6}
+					<ProfessorTag {tag} heavy={isHeavy} />
+				{/each}
+			</div>
+		{/if}
+
+		{#if renderData?.profile?.comments && isVisible}
+			<ProfessorComments comments={renderData.profile.comments} />
+		{/if}
+	</div>
 
 	{#if isPendingMyVote}
 		<Tooltip content="Tu reseña se ha enviado y se procesará en el próximo ciclo (~30min).">

@@ -1,7 +1,4 @@
-<script lang="ts">
-	import { tv } from 'tailwind-variants';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
-
+<script module>
 	import RiEmotionUnhappyFill from '$lib/icons/RiEmotionUnhappyFill.svelte';
 	import RiEmotionNormalFill from '$lib/icons/RiEmotionNormalFill.svelte';
 	import RiEmotionHappyFill from '$lib/icons/RiEmotionHappyFill.svelte';
@@ -24,56 +21,11 @@
 	import TablerMessageMinus from '$lib/icons/TablerMessageMinus.svelte';
 	import TablerMessageQuestion from '$lib/icons/TablerMessageQuestion.svelte';
 	import TablerMessage from '$lib/icons/TablerMessage.svelte';
-	import MdiWeightKilogram from '$lib/icons/MdiWeightKilogram.svelte';
-	import StreamlineUltimateEmojiAngryFaceHornsDemonBold from '$lib/icons/StreamlineUltimateEmojiAngryFaceHornsDemonBold.svelte';
 
-	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
-
-	const base = tv({
-		base: 'overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
-		variants: {
-			dimension: {
-				didactica: 'rounded',
-				exigencia: 'rounded',
-				temperamento: 'rounded'
-			},
-			extreme: {
-				false: 'grayscale-20',
-				true: ''
-			}
-		}
-	});
-
-	// --- LÓGICA DE COLORES CENTRALIZADA ---
-	// Definimos la paleta base (1 a 5) con sus variantes para sólido y gradiente
-	const PALETTE = [
-		{
-			solid: 'bg-red-600',
-			text: 'text-red-500'
-		},
-		{
-			solid: 'bg-orange-600',
-			text: 'text-orange-500'
-		},
-		{
-			solid: 'bg-slate-600',
-			text: 'text-slate-200'
-		},
-		{
-			solid: 'bg-teal-600',
-			text: 'text-teal-500'
-		},
-		{
-			solid: 'bg-lime-600',
-			text: 'text-lime-500'
-		}
-	] as const;
-
-	const isInverseMetric = $derived(
-		['rigor_calificatorio', 'dificultad_percibida'].includes(subdimension.def.id)
-	);
-
-	const ICON_MAP: Record<string, { 1: any; 2: any; 3: any; 4: any; 5: any }> = {
+	export const PROFESSOR_BADGE_ICON_REGISTRY: Record<
+		string,
+		{ 1: any; 2: any; 3: any; 4: any; 5: any }
+	> = {
 		claridad_expositiva: {
 			1: TablerMessageQuestion,
 			2: TablerMessageMinus,
@@ -127,10 +79,72 @@
 		}
 	};
 
+	export const PROFESSOR_BADGE_PALETTE = [
+		{
+			solid: 'bg-amber-600',
+			text: 'text-amber-500',
+			border: 'border-amber-400!',
+			gradient: 'from-amber-600 to-amber-800'
+		},
+		{
+			solid: 'bg-amber-600',
+			text: 'text-amber-500',
+			border: 'border-amber-400!',
+			gradient: 'from-amber-600 to-amber-800'
+		},
+		{
+			solid: 'bg-slate-600',
+			text: 'text-foreground',
+			border: 'border-slate-400!',
+			gradient: 'from-slate-600 to-slate-800'
+		},
+		{
+			solid: 'bg-sky-600',
+			text: 'text-sky-400',
+			border: 'border-sky-400!',
+			gradient: 'from-sky-600 to-sky-800'
+		},
+		{
+			solid: 'bg-sky-600',
+			text: 'text-sky-400',
+			border: 'border-sky-400!',
+			gradient: 'from-sky-600 to-sky-800'
+		}
+	] as const;
+</script>
+
+<script lang="ts">
+	import { tv } from 'tailwind-variants';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+
+	import MdiWeightKilogram from '$lib/icons/MdiWeightKilogram.svelte';
+	import StreamlineUltimateEmojiAngryFaceHornsDemonBold from '$lib/icons/StreamlineUltimateEmojiAngryFaceHornsDemonBold.svelte';
+
+	const { dimension, subdimension }: { dimension: any; subdimension: any } = $props();
+
+	const base = tv({
+		base: 'overflow-hidden flex justify-center items-center p-1 relative bg-card shadow-md size-8 hover:shadow-sm/50 cursor-help group hover:brightness-120 hover:saturate-60 hover:[&_svg]:scale-105',
+		variants: {
+			dimension: {
+				didactica: 'rounded',
+				exigencia: 'rounded',
+				temperamento: 'rounded'
+			},
+			extreme: {
+				false: 'grayscale-20',
+				true: ''
+			}
+		}
+	});
+
+	const isInverseMetric = $derived(
+		['rigor_calificatorio', 'dificultad_percibida'].includes(subdimension.def.id)
+	);
+
 	const roundedValue = $derived<1 | 2 | 3 | 4 | 5>(
 		Math.max(1, Math.min(5, Math.round(subdimension.val))) as any
 	);
-	const currentIcon = $derived(ICON_MAP[subdimension.def.id][roundedValue]);
+	const currentIcon = $derived(PROFESSOR_BADGE_ICON_REGISTRY[subdimension.def.id][roundedValue]);
 	const isExtreme = $derived([1, 5].includes(roundedValue));
 
 	// function getBarColor(score: number) {
@@ -142,7 +156,7 @@
 	const color = $derived.by(() => {
 		let scoreIndex = roundedValue - 1;
 		if (isInverseMetric) scoreIndex = 4 - scoreIndex;
-		return PALETTE[scoreIndex];
+		return PROFESSOR_BADGE_PALETTE[scoreIndex];
 	});
 </script>
 
