@@ -55,7 +55,7 @@
 								{},
 								{
 									title: 'Añadir ramo',
-									description: 'Planificar tu horario'
+									description: 'Diseña y simula tu horario'
 								}
 							);
 						}}
@@ -91,11 +91,14 @@
 						<Button
 							class="mt-2 w-full"
 							onclick={() =>
-								SidebarState.open(RamoWindow, {
-									title: 'Añadir ramo',
-									description: 'Planificar tu horario',
-									Icon: Add
-								})}
+								SidebarState.open(
+									RamoWindow,
+									{},
+									{
+										title: 'Crear horario',
+										description: 'Diseña y simula tu horario. Empieza por añadir un ramo'
+									}
+								)}
 						>
 							Crear horario
 						</Button>
