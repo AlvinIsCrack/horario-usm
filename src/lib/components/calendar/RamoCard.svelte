@@ -17,7 +17,7 @@
 				'shadow-md/50 inset-shadow-xs inset-shadow-white/50 bloque-con-brillo'
 			],
 			titleText: [
-				'font-medium leading-tight line-clamp-2',
+				'font-medium leading-tight! line-clamp-2',
 				'text-xs @4xs:text-sm @3xs:text-base @2xs:text-base'
 			],
 			subtitleText: ['font-medium', 'text-xs @4xs:text-sm @2xs:text-base'],
@@ -35,10 +35,10 @@
 			},
 			isCompactRange: {
 				true: {
-					innerCard: 'p-1 @xs:p-2'
+					innerCard: 'p-1 @2xs:p-2'
 				},
 				false: {
-					innerCard: 'p-2 @xs:p-3'
+					innerCard: 'p-2 @2xs:p-3'
 				}
 			},
 			isHighlighted: {
@@ -106,7 +106,7 @@
 					.hexa()})"
 				{...props}
 			>
-				<div class="-space-y-1">
+				<div class="space-y-1 @2xs:-space-y-1">
 					<p class={titleText()} title={ramo.nombre}>
 						{ramo.nombre}
 					</p>
