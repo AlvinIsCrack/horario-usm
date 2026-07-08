@@ -1,83 +1,98 @@
 import { STAT_LABELS, type AnalyzerContext, type StatItem } from "../types";
 import { getDatosCurriculares } from "./utils";
 
-// 6. CURRICULAR (Malla)
+/**
+ * Analyzes the curriculum structure to identify trajectory dispersion,
+ * critical academic dependencies (prerequisite violations), and thematic saturation.
+ */
 export function analyzeCurriculum(ctx: AnalyzerContext, icons: any): StatItem[] {
     const out: StatItem[] = [];
-    const datosRamos = ctx.ramos
+
+    const courseData = ctx.ramos
         .map(r => ({ sigla: r.sigla, ...getDatosCurriculares(r.sigla) }))
         .filter((d): d is NonNullable<typeof d> & { sigla: string } => !!d.nivel);
 
-    // A. Trayectoria (Dispersión)
-    if (datosRamos.length > 1) {
-        // ... (Este bloque se mantiene igual)
-        const niveles = datosRamos.map(d => d.nivel ?? 0);
-        const max = Math.max(...niveles);
-        const min = Math.min(...niveles);
-        const dispersion = max - min;
+    // Fail-fast: If no valid curriculum data is found, return empty early.
+    if (courseData.length === 0) return out;
 
-        // Detectar carrera
-        const conteo = {} as Record<string, number>;
-        datosRamos.forEach(d => { if (d.carrera) conteo[d.carrera] = (conteo[d.carrera] || 0) + 1; });
-        const carrera = Object.keys(conteo).reduce((a, b) => conteo[a] > conteo[b] ? a : b, 'Tu Carrera');
+    // Extracted globally to be reused across different curriculum checks.
+    const levels = courseData.map(d => d.nivel ?? 0);
+    const maxLevel = Math.max(...levels);
+    const minLevel = Math.min(...levels);
 
-        if (dispersion >= 4) {
+    // A. Trajectory (Dispersion)
+    if (courseData.length > 1) {
+        const levelDispersion = maxLevel - minLevel;
+
+        // Determine the predominant career path based on the enrolled subjects
+        const careerCount: Record<string, number> = {};
+        courseData.forEach(d => {
+            if (d.carrera) careerCount[d.carrera] = (careerCount[d.carrera] || 0) + 1;
+        });
+
+        const detectedCareer = Object.keys(careerCount).reduce(
+            (a, b) => careerCount[a] > careerCount[b] ? a : b,
+            'Tu Carrera'
+        );
+
+        // Emit warning if taking courses spread across multiple years (e.g., repeating freshmen courses while taking senior courses)
+        if (levelDispersion >= 4) {
             out.push({
                 icon: icons.Timeline,
                 label: STAT_LABELS.TRAYECTORIA,
                 value: 'Dispersa',
-                tooltip: `Cursas ramos de niveles distantes (Semestre ${min} y ${max}).<br/><span class="opacity-70 text-xs">Contrastado con plan de <b>${carrera}</b>. Esta dispersión fragmenta tu cohorte generacional.</span>`,
+                tooltip: `Cursas ramos de niveles distantes (Semestre ${minLevel} y ${maxLevel}).<br/><span class="opacity-70 text-xs">Contrastado con plan de <b>${detectedCareer}</b>. Esta dispersión fragmenta tu cohorte generacional.</span>`,
                 status: 'warning'
             });
         }
     }
 
-    // B. Dependencias (CORREGIDO)
-    const siglasTomadas = new Set(ctx.ramos.map(r => r.sigla));
-    const cadenas: string[] = [];
-    datosRamos.forEach(d => {
-        // Verificamos si existe info y requisitos
-        if (d.info && d.info.requisitos) {
-            // 'reqs' ahora es un array de objetos RequisitoFicha
-            const reqs = d.info.requisitos.flat();
+    // B. Dependencies (Pre-requisite violation risk)
+    const enrolledSubjects = new Set(ctx.ramos.map(r => r.sigla));
+    const dependencyChains: string[] = [];
 
-            // Buscamos si algún requisito (por su sigla) está presente en los ramos tomados
-            const conflicto = reqs.find(req => siglasTomadas.has(req.sigla));
+    courseData.forEach(d => {
+        if (d.info?.requisitos) {
+            const requirements = d.info.requisitos.flat();
+            // Checks if any requisite of the current course is also being taken simultaneously
+            const conflict = requirements.find(req => enrolledSubjects.has(req.sigla));
 
-            // Si hay conflicto, usamos req.sigla para el mensaje
-            if (conflicto) cadenas.push(`${conflicto.sigla} ➔ ${d.sigla}`);
+            if (conflict) {
+                dependencyChains.push(`${conflict.sigla} ➔ ${d.sigla}`);
+            }
         }
     });
 
-    if (cadenas.length > 0) {
+    if (dependencyChains.length > 0) {
         out.push({
             icon: icons.Link,
             label: STAT_LABELS.DEPENDENCIAS,
             value: 'Tope Académico',
-            tooltip: `Tomas asignaturas junto a sus requisitos: <b>${cadenas.join(', ')}</b>.<br/><span class="opacity-70 text-xs">Riesgoso: si fallas en la base, comprometes la avanzada.</span>`,
+            tooltip: `Tomas asignaturas junto a sus requisitos: <b>${dependencyChains.join(', ')}</b>.<br/><span class="opacity-70 text-xs">Riesgoso: si fallas en la base, comprometes la avanzada.</span>`,
             status: 'danger'
         });
     }
 
-    // C. Temática (Monotemático)
-    // ... (Este bloque se mantiene igual)
-    const deptos: Record<string, number> = {};
-    let totalCred = 0;
-    datosRamos.forEach(d => {
-        if (d.info && d.info.departamento) {
-            const c = d.info.creditos || 3;
-            deptos[d.info.departamento] = (deptos[d.info.departamento] || 0) + c;
-            totalCred += c;
+    // C. Thematic Saturation (Monothematic)
+    const departmentWeights: Record<string, number> = {};
+    let totalCredits = 0;
+
+    courseData.forEach(d => {
+        if (d.info?.departamento) {
+            const credits = d.info.creditos || 3;
+            departmentWeights[d.info.departamento] = (departmentWeights[d.info.departamento] || 0) + credits;
+            totalCredits += credits;
         }
     });
 
-    for (const [depto, cred] of Object.entries(deptos)) {
-        if (totalCred > 0 && (cred / totalCred) > 0.65 && ctx.ramos.length >= 3) {
+    for (const [department, credits] of Object.entries(departmentWeights)) {
+        // Requires minLevel > 2 to prevent triggering warnings during mandatory early math/physics years (Plan Común)
+        if (totalCredits > 0 && (credits / totalCredits) > 0.8 && ctx.ramos.length >= 4 && minLevel > 2) {
             out.push({
                 icon: icons.Category,
                 label: STAT_LABELS.TEMÁTICA,
                 value: 'Monotemático',
-                tooltip: `El <b>${(cred / totalCred * 100).toFixed(0)}%</b> de tu carga es de <b>${depto.replace('Departamento de ', '')}</b>.<br/><span class="opacity-70 text-xs">Alta saturación en un área específica.</span>`,
+                tooltip: `El <b>${(credits / totalCredits * 100).toFixed(0)}%</b> de tu carga es de <b>${department.replace('Departamento de ', '')}</b>.<br/><span class="opacity-70 text-xs">Alta saturación en un área específica.</span>`,
                 status: 'warning'
             });
         }

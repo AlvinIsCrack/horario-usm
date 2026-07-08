@@ -66,14 +66,6 @@ export function analyzeLogistics(ctx: AnalyzerContext, icons: any): StatItem[] {
             tooltip: `Tus horarios coinciden con el peak de congestión (Entrada 8:15/9:35 o Salida >17:15).<br/><span class="opacity-70 text-xs">En San Joaquín/Valpo esto aumenta el tiempo de viaje drásticamente.</span>`,
             status: 'warning'
         });
-    } else if (diasValle >= 3) {
-        out.push({
-            icon: icons.Bus,
-            label: STAT_LABELS.TRANSPORTE,
-            value: 'Horario Valle',
-            tooltip: `Tus horarios evitan los peaks de congestión, permitiendo viajes más rápidos.`,
-            status: 'success'
-        });
     }
 
     // C. Seguridad (Se mantiene igual, solo ajustando el tooltip si quieres)
