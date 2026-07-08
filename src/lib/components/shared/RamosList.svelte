@@ -100,7 +100,7 @@
 							>
 								{ramo.nombre}
 							</div>
-							<div class="text-foreground pointer -mt-1 flex flex-row gap-2 font-mono text-sm">
+							<div class="text-foreground pointer -mt-1 flex flex-row gap-2 text-sm">
 								<b
 									class="text-shadow-sm"
 									style:color={ramo.color?.lighten(-0.5).saturate(0.2).hex()}
@@ -108,10 +108,10 @@
 									{ramo.sigla}
 								</b>
 								<Tooltip content="Paralelo {ramo.paralelo}">
-									<span class="text-shadow-sm">{ramo.paralelo}</span>
+									<span class="text-shadow-sm">P{ramo.paralelo}</span>
 								</Tooltip>
 								{#if ramo.creditos !== undefined}
-									<div class="font-bold tabular-nums opacity-60">
+									<div class="font-bold tabular-nums opacity-80">
 										<Tooltip content="Créditos SCT del ramo">
 											<span class="text-shadow-sm">{ramo.creditos} SCT</span>
 										</Tooltip>
