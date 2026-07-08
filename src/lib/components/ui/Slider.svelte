@@ -139,7 +139,7 @@
 				class="z-[inherit]"
 			>
 				<div
-					class="bg-popover text-popover-foreground rounded-md border px-2 py-1 text-xs whitespace-nowrap shadow-sm"
+					class="bg-popover text-popover-foreground max-w-2xs rounded border px-2 py-1 text-center text-sm shadow-sm"
 				>
 					{#if activeTick && (activeTick.label || activeTick.description)}
 						<div class="flex flex-col items-center">
@@ -147,7 +147,7 @@
 								<span class="font-bold">{activeTick.label}</span>
 							{/if}
 							{#if activeTick.description}
-								<span class="text-muted-foreground text-xs">{activeTick.description}</span>
+								<span class="text-muted-foreground">{activeTick.description}</span>
 							{/if}
 						</div>
 					{:else}
