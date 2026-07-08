@@ -77,7 +77,9 @@ export const STAT_LABELS = {
     TRAYECTORIA: 'Trayectoria', // Dispersión Malla
     DEPENDENCIAS: 'Dependencias', // Requisitos
     TEMÁTICA: 'Temática', // Monotemático (Depto)
-    CONFLICTOS: 'Conflictos' // Topes
+    CONFLICTOS: 'Conflictos', // Topes,
+
+    BANCARROTA_TEMPORAL: 'Bancarrota Temporal'
 } as const;
 
 export type StatLabel = (typeof STAT_LABELS)[keyof typeof STAT_LABELS];

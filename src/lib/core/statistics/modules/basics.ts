@@ -1,10 +1,21 @@
+// statistics/modules/basics.ts
 import { BLOQUE_DURATION_MINUTES } from "$lib/constants/usm";
 import Time from "$lib/helpers/time";
 import { STAT_LABELS, type AnalyzerContext, type StatItem, type StatStatus } from "../types";
 
 /**
+ * Configuration factors for academic load heuristics.
+ */
+const CONFIG = {
+    REALISTIC_STUDY_FACTOR: 0.8, // Reduces theoretical study hours to realistic student behavior
+    WEEKLY_HOURS: 168,
+    IDEAL_SLEEP_HOURS: 56,       // 8 hours * 7 days
+    BASIC_ROUTINE_HOURS: 14      // Meals, hygiene (approx 2 hours/day)
+} as const;
+
+/**
  * Analyzes baseline academic load, physical permanence on campus,
- * and hidden density in the theoretical core.
+ * focus density, and systemic time budget (Temporal Bankruptcy).
  */
 export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, number>, icons: any): { items: StatItem[], minutesAula: number, minutesPermanencia: number } {
     const out: StatItem[] = [];
@@ -37,7 +48,6 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
     if (minutesPermanencia > 0) {
         const efficiency = Math.round((minutesAula / minutesPermanencia) * 100);
 
-        // Emits an alert strictly if the layout acts as a time sink.
         if (efficiency < 60) {
             const isCritical = efficiency < 45;
             const idleMinutesPerHour = Math.round((minutesPermanencia - minutesAula) / (minutesAula / 60));
@@ -63,7 +73,6 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
             ? coreSubjects.reduce((a, b) => a + b, 0) / coreSubjects.length
             : 0;
 
-        // Alerts triggered solely on pathological curriculum setups.
         if (technicalWeight >= 5 && averageWeight < 4) {
             out.push({
                 icon: icons.Balance,
@@ -80,30 +89,36 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
                 tooltip: `Promedio General: ${averageWeight.toFixed(1)}<br/><span class="opacity-70 text-xs">Muchos ramos de bajo crédito. El peligro es el desorden administrativo, no la dificultad.</span>`,
                 status: 'warning'
             });
-        } else if (averageWeight > 5.0) {
+        } else if (averageWeight >= 5.5 && totalSubjects >= 3) {
+            // Raised threshold to 5.5+ and requires at least 3 subjects to avoid triggering on a single thesis/capstone course.
             out.push({
                 icon: icons.Balance,
                 label: STAT_LABELS.ENFOQUE,
                 value: 'Denso',
-                tooltip: `Promedio General: ${averageWeight.toFixed(1)}<br/><span class="opacity-70 text-xs">Pocos ramos, pero "ladrillos" (Créditos > 5). Requiere profundidad técnica constante.</span>`,
+                tooltip: `Promedio General: ${averageWeight.toFixed(1)}<br/><span class="opacity-70 text-xs">Carga densa. Mayoría de "ladrillos" (Créditos > 5). Requiere profundidad técnica constante y madurez académica.</span>`,
                 status: 'warning'
             });
         }
     }
 
-    // D. Autonomous Study Load
+    // D. Shared Variables for Study and Temporal Bankruptcy
     const subjectsWithoutSCT = Object.values(creditosMap).filter((c) => c === 0).length;
-    if (totalSCT > 0 || subjectsWithoutSCT > 0) {
-        const weeklySuggestedHours = (totalSCT * 27) / 17;
-        const dailyAutonomousHours = Math.max(0, weeklySuggestedHours - (minutesAula / 60)) / 6;
+    const weeklyClassHours = minutesAula / 60;
 
+    // Base formula: (SCT * 27) / 17 weeks. Scaled down by realistic student behavior factor (0.8).
+    const theoreticalSuggestedHours = (totalSCT * 27) / 17;
+    const weeklyAutonomousHours = Math.max(0, theoreticalSuggestedHours - weeklyClassHours) * CONFIG.REALISTIC_STUDY_FACTOR;
+    const dailyAutonomousHours = weeklyAutonomousHours / 6; // Mon-Sat
+
+    // E. Autonomous Study Load Alert
+    if (totalSCT > 0 || subjectsWithoutSCT > 0) {
         const isCritical = dailyAutonomousHours > 6.0;
         const isWarning = dailyAutonomousHours > 4.5;
 
         if (isCritical || isWarning || subjectsWithoutSCT > 0) {
             const status: StatStatus = isCritical ? 'danger' : 'warning';
             const recommendation = isCritical ? 'Carga extrema. Riesgo inminente de burnout.' : 'Carga elevada. Requiere planificación estricta Lunes a Sábado.';
-            const missingDataWarning = subjectsWithoutSCT > 0 ? `<br/>Nota: Se detectaron ${subjectsWithoutSCT} asignatura(s) sin información de créditos.` : '';
+            const missingDataWarning = subjectsWithoutSCT > 0 ? `<br/><br/>⚠️ <b>Nota:</b> Se detectaron ${subjectsWithoutSCT} asignatura(s) sin créditos, la carga real será mayor.` : '';
 
             out.push({
                 icon: icons.Book,
@@ -111,6 +126,34 @@ export function analyzeBasics(ctx: AnalyzerContext, creditosMap: Record<string, 
                 value: `${dailyAutonomousHours.toFixed(1)} hrs/día`,
                 tooltip: `Dedicación teórica estimada fuera del aula. ${recommendation}${missingDataWarning}`,
                 status
+            });
+        }
+    }
+
+    // F. Temporal Bankruptcy (Systemic Time Budget)
+    if (totalSCT > 0) {
+        // Calculate unique days traveling to campus
+        const activeDays = new Set(ctx.ramos.flatMap(r => r.horario.map(h => h.dia)));
+        const weeklyTravelHours = (ctx.tiempoTraslado * 2 * activeDays.size) / 60;
+
+        const totalCommittedHours =
+            CONFIG.IDEAL_SLEEP_HOURS +
+            CONFIG.BASIC_ROUTINE_HOURS +
+            weeklyTravelHours +
+            weeklyClassHours +
+            weeklyAutonomousHours;
+
+        const slackHours = CONFIG.WEEKLY_HOURS - totalCommittedHours;
+
+        // Alerts if the student has less than ~2 hours of free time per day
+        if (slackHours < 15) {
+            const isCritical = slackHours < 7; // < 1 hour of freedom per day
+            out.push({
+                icon: icons.Warning,
+                label: STAT_LABELS.BANCARROTA_TEMPORAL || 'Bancarrota Temporal' as any, // Fallback if type isn't updated yet
+                value: isCritical ? 'Margen Cero' : 'Crítico',
+                tooltip: `Tu presupuesto de tiempo semanal está al límite (Holgura: <b>${slackHours.toFixed(1)} hrs libres/semana</b>).<br/><span class="opacity-70 text-xs">Considerando sueño, clases, horas realistas de estudio y ${weeklyTravelHours.toFixed(1)}h de viaje. Un pequeño atraso o imprevisto colapsará toda tu semana.</span>`,
+                status: isCritical ? 'danger' : 'warning'
             });
         }
     }
