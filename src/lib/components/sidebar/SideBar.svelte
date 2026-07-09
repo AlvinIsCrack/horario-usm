@@ -33,6 +33,7 @@
 	import MaterialSymbolsSettings from '$lib/icons/MaterialSymbolsSettings.svelte';
 	import RamosList from '../shared/RamosList.svelte';
 	import MaterialSymbolsContactSupport from '$lib/icons/MaterialSymbolsContactSupport.svelte';
+	import MaterialSymbolsBook2 from '$lib/icons/MaterialSymbolsBook2.svelte';
 </script>
 
 <div
@@ -148,6 +149,12 @@
 							text="Profesores"
 							onclick={() => goto(`${base}/profesores`)}
 							Icon={Teachers}
+							variant="secondary"
+						/>
+						<SidebarButton
+							text="Ramos"
+							onclick={() => goto(`${base}/ramos`)}
+							Icon={MaterialSymbolsBook2}
 							variant="secondary"
 						/>
 					</div>
