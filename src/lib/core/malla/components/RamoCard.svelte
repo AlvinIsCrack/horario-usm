@@ -12,7 +12,7 @@
 		],
 		slots: {
 			title: [
-				'w-full z-10 font-semibold text-wrap text-xs line-clamp-3 leading-tight pointer-events-none',
+				'w-full z-10 font-semibold text-wrap text-xs line-clamp-3 leading-tight pointer-events-none text-shadow-sm/20',
 				'2xl:text-sm'
 			],
 			credits: [
@@ -24,7 +24,10 @@
 		variants: {
 			status: {
 				disponible: 'bg-primary',
-				aprobado: 'bg-neutral-600',
+				aprobado: {
+					base: 'bg-amber-500 text-black',
+					title: 'text-shadow-sm'
+				},
 				bloqueado: ' bg-muted text-muted-foreground'
 			},
 			relation: {
@@ -36,16 +39,30 @@
 				child: 'ring-2 ring-lime-500! shadow-[0_0_20px_rgba(34,197,94,0.5)] z-50'
 			},
 			odd: {
+				false: {},
 				true: {
-					base: 'before:bg-black/25'
-				},
-				false: {}
+					base: 'before:bg-black/20'
+				}
+			},
+			elective: {
+				false: {},
+				true: {
+					base: 'rounded-none border-4 -hue-rotate-5 saturate-60'
+				}
+			},
+			humanist: {
+				false: {},
+				true: {
+					base: 'rounded-2xl rounded-tr-none rounded-bl-none border-4 hue-rotate-5 saturate-80'
+				}
 			}
 		},
 		defaultVariants: {
 			status: 'disponible',
 			relation: 'none',
-			odd: false
+			odd: false,
+			elective: false,
+			humanist: false
 		}
 	});
 </script>
@@ -104,7 +121,15 @@
 		title: cardTitle,
 		sigla: cardSigla,
 		header: cardHeader
-	} = $derived(cardStyles({ status, relation, odd: semesterIndex % 2 === 0 }));
+	} = $derived(
+		cardStyles({
+			status,
+			relation,
+			odd: semesterIndex % 2 === 0,
+			elective: ramo.esElectivo,
+			humanist: ramo.esHumanista
+		})
+	);
 </script>
 
 <button
