@@ -4,7 +4,7 @@
 			'relative flex flex-col rounded border text-left select-none overflow-hidden',
 			'hover:cursor-pointer hover:ring-2 ring-0 ring-ring shadow-lg/40',
 			'transition-[background-color,scale,border-color,color,box-shadow,filter] duration-400 ease-out',
-			'before:content-[""] before:absolute before:size-full before:left-0 before:top-0',
+			'before:content-[""] before:pointer-events-none before:absolute before:size-full before:left-0 before:top-0',
 
 			'w-36 lg:w-38 2xl:w-40',
 			'p-2 @2xs:p-3 @xs:p-4',
@@ -12,18 +12,20 @@
 		],
 		slots: {
 			title: [
-				'z-10 w-full font-semibold text-wrap text-xs line-clamp-3 truncate leading-tight',
+				'w-full z-10 font-semibold text-wrap text-xs line-clamp-3 leading-tight pointer-events-none',
 				'2xl:text-sm'
 			],
-			credits: ['absolute bottom-0 font-medium right-1 p-2 text-[10px] lg:text-xs'],
+			credits: [
+				'absolute bottom-0 font-medium right-1 p-2 text-[10px] pointer-events-none lg:text-xs'
+			],
 			sigla: ['opacity-80 tracking-wider text-[10px] lg:text-xs'],
-			header: 'block! -space-y-1'
+			header: 'flex flex-col justify-start'
 		},
 		variants: {
 			status: {
-				disponible: 'bg-primary border-transparent hover:border-primary/50!',
-				aprobado: 'bg-lime-600 text-background border-lime-300',
-				bloqueado: ' bg-muted border-border grayscale-25 saturate-120'
+				disponible: 'bg-primary border-transparent! hover:border-primary/50!',
+				aprobado: 'bg-primary hover:border-primary/50! grayscale-100',
+				bloqueado: ' bg-muted border-border! text-muted-foreground'
 			},
 			relation: {
 				none: 'z-0 shadow-sm/20',
@@ -35,7 +37,7 @@
 			},
 			odd: {
 				true: {
-					base: 'before:bg-black/20'
+					base: 'before:bg-black/25'
 				},
 				false: {}
 			}
@@ -44,28 +46,13 @@
 			status: 'disponible',
 			relation: 'none',
 			odd: false
-		},
-		compoundVariants: [
-			{
-				status: 'aprobado',
-				class: {
-					sigla: 'text-background/60'
-				}
-			},
-			{
-				status: 'bloqueado',
-				class: {
-					sigla: 'text-foreground/80'
-				}
-			}
-		]
+		}
 	});
 </script>
 
 <script lang="ts">
 	import type { RamoMalla } from '$lib/core/malla/types';
 	import type { MallaState } from '$lib/core/malla/malla.svelte';
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { tv } from 'tailwind-variants';
 
 	interface Props {
@@ -124,18 +111,23 @@
 	onclick={() => onclick(ramo)}
 	onmouseenter={() => (mallaState.hoverSig = ramo.sigla)}
 	onmouseleave={() => (mallaState.hoverSig = null)}
-	class={card({})}
+	class={card()}
 	style:transition-delay={!['self', 'none'].includes(relation) ? `${delay}ms` : '0ms'}
 >
-	<Tooltip
-		content={mallaState.customNames[ramo.sigla] || ramo.nombre}
-		wrapperClass={cardHeader({})}
-	>
-		<span class={cardTitle({})}>
-			{mallaState.customNames[ramo.sigla] || ramo.nombre}
-		</span>
-		<span class={cardSigla({})}>{ramo.sigla}</span>
-	</Tooltip>
+	{#if status === 'aprobado'}
+		<img
+			class="absolute top-0 left-0 size-full opacity-20 mix-blend-plus-lighter"
+			src="/media/diagonal-line.png"
+			alt=""
+		/>
+	{/if}
 
-	<div class={cardCredits({})}>{ramo.creditos} SCT</div>
+	<div class={cardHeader()} title={mallaState.customNames[ramo.sigla] || ramo.nombre}>
+		<h1 class={cardTitle()}>
+			{mallaState.customNames[ramo.sigla] || ramo.nombre}
+		</h1>
+		<span class={cardSigla()}>{ramo.sigla}</span>
+	</div>
+
+	<div class={cardCredits()}>{ramo.creditos} SCT</div>
 </button>
