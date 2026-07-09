@@ -127,27 +127,6 @@
 				</div>
 			</div>
 		{/if}
-
-		<div
-			class="relative bottom-0 flex w-full flex-row flex-wrap items-end gap-x-3 gap-y-0.5 p-2 text-xs"
-		>
-			<div class="flex items-center gap-1.5">
-				<span class="size-2 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
-				<span>Pre-requisito</span>
-			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="size-2 rounded-full bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.6)]"></span>
-				<span>Co-requisito</span>
-			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="size-2 rounded-full bg-lime-500 shadow-[0_0_6px_rgba(132,204,22,0.6)]"></span>
-				<span>Desbloqueo Parcial</span>
-			</div>
-			<div class="flex items-center gap-1.5">
-				<span class="size-2 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]"></span>
-				<span>Desbloqueo Directo</span>
-			</div>
-		</div>
 	{:else}
 		<div class="flex flex-1 flex-col items-center justify-center p-4 text-center opacity-50">
 			<p class="text-sm font-medium">Selecciona un plan</p>

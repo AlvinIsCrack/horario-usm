@@ -131,6 +131,27 @@
 			class:opacity-100={!!mallaState.hoverSig}
 		></div>
 
+		<div
+			class="fixed bottom-0 z-10 mb-4 flex w-full flex-row flex-wrap items-end justify-start gap-x-6 gap-y-1 p-2 text-sm *:flex *:items-center *:justify-center *:gap-1 [&_dot]:size-3 [&_dot]:rounded-full"
+		>
+			<div>
+				<dot class="bg-amber-500"></dot>
+				<span>Pre-requisito</span>
+			</div>
+			<div>
+				<dot class="bg-cyan-500"></dot>
+				<span>Co-requisito</span>
+			</div>
+			<div>
+				<dot class="bg-lime-500"></dot>
+				<span>Desbloqueo Parcial</span>
+			</div>
+			<div>
+				<dot class="bg-white"></dot>
+				<span>Desbloqueo Directo</span>
+			</div>
+		</div>
+
 		{#if mallaState.currentMalla.length > 0}
 			<div class="relative mx-auto flex h-full w-fit flex-row" bind:this={containerRef}>
 				<svg class="pointer-events-none absolute inset-0 z-10 h-full w-full overflow-visible">
