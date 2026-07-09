@@ -193,9 +193,10 @@
 				transition:fly={{ x: '-100%', opacity: 1, easing: circOut, duration: 300 }}
 			>
 				<div
-					class="bg-card -mx-4 -mt-4 mb-2 flex w-[calc(100%+2rem)] flex-row items-center justify-between p-4 shadow-sm"
+					class="bg-card relative -mx-4 -mt-4 mb-2 flex w-[calc(100%+2rem)] flex-row items-center justify-between p-4 shadow-sm"
 				>
-					<div class="flex flex-1 flex-col items-start justify-center pr-4 text-left">
+					<div class="bg-primary/40 pointer-events-none absolute top-0 left-0 z-0 size-full"></div>
+					<div class="z-1 flex flex-1 flex-col items-start justify-center pr-4 text-left">
 						{#if SidebarState.title}
 							<h1 class="-mb-0.5 font-semibold">{SidebarState.title}</h1>
 						{/if}
@@ -204,7 +205,7 @@
 						{/if}
 					</div>
 					<Button
-						class="bg-card/50! hover:bg-accent/80! aspect-square h-min w-auto"
+						class="bg-card/50! hover:bg-accent/80! aspect-square h-min w-auto p-2!"
 						variant="outlined"
 						disabled={SidebarState.isLocked}
 						onclick={() => {
@@ -213,7 +214,7 @@
 							Calendario.ramoPreview = undefined;
 						}}
 					>
-						<MaterialSymbolsArrowLeftAlt class="scale-150" />
+						<MaterialSymbolsArrowLeftAlt class="size-8" />
 					</Button>
 				</div>
 
