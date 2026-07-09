@@ -6,6 +6,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import { SearchMatcher } from '$lib/helpers/search';
 	import { createDebouncedState } from '$lib/helpers/debouce.svelte';
+	import Input from '../ui/Input.svelte';
 
 	const listStyle = tv({
 		base: 'absolute z-50 w-full mt-2 bg-popover text-popover-foreground border rounded-lg shadow-md/50 p-1 flex flex-col gap-1 max-h-[400px] overflow-y-auto overflow-x-hidden'
@@ -100,25 +101,24 @@
 	class:opacity-50={disabled}
 	{...props}
 >
-	<div class="relative">
-		<Search
-			class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2"
-		/>
-		<input
-			bind:this={inputEl}
-			class="border-input placeholder:text-muted-foreground focus-visible:ring-ring h-10 w-full rounded-md border bg-transparent pr-4 pl-9 text-sm transition-all focus-visible:ring-1 focus-visible:outline-none"
-			bind:value={searchQuery.current}
-			placeholder={currentLabel || placeholder}
-			{disabled}
-			role="combobox"
-			aria-autocomplete="list"
-			aria-controls="listbox-plan-search"
-			aria-expanded={isFocused}
-			onfocus={() => !disabled && (isFocused = true)}
-			onblur={() => setTimeout(() => (isFocused = false), 100)}
-			onkeydown={handleKeydown}
-		/>
-	</div>
+	<Input
+		bind:el={inputEl}
+		bind:value={searchQuery.current}
+		startDecorator={Search}
+		{placeholder}
+		{disabled}
+		role="combobox"
+		aria-autocomplete="list"
+		aria-controls="listbox-ramo-search"
+		aria-expanded={isFocused}
+		aria-owns="listbox-ramo-search"
+		aria-activedescendant={highlightedIndex > -1
+			? `option-ramo-search-${highlightedIndex}`
+			: undefined}
+		onfocus={() => !disabled && (isFocused = true)}
+		onblur={() => setTimeout(() => (isFocused = false), 100)}
+		onkeydown={handleKeydown}
+	/>
 
 	<Floating
 		trigger={containerEl}
