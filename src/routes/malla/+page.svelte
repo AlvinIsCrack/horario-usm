@@ -7,13 +7,10 @@
 </script>
 
 <script lang="ts">
-	// Importaciones de lógica modularizada
 	import { MallaState } from '$lib/core/malla/malla.svelte';
 	import { getCenter, generatePath, romanize } from '$lib/core/malla/visuals';
 	import type { Connection, RamoMalla } from '$lib/core/malla/types';
 
-	// UI Components
-	import Tooltip from '$lib/components/ui/Tooltip.svelte';
 	import { draw } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { onDestroy, onMount } from 'svelte';
@@ -21,7 +18,6 @@
 	import { SidebarState } from '$lib/core/sidebar/state.svelte';
 	import RamoCard from '$lib/core/malla/components/RamoCard.svelte';
 
-	// Instanciar Estado (Se carga automáticamente del localStorage en el constructor)
 	const mallaState = new MallaState();
 	onMount(() => {
 		SidebarState.open(
@@ -132,7 +128,9 @@
 		></div>
 
 		<div
-			class="fixed bottom-0 z-10 mb-4 flex w-full flex-row flex-wrap items-end justify-start gap-x-6 gap-y-1 p-2 text-sm *:flex *:items-center *:justify-center *:gap-1 [&_dot]:size-3 [&_dot]:rounded-full"
+			class="fixed bottom-0 z-10 mb-4 flex w-full flex-row flex-wrap items-end justify-start gap-x-6 gap-y-1 p-2 text-sm transition-all duration-1000 *:flex *:items-center *:justify-center *:gap-1 [&_dot]:size-3 [&_dot]:rounded-full {mallaState.hoverSig
+				? 'opacity-100'
+				: 'opacity-0'}"
 		>
 			<div>
 				<dot class="bg-amber-500"></dot>
