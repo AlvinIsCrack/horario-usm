@@ -24,7 +24,7 @@
 
 <div class="flex w-full flex-col gap-4">
 	<div class="flex flex-col gap-1">
-		<p class="text-muted-foreground text-xs font-bold uppercase">Búsqueda</p>
+		<p class="label">Búsqueda</p>
 		<div class="relative">
 			<Search class="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
 			<input
@@ -37,7 +37,7 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<p class="text-muted-foreground text-xs font-bold uppercase">Sede</p>
+		<p class="label">Sede</p>
 		<SelectUI
 			items={sedeOptions}
 			bind:value={ProfessorPageState.selectedSede}
@@ -47,7 +47,7 @@
 	</div>
 
 	<div class="flex flex-col gap-1">
-		<p class="text-muted-foreground text-xs font-bold uppercase">Departamento</p>
+		<p class="label">Departamento</p>
 		<SelectUI
 			items={deptoOptions}
 			bind:value={ProfessorPageState.selectedDepto}

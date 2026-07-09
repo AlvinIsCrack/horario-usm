@@ -53,7 +53,7 @@
 						class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 						>1</span
 					>
-					<p class="text-muted-foreground text-xs font-bold uppercase">Añadir Ramo</p>
+					<p class="label">Añadir Ramo</p>
 				</div>
 
 				{#if !selectedRamo}
@@ -85,7 +85,7 @@
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 					>2</span
 				>
-				<p class="text-muted-foreground text-xs font-bold uppercase">Elegir paralelo</p>
+				<p class="label">Elegir paralelo</p>
 			</div>
 
 			{#if !Calendario.ramoPreview && !Calendario.ramos.length}
@@ -110,7 +110,7 @@
 					class="bg-primary text-primary-foreground flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
 					>3</span
 				>
-				<p class="text-muted-foreground text-xs font-bold uppercase">
+				<p class="label">
 					{inHorario ? 'Actualizar' : 'Confirmar'} ramo
 				</p>
 			</div>
