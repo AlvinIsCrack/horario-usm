@@ -1,6 +1,5 @@
 import { fetchMallaData } from './data';
-import type { Malla, RamoMalla } from './types';
-import { Calendario } from '$lib/states/calendario.svelte';
+import type { RamoMalla } from './types';
 import { Data } from '$lib/data/data.svelte';
 import { Config } from '../config/store.svelte';
 
@@ -16,65 +15,6 @@ export class MallaState {
     approvedSigs = $state<Set<string>>(new Set());
     customNames = $state<Record<string, string>>({});
     hoverSig = $state<string | null>(null);
-
-    /**
-     * Computes academic statistics based on the current curriculum progress.
-     */
-    get stats() {
-        let totalCreditos = 0;
-        let approvedCreditos = 0;
-        let totalRamos = 0;
-        let approvedRamos = 0;
-        let unlockableRamos = 0;
-        let maxSemestres = 0;
-
-        if (this.rawMalla) {
-            this.rawMalla.forEach((semestre, i) => {
-                if (semestre.length > 0) {
-                    maxSemestres = Math.max(maxSemestres, i + 1);
-                }
-
-                semestre.forEach((ramo) => {
-                    totalCreditos += ramo.creditos;
-                    totalRamos++;
-
-                    const isApproved = this.approvedSigs.has(ramo.sigla);
-                    if (isApproved) {
-                        approvedCreditos += ramo.creditos;
-                        approvedRamos++;
-                    } else {
-                        // Evaluates if all groups of prerequisites have at least one approved requirement (OR logic)
-                        const requirementsMet = ramo.requisitos.every(reqGroup =>
-                            reqGroup.some(req => this.approvedSigs.has(req.sigla))
-                        );
-
-                        if (requirementsMet || ramo.requisitos.length === 0) {
-                            unlockableRamos++;
-                        }
-                    }
-                });
-            });
-        }
-
-        const percent = totalCreditos > 0 ? Math.round((approvedCreditos / totalCreditos) * 100) : 0;
-        const yearsTotal = maxSemestres / 2;
-        const yearsProgress = totalCreditos > 0 ? (approvedCreditos / totalCreditos) * yearsTotal : 0;
-        const yearsRemaining = Math.max(0, yearsTotal - yearsProgress);
-
-        return {
-            totalCreditos,
-            approvedCreditos,
-            remainingCreditos: totalCreditos - approvedCreditos,
-            totalRamos,
-            approvedRamos,
-            remainingRamos: totalRamos - approvedRamos,
-            unlockableRamos,
-            percent,
-            semestresTotales: maxSemestres,
-            duracionTeoricaAnos: yearsTotal,
-            estimacionAnosRestantes: yearsRemaining.toFixed(1)
-        };
-    }
 
     get selectedSede() { return this._selectedSede; }
     set selectedSede(value: string) {
