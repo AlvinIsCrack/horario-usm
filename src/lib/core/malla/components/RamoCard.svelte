@@ -23,17 +23,17 @@
 		},
 		variants: {
 			status: {
-				disponible: 'bg-primary border-transparent! hover:border-primary/50!',
-				aprobado: 'bg-primary hover:border-primary/50! grayscale-100',
-				bloqueado: ' bg-muted border-border! text-muted-foreground'
+				disponible: 'bg-primary',
+				aprobado: 'bg-neutral-600',
+				bloqueado: ' bg-muted text-muted-foreground'
 			},
 			relation: {
 				none: 'z-0 shadow-sm/20',
 				self: 'z-50 will-change-transform border-white brightness-120 -hue-rotate-10',
-				parent: 'ring-2 ring-amber-500 shadow-[0_0_20px_rgba(234,179,8,0.5)] z-50',
-				coreq: 'ring-2 ring-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)] z-50',
-				child: 'ring-2 ring-lime-500 shadow-[0_0_20px_rgba(34,197,94,0.5)] z-50',
-				unlock: 'ring-2 ring-white shadow-[0_0_20px_rgba(255,255,255,1)] z-50'
+				unlock: 'ring-2 ring-white shadow-[0_0_20px_rgba(255,255,255,1)] z-50',
+				parent: 'ring-2 ring-amber-500! shadow-[0_0_20px_rgba(234,179,8,0.5)] z-50',
+				coreq: 'ring-2 ring-cyan-500! shadow-[0_0_20px_rgba(6,182,212,0.3)] z-50',
+				child: 'ring-2 ring-lime-500! shadow-[0_0_20px_rgba(34,197,94,0.5)] z-50'
 			},
 			odd: {
 				true: {
