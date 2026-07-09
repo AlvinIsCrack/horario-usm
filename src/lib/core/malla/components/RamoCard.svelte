@@ -54,6 +54,7 @@
 	import type { RamoMalla } from '$lib/core/malla/types';
 	import type { MallaState } from '$lib/core/malla/malla.svelte';
 	import { tv } from 'tailwind-variants';
+	import { base } from '$app/paths';
 
 	interface Props {
 		ramo: RamoMalla;
@@ -117,7 +118,7 @@
 	{#if status === 'aprobado'}
 		<img
 			class="absolute top-0 left-0 size-full opacity-20 mix-blend-plus-lighter"
-			src="/media/diagonal-line.png"
+			src="{base}/media/diagonal-line.png"
 			alt=""
 		/>
 	{/if}
