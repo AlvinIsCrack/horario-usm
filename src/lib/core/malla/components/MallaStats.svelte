@@ -1,3 +1,18 @@
+<script module>
+	import { tv } from 'tailwind-variants';
+
+	const mallaStatsVariants = tv({
+		slots: {
+			card: ['bg-card space-y-2 overflow-hidden rounded border p-3'],
+			bigNumber: 'text-5xl font-black tabular-nums',
+			bigAddon: '-ml-1 text-base font-normal text-muted-foreground',
+			separator: 'bg-border -mx-4 h-px w-auto'
+		}
+	});
+
+	const styles = mallaStatsVariants();
+</script>
+
 <script lang="ts">
 	import type { MallaState } from '../malla.svelte';
 
@@ -106,25 +121,40 @@
 
 {#snippet totalProgress()}
 	{@const totalCourseProgress = base.approvedCourses / base.totalCourses}
-	<div class="bg-card space-y-2 overflow-hidden rounded border p-4">
-		<h2 class="label">Progreso de Carrera</h2>
+	<div class={styles.card()}>
+		<h2 class="label">Progreso</h2>
 
-		<div class="flex w-full flex-row items-end">
-			<h1 class="text-4xl font-black tabular-nums">
-				{Math.round(totalCourseProgress * 100)}
-				<span class="text-muted-foreground -ml-1 text-lg">%</span>
-			</h1>
+		<div class={styles.separator()}></div>
 
-			<div
-				class="text-muted-foreground mb-0.5 ml-auto space-y-0.5 text-right leading-none tabular-nums"
-			>
-				<div>
-					<b>{base.approvedCourses}</b> ramos de <b>{base.totalCourses}</b>
-				</div>
-				<div>
-					<b>{base.approvedCredits}</b> créditos de <b>{base.totalCredits}</b>
+		<div class="text-muted-foreground tabular-nums">
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">Ramos</div>
+				<div class="text-right">
+					{base.approvedCourses} de {base.totalCourses}
 				</div>
 			</div>
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">Créditos SCT</div>
+				<div class="text-right">
+					{base.approvedCredits} de {base.totalCredits}
+				</div>
+			</div>
+
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">SCT/semestre</div>
+				<div class="text-right">
+					~{Math.round(base.totalCredits / base.maxSemesters)}
+				</div>
+			</div>
+		</div>
+
+		<div class={styles.separator()}></div>
+
+		<div class="flex w-full flex-row items-end">
+			<h1 class={styles.bigNumber({})}>
+				{Math.round(totalCourseProgress * 100)}
+				<span class={styles.bigAddon({ class: '-ml-2' })}>% a partir de ramos</span>
+			</h1>
 		</div>
 
 		<div class="bg-primary/20 -mx-4 -mb-4 h-8 w-auto border-t">
@@ -137,29 +167,37 @@
 {/snippet}
 
 {#snippet estimateTime()}
-	<div class="bg-card space-y-2 rounded border p-4">
+	<div class={styles.card()}>
 		<h2 class="label">Estimación de tiempo</h2>
 
-		<div class="flex items-center *:flex-1">
-			<div class="min-w-1/2 text-6xl font-black tabular-nums">
-				{projections.estimatedSemestersLeft}
-				<span class="text-muted-foreground -ml-3 text-base font-normal">semestres</span>
-			</div>
+		<div class={styles.separator()}></div>
 
-			<div class="text-muted-foreground text-right text-xs">
-				<div>Restan <b>{projections.remainingCredits}</b> créditos</div>
-				<div>promedio de <b>~{Math.round(base.totalCredits / base.maxSemesters)}</b> SCT/sem</div>
+		<div class="text-muted-foreground tabular-nums">
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">SCT restantes</div>
+				<div class="text-right">
+					{projections.remainingCredits}
+				</div>
+			</div>
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">Ramos restantes</div>
+				<div class="text-right">
+					{projections.remainingCourses}
+				</div>
+			</div>
+			<div class="flex justify-between gap-4">
+				<div class="text-foreground">Ramos no electivos</div>
+				<div class="text-right">
+					{projections.remainingCourses - (electives.totalCourses - electives.approvedCourses)}
+				</div>
 			</div>
 		</div>
 
-		<div class="bg-border -mx-4 h-px w-auto"></div>
-		<div class="text-muted-foreground mt-4 text-sm">
-			<p>Te faltan <b>{projections.remainingCourses}</b> ramos para terminar.</p>
-			<p>
-				Hay <b
-					>{projections.remainingCourses - (electives.totalCourses - electives.approvedCourses)}</b
-				> ramos no electivos restantes.
-			</p>
+		<div class={styles.separator()}></div>
+
+		<div class={styles.bigNumber({})}>
+			{projections.estimatedSemestersLeft}
+			<span class={styles.bigAddon({})}>semestres aprox.</span>
 		</div>
 	</div>
 {/snippet}
@@ -169,7 +207,7 @@
 	{@const progressElectives =
 		electives.totalCourses > 0 ? (electives.approvedCourses / electives.totalCourses) * 100 : 0}
 
-	<div class="bg-card space-y-2 overflow-hidden rounded border p-4">
+	<div class={styles.card()}>
 		<div class="flex items-center justify-between">
 			<h2 class="label">Electivos</h2>
 			<span class="text-muted-foreground text-xs font-medium">
@@ -177,16 +215,14 @@
 			</span>
 		</div>
 
+		<div class={styles.separator()}></div>
+
 		<div class="flex items-end gap-2">
-			<div class="text-4xl font-black tabular-nums">
+			<div class={styles.bigNumber({})}>
 				{remainingElectives}
 			</div>
-			<div class="text-muted-foreground mb-1 text-sm">electivos pendientes</div>
+			<div class={styles.bigAddon({ class: 'ml-0' })}>electivos pendientes</div>
 		</div>
-
-		<p class="text-muted-foreground -mt-2 text-xs">
-			Has completado el <b>{Math.round(progressElectives)}%</b> de tus requisitos de electividad.
-		</p>
 
 		<div class="-mx-4 mt-4 -mb-4 h-8 w-auto border-t bg-amber-500/20">
 			<span
@@ -197,7 +233,7 @@
 	</div>
 {/snippet}
 
-<div class="[&_b]:text-foreground space-y-2">
+<div class="space-y-2">
 	{@render totalProgress()}
 	{@render estimateTime()}
 	{@render electivesInfo()}
