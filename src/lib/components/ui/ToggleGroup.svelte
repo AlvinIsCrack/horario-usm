@@ -70,7 +70,7 @@
 		variant?: 'default' | 'outline';
 		size?: 'default' | 'sm' | 'lg';
 		justified?: boolean;
-		labelView?: Snippet<[ItemObj]>;
+		labelView?: Snippet<[ItemObj & { index: number }]>;
 	} & Omit<HTMLAttributes<HTMLDivElement>, 'type'> = $props();
 
 	const { root, item: itemStyle } = toggleGroupStyles({ variant, size, justified });
@@ -117,7 +117,7 @@
 {/snippet}
 
 <div class={root({ class: _class as string })} role="group" {...props}>
-	{#each parsedItems as item (item.value)}
+	{#each parsedItems as item, index (item.value)}
 		{@const checked = isChecked(item.value)}
 		<button
 			type="button"
@@ -130,7 +130,7 @@
 				<item.icon class="mr-2 size-4" />
 			{/if}
 
-			{@render (labelView ?? defaultLabelView)(item)}
+			{@render (labelView ?? defaultLabelView)({ ...item, index })}
 		</button>
 	{/each}
 </div>
