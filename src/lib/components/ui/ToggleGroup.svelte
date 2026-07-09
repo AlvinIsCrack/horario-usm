@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="ts" generics="T">
 	import { tv } from 'tailwind-variants';
 	import type { HTMLAttributes } from 'svelte/elements';
 	import type { Component, Snippet } from 'svelte';
@@ -43,12 +43,12 @@
 
 	// Tipado flexible para los items (pueden ser strings simples u objetos)
 	type ItemValue = string | number;
-	type ItemObj = {
+	type ItemObj<T> = {
 		value: ItemValue;
 		label?: string;
 		icon?: Component;
 		disabled?: boolean;
-		metadata?: any;
+		metadata?: T;
 	};
 
 	let {
@@ -63,24 +63,25 @@
 		labelView,
 		...props
 	}: {
-		items: (ItemValue | ItemObj)[];
+		items: (ItemValue | ItemObj<T>)[];
 		value?: ItemValue | ItemValue[] | null;
 		type?: 'single' | 'multiple';
 		nullable?: boolean;
 		variant?: 'default' | 'outline';
 		size?: 'default' | 'sm' | 'lg';
 		justified?: boolean;
-		labelView?: Snippet<[ItemObj & { index: number }]>;
+		labelView?: Snippet<[ItemObj<T> & { index: number }]>;
 	} & Omit<HTMLAttributes<HTMLDivElement>, 'type'> = $props();
 
 	const { root, item: itemStyle } = toggleGroupStyles({ variant, size, justified });
 
-	// Normalizamos los items a objetos
+	// Normalization
 	const parsedItems = $derived(
-		items.map((i) =>
-			typeof i === 'object' && i !== null && 'value' in i
-				? (i as ItemObj)
-				: ({ value: i, label: String(i) } as ItemObj)
+		items.map(
+			(i): ItemObj<T> =>
+				typeof i === 'object' && i !== null && 'value' in i
+					? (i as ItemObj<T>)
+					: ({ value: i, label: String(i) } as ItemObj<T>)
 		)
 	);
 
@@ -108,7 +109,7 @@
 	}
 </script>
 
-{#snippet defaultLabelView(item: ItemObj)}
+{#snippet defaultLabelView(item: ItemObj<T>)}
 	{#if item.label}
 		{item.label}
 	{:else}
