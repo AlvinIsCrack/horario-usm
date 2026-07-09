@@ -45,9 +45,10 @@
 	type ItemValue = string | number;
 	type ItemObj = {
 		value: ItemValue;
-		label?: string | Snippet | Component;
+		label?: string;
 		icon?: Component;
 		disabled?: boolean;
+		metadata?: any;
 	};
 
 	let {
@@ -59,15 +60,17 @@
 		size = 'default',
 		justified = false,
 		class: _class,
+		labelView,
 		...props
 	}: {
 		items: (ItemValue | ItemObj)[];
 		value?: ItemValue | ItemValue[] | null;
 		type?: 'single' | 'multiple';
-		nullable?: boolean; // Permite deseleccionar en modo single
+		nullable?: boolean;
 		variant?: 'default' | 'outline';
 		size?: 'default' | 'sm' | 'lg';
-		justified?: boolean; // Para que ocupe todo el ancho (estilo Segmented Control)
+		justified?: boolean;
+		labelView?: Snippet<[ItemObj]>;
 	} & Omit<HTMLAttributes<HTMLDivElement>, 'type'> = $props();
 
 	const { root, item: itemStyle } = toggleGroupStyles({ variant, size, justified });
@@ -105,6 +108,14 @@
 	}
 </script>
 
+{#snippet defaultLabelView(item: ItemObj)}
+	{#if item.label}
+		{item.label}
+	{:else}
+		{item.value}
+	{/if}
+{/snippet}
+
 <div class={root({ class: _class as string })} role="group" {...props}>
 	{#each parsedItems as item (item.value)}
 		{@const checked = isChecked(item.value)}
@@ -118,20 +129,8 @@
 			{#if item.icon}
 				<item.icon class="mr-2 size-4" />
 			{/if}
-			{#if item.label}
-				{#if typeof item.label === 'string'}
-					{item.label}
-				{:else}
-					{@const CustomLabel = item.label}
-					{#if typeof CustomLabel === 'function' && !CustomLabel.prototype}
-						{@render (CustomLabel as Snippet)()}
-					{:else}
-						<CustomLabel />
-					{/if}
-				{/if}
-			{:else}
-				{item.value}
-			{/if}
+
+			{@render (labelView ?? defaultLabelView)(item)}
 		</button>
 	{/each}
 </div>
