@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { tv } from 'tailwind-variants';
 	import type { HTMLAttributes } from 'svelte/elements';
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 
 	// Definimos los estilos con Tailwind Variants
 	const toggleGroupStyles = tv({
@@ -45,7 +45,7 @@
 	type ItemValue = string | number;
 	type ItemObj = {
 		value: ItemValue;
-		label?: string;
+		label?: string | Snippet | Component;
 		icon?: Component;
 		disabled?: boolean;
 	};
@@ -118,7 +118,20 @@
 			{#if item.icon}
 				<item.icon class="mr-2 size-4" />
 			{/if}
-			{item.label ?? item.value}
+			{#if item.label}
+				{#if typeof item.label === 'string'}
+					{item.label}
+				{:else}
+					{@const CustomLabel = item.label}
+					{#if typeof CustomLabel === 'function' && !CustomLabel.prototype}
+						{@render (CustomLabel as Snippet)()}
+					{:else}
+						<CustomLabel />
+					{/if}
+				{/if}
+			{:else}
+				{item.value}
+			{/if}
 		</button>
 	{/each}
 </div>
