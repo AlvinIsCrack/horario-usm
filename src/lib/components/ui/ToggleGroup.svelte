@@ -69,6 +69,9 @@
 		disabled?: boolean;
 		/** An optional Svelte snippet for custom rendering of each toggle item's content. */
 		labelView?: Snippet<[ItemObj<T> & { index: number }]>;
+		/** Callback on update value */
+		onValueChange?: (value: any) => void;
+		class?: string | { root?: string; item?: string };
 	}
 
 	let {
@@ -79,13 +82,21 @@
 		variant = 'default',
 		size = 'default',
 		justified = false,
-		class: _class,
+		class: customClass,
 		name,
 		required = false,
 		disabled = false,
 		labelView,
+		onValueChange,
 		...props
 	}: ToggleGroupProps & Omit<HTMLAttributes<HTMLDivElement>, 'type'> = $props();
+
+	const slotClasses = $derived(() => {
+		if (typeof customClass === 'string') {
+			return { root: customClass, item: '' };
+		}
+		return { root: customClass?.root ?? '', item: customClass?.item ?? '' };
+	});
 
 	const { root, item: itemStyle } = toggleGroupStyles({ variant, size, justified });
 
@@ -127,6 +138,8 @@
 				value = [...current, itemValue];
 			}
 		}
+
+		onValueChange?.(value);
 	}
 
 	/**
@@ -146,7 +159,7 @@
 	{/if}
 {/snippet}
 
-<div class={root({ class: _class as string })} role="group" {...props}>
+<div class={root({ class: slotClasses().root })} role="group" {...props}>
 	{#if name}
 		{#if type === 'single'}
 			<input type="hidden" {name} {required} {disabled} value={value ?? ''} />
@@ -164,7 +177,7 @@
 		{@const checked = isChecked(item.value)}
 		<button
 			type="button"
-			class={itemStyle()}
+			class={itemStyle({ class: slotClasses().item })}
 			data-state={checked ? 'on' : 'off'}
 			disabled={disabled || item.disabled}
 			onclick={() => handleSelect(item.value)}
