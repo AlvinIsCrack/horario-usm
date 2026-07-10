@@ -50,7 +50,7 @@
 	let { form, styles }: Props = $props();
 </script>
 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="temporal-context">
 	<FieldHeader
 		title="Contexto Temporal"
 		description="¿Hace cuánto lo cursaste, aproximadamente?"
@@ -89,7 +89,7 @@
 	/>
 </FieldContainer>
 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="final-status">
 	<FieldHeader
 		title="Situación Final"
 		description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
@@ -117,7 +117,7 @@
 </FieldContainer>
 
 {#if form.values['final-status'] === 'pass' || form.values['final-status'] === 'fail'}
-	<FieldContainer {styles}>
+	<FieldContainer {styles} id="used-global">
 		<FieldHeader
 			title="Evaluación Global/Recuperativa"
 			description="¿Llegaste a usar el examen global/recuperativo?"
@@ -151,7 +151,7 @@
 	</FieldContainer>
 {/if}
 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="previous-attempts">
 	<FieldHeader
 		title="Intentos"
 		description="¿Cuántas veces inscribiste el ramo antes de este resultado? (Incluye semestres que hayas botado/RAV)"
@@ -185,7 +185,7 @@
 </FieldContainer>
 
 {#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
-	<FieldContainer {styles}>
+	<FieldContainer {styles} id="dropped-before">
 		<FieldHeader
 			title="Historial de Retiro"
 			description="¿Habías anulado o desinscrito esta asignatura en semestres anteriores? (Botón de pánico, congelar)"
@@ -214,7 +214,7 @@
 {/if}
 
 <!-- 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="final-grade">
 	<FieldHeader
 		title="Nota Final"
 		description="¿Con qué nota cerraste? Pregunta opcional, 100% anónima, para motivo de estadísticas agregadas."
@@ -250,7 +250,7 @@
 	</div>
 </FieldContainer> -->
 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="dropout-intention">
 	<FieldHeader
 		title="Intención de Abandono"
 		description="{form.values['dropped-before'] === 'yes'
@@ -285,7 +285,7 @@
 	/>
 </FieldContainer>
 
-<FieldContainer {styles}>
+<FieldContainer {styles} id="reward-ratio">
 	<FieldHeader
 		title="Frustración vs. Recompensa"
 		description="¿Sientes que el esfuerzo invertido se refleja justamente en tus notas o generó frustración constante?"
