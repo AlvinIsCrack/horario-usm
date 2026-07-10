@@ -277,7 +277,7 @@
 			},
 			{
 				value: 'often',
-				label: 'A Menudo',
+				label: 'Demasiado',
 				iconOn: MingcuteThumbUp2Fill,
 				iconOff: MingcuteThumbUp2Line
 			}
@@ -298,7 +298,7 @@
 		items={[
 			{
 				value: 'bad',
-				label: 'Frustrante',
+				label: 'Poco',
 				iconOn: MingcuteThumbDown2Fill,
 				iconOff: MingcuteThumbDown2Line
 			},
@@ -310,7 +310,7 @@
 			},
 			{
 				value: 'good',
-				label: 'Recompensado',
+				label: 'Mucho',
 				iconOn: MingcuteThumbUp2Fill,
 				iconOff: MingcuteThumbUp2Line
 			}
