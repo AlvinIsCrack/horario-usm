@@ -23,6 +23,9 @@
 	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
 	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
 	import MaterialSymbolsTimer3 from '$lib/icons/MaterialSymbolsTimer3.svelte';
+	import MingcuteBrainLine from '$lib/icons/MingcuteBrainLine.svelte';
+	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
+	import MingcuteCalendarMonthLine from '$lib/icons/MingcuteCalendarMonthLine.svelte';
 	import MingcuteCheckCircleFill from '$lib/icons/MingcuteCheckCircleFill.svelte';
 	import MingcuteCheckCircleLine from '$lib/icons/MingcuteCheckCircleLine.svelte';
 	import MingcuteCloseCircleFill from '$lib/icons/MingcuteCloseCircleFill.svelte';
@@ -31,8 +34,14 @@
 	import MingcuteDelete2Line from '$lib/icons/MingcuteDelete2Line.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
+	import MingcuteHome4Fill from '$lib/icons/MingcuteHome4Fill.svelte';
+	import MingcuteHome4Line from '$lib/icons/MingcuteHome4Line.svelte';
 	import MingcuteMinusCircleFill from '$lib/icons/MingcuteMinusCircleFill.svelte';
 	import MingcuteMinusCircleLine from '$lib/icons/MingcuteMinusCircleLine.svelte';
+	import MingcuteNotebookFill from '$lib/icons/MingcuteNotebookFill.svelte';
+	import MingcuteNotebookLine from '$lib/icons/MingcuteNotebookLine.svelte';
+	import MingcuteRulerFill from '$lib/icons/MingcuteRulerFill.svelte';
+	import MingcuteRulerLine from '$lib/icons/MingcuteRulerLine.svelte';
 	import MingcuteThumbDown2Fill from '$lib/icons/MingcuteThumbDown2Fill.svelte';
 	import MingcuteThumbDown2Line from '$lib/icons/MingcuteThumbDown2Line.svelte';
 	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
@@ -253,9 +262,9 @@
 <FieldContainer {styles} id="dropout-intention">
 	<FieldHeader
 		title="Intención de Abandono"
-		description="{form.values['dropped-before'] === 'yes'
-			? 'Durante el último semestre cursado -ignorando en el que botaste-, ¿llegaste a pensar'
-			: '¿En algún momento del semestre pensaste'} seriamente en botar el ramo por la carga de estrés o dificultad?"
+		description={form.values['dropped-before'] === 'yes'
+			? 'Durante el último semestre cursado, ¿llegaste a pensar seriamente en botar el ramo?'
+			: '¿En algún momento del semestre pensaste seriamente en botar el ramo?'}
 		htmlFor="dropout-intention"
 		{styles}
 	/>
@@ -284,6 +293,56 @@
 		]}
 	/>
 </FieldContainer>
+
+{#if form.values['dropout-intention'] !== 'never' && form.values['dropout-intention']}
+	<FieldContainer {styles} id="dropout-cause">
+		<FieldHeader
+			title="Causa de Abandono"
+			description="¿Cuál fue el motivo principal de querer botar el ramo?"
+			htmlFor="dropout-cause"
+			{styles}
+		/>
+		<IconToggleField
+			id="dropout-cause"
+			{form}
+			items={[
+				{
+					value: 'stress-workload',
+					label: 'Estrés',
+					desc: 'Carga',
+					iconOn: MingcuteCheckCircleFill,
+					iconOff: MingcuteBrainLine
+				},
+				{
+					value: 'difficulty',
+					label: 'Dificultad',
+					iconOn: MingcuteNotebookFill,
+					iconOff: MingcuteNotebookLine
+				},
+				{
+					value: 'professor',
+					label: 'Docencia',
+					iconOn: MingcuteRulerFill,
+					iconOff: MingcuteRulerLine
+				},
+				{
+					value: 'schedule-time',
+					label: 'Horario',
+					desc: 'Tiempo',
+					iconOn: MingcuteCalendarMonthFill,
+					iconOff: MingcuteCalendarMonthLine
+				},
+				{
+					value: 'personal-reasons',
+					label: 'Personal',
+					desc: 'Otro motivo',
+					iconOn: MingcuteHome4Fill,
+					iconOff: MingcuteHome4Line
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
 
 <FieldContainer {styles} id="reward-ratio">
 	<FieldHeader
