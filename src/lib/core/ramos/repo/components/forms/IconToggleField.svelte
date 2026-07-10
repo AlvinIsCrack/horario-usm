@@ -72,6 +72,7 @@
 			type="button"
 			role="radio"
 			aria-checked={active}
+			data-state={active ? 'on' : 'off'}
 			onclick={() => {
 				if (active && nullable) {
 					form.setFieldValue(id, null);
