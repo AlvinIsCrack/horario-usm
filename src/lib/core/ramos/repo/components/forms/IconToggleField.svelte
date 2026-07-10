@@ -18,7 +18,24 @@
 					iconContainer: 'text-current',
 					label: 'text-current'
 				}
+			},
+			nullable: {
+				true: {},
+				false: {}
 			}
+		},
+		compoundVariants: [
+			{
+				active: true,
+				nullable: true,
+				class: {
+					button: 'cursor-pointer!'
+				}
+			}
+		],
+		defaultVariants: {
+			active: false,
+			nullable: false
 		}
 	});
 </script>
@@ -66,7 +83,7 @@
 		{@const typedItem = item as IconToggleItem}
 		{@const ActiveIcon = typedItem.iconOn}
 		{@const InactiveIcon = typedItem.iconOff}
-		{@const styles = iconToggleStyles({ active })}
+		{@const styles = iconToggleStyles({ active, nullable })}
 
 		<button
 			type="button"
