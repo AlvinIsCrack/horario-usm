@@ -287,8 +287,8 @@
 
 <FieldContainer {styles} id="reward-ratio">
 	<FieldHeader
-		title="Frustración vs. Recompensa"
-		description="¿Sientes que el esfuerzo invertido se refleja justamente en tus notas o generó frustración constante?"
+		title="Esfuerzo y Recompensa"
+		description="¿Qué tanta recompensa (notas/aprendizaje) sientes que obtienes en relación al esfuerzo que inviertes?"
 		htmlFor="reward-ratio"
 		{styles}
 	/>
