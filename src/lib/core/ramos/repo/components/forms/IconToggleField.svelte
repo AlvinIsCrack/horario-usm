@@ -10,7 +10,7 @@
 			active: {
 				true: {
 					button: 'text-foreground',
-					iconContainer: 'text-primary scale-110',
+					iconContainer: 'text-primary brightness-125 drop-shadow-md/20 scale-110',
 					label: 'text-foreground'
 				},
 				false: {
