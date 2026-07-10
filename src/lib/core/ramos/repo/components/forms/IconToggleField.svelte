@@ -1,7 +1,33 @@
+<script module>
+	const iconToggleStyles = tv({
+		slots: {
+			button:
+				'focus-visible:ring-ring flex min-w-20 flex-col items-center justify-end rounded text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+			iconContainer: 'mb-1 transition-transform duration-200',
+			label: 'text-sm leading-none font-semibold transition-colors'
+		},
+		variants: {
+			active: {
+				true: {
+					button: 'text-foreground',
+					iconContainer: 'text-primary scale-110',
+					label: 'text-foreground'
+				},
+				false: {
+					button: 'text-muted-foreground hover:text-foreground cursor-pointer',
+					iconContainer: 'text-muted-foreground',
+					label: 'text-muted-foreground'
+				}
+			}
+		}
+	});
+</script>
+
 <script lang="ts">
 	import type { Component } from 'svelte';
 	import type { FormStateManager } from '$lib/components/ui/form';
 	import ToggleGroup from '$lib/components/ui/ToggleGroup.svelte';
+	import { tv } from 'tailwind-variants';
 
 	// Domain-focused interface matching infrastructure requirements
 	interface IconToggleItem {
@@ -40,6 +66,7 @@
 		{@const typedItem = item as IconToggleItem}
 		{@const ActiveIcon = typedItem.iconOn}
 		{@const InactiveIcon = typedItem.iconOff}
+		{@const styles = iconToggleStyles({ active })}
 
 		<button
 			type="button"
@@ -52,14 +79,9 @@
 					form.setFieldValue(id, typedItem.value);
 				}
 			}}
-			class="focus-visible:ring-ring flex min-w-20 flex-col items-center justify-end rounded text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50
-				{active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground cursor-pointer'}"
+			class={styles.button()}
 		>
-			<div
-				class="mb-1 transition-transform duration-200 {active
-					? 'text-primary scale-110'
-					: 'text-muted-foreground'}"
-			>
+			<div class={styles.iconContainer()}>
 				{#if active}
 					<ActiveIcon class="size-8" />
 				{:else}
@@ -67,16 +89,12 @@
 				{/if}
 			</div>
 
-			<span
-				class="text-sm leading-none font-semibold transition-colors {active
-					? 'text-foreground'
-					: 'text-muted-foreground'}"
-			>
+			<span class={styles.label()}>
 				{typedItem.label}
 			</span>
 
 			{#if typedItem.desc}
-				<p class="text-muted-foreground mt-1 max-w-[180px] text-[11px] leading-tight">
+				<p class="text-muted-foreground mt-1 max-w-45 text-[11px] leading-tight">
 					{typedItem.desc}
 				</p>
 			{/if}
