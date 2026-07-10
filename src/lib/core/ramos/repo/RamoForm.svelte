@@ -8,7 +8,7 @@
 			label: 'label text-base font-medium text-card-foreground',
 			description: 'text-sm text-muted-foreground max-w-xl',
 			container:
-				'not-last:mb-4 flex flex-col md:flex-row *:flex-1 *:first:shrink *:last:justify-end md:*:first:max-w-1/2 gap-16 items-center pb-2 px-4 border-b'
+				'not-last:mb-4 flex flex-col md:flex-row *:flex-1 *:first:shrink *:last:justify-end md:*:first:max-w-1/2 gap-16 items-center py-1 px-4 bg-linear-to-r from-transparent to-transparent group-odd:to-accent rounded-md'
 		}
 	});
 	const styles = ramoFormVariants({});
