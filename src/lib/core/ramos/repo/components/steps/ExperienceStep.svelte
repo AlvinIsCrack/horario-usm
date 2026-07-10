@@ -335,6 +335,7 @@
 			title="Nota Final"
 			description="¿Con qué nota cerraste? Pregunta opcional/anulable, 100% anónima, para motivo de estadísticas agregadas."
 			htmlFor="final-grade"
+			optional
 			{styles}
 		/>
 		<IconToggleField

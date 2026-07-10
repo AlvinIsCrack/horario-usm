@@ -3,18 +3,22 @@
 		title?: string;
 		description: string;
 		htmlFor: string;
+		optional?: boolean;
 		styles: {
 			label: (config?: { class?: string }) => string;
 			description: (config?: { class?: string }) => string;
 		};
 	}
 
-	let { title, description, htmlFor, styles }: Props = $props();
+	let { title, description, htmlFor, styles, optional = false }: Props = $props();
 </script>
 
 <div>
 	{#if title}
-		<label for={htmlFor} class={styles.label({})}>{title}</label>
+		<label aria-required={!optional} for={htmlFor} class={styles.label()}>
+			{title}
+			<span class:hidden={optional} class="h-full text-amber-400" title="Requerido">*</span>
+		</label>
 	{/if}
 	<small id="{htmlFor}-help" class={styles.description({ class: 'mt-0 block' })}>
 		{description}
