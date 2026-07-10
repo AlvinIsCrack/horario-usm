@@ -38,9 +38,9 @@
 	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
 	import MingcuteThumbUp2Line from '$lib/icons/MingcuteThumbUp2Line.svelte';
 	import MingcuteTimeLine from '$lib/icons/MingcuteTimeLine.svelte';
+	import FieldContainer from '../forms/FieldContainer.svelte';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField from '../forms/IconToggleField.svelte';
-	import ToggleField from '../forms/ToggleField.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -50,7 +50,7 @@
 	let { form, styles }: Props = $props();
 </script>
 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Contexto Temporal"
 		description="¿Hace cuánto lo cursaste, aproximadamente?"
@@ -87,9 +87,9 @@
 			}
 		]}
 	/>
-</div>
+</FieldContainer>
 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Situación Final"
 		description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
@@ -114,10 +114,10 @@
 			}
 		]}
 	/>
-</div>
+</FieldContainer>
 
 {#if form.values['final-status'] === 'pass' || form.values['final-status'] === 'fail'}
-	<div class={styles.container()}>
+	<FieldContainer {styles}>
 		<FieldHeader
 			title="Evaluación Global/Recuperativa"
 			description="¿Llegaste a usar el examen global/recuperativo?"
@@ -148,10 +148,10 @@
 				}
 			]}
 		/>
-	</div>
+	</FieldContainer>
 {/if}
 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Intentos"
 		description="¿Cuántas veces inscribiste el ramo antes de este resultado? (Incluye semestres que hayas botado/RAV)"
@@ -182,10 +182,10 @@
 			}
 		]}
 	/>
-</div>
+</FieldContainer>
 
 {#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
-	<div class={styles.container()}>
+	<FieldContainer {styles}>
 		<FieldHeader
 			title="Historial de Retiro"
 			description="¿Habías anulado o desinscrito esta asignatura en semestres anteriores? (Botón de pánico, congelar)"
@@ -210,11 +210,11 @@
 				}
 			]}
 		/>
-	</div>
+	</FieldContainer>
 {/if}
 
 <!-- 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Nota Final"
 		description="¿Con qué nota cerraste? Pregunta opcional, 100% anónima, para motivo de estadísticas agregadas."
@@ -248,9 +248,9 @@
 			<span>Excelente</span>
 		</div>
 	</div>
-</div> -->
+</FieldContainer> -->
 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Intención de Abandono"
 		description="{form.values['dropped-before'] === 'yes'
@@ -283,9 +283,9 @@
 			}
 		]}
 	/>
-</div>
+</FieldContainer>
 
-<div class={styles.container()}>
+<FieldContainer {styles}>
 	<FieldHeader
 		title="Frustración vs. Recompensa"
 		description="¿Sientes que el esfuerzo invertido se refleja justamente en tus notas o generó frustración constante?"
@@ -316,4 +316,4 @@
 			}
 		]}
 	/>
-</div>
+</FieldContainer>
