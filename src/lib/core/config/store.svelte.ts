@@ -81,10 +81,10 @@ class ConfigManager {
     // --- Computed / Getters ---
 
     /**
-     * Determina si la configuración mínima para cargar ramos está lista.
+     * Determines if the minimum configuration to load and query courses is met.
      */
     get isReady() {
-        return this.sede !== '' && this.jornada !== '';
+        return this.sede !== '' && this.jornada !== '' && this.semestre !== '';
     }
 }
 
