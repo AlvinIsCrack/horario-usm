@@ -94,7 +94,7 @@
 			</span>
 
 			{#if typedItem.desc}
-				<p class="text-muted-foreground mt-1 max-w-45 text-[11px] leading-tight">
+				<p class="text-muted-foreground max-w-45 text-[11px] leading-tight font-medium">
 					{typedItem.desc}
 				</p>
 			{/if}
