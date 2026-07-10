@@ -15,8 +15,8 @@
 				},
 				false: {
 					button: 'text-muted-foreground hover:text-foreground cursor-pointer',
-					iconContainer: 'text-muted-foreground',
-					label: 'text-muted-foreground'
+					iconContainer: 'text-current',
+					label: 'text-current'
 				}
 			}
 		}
