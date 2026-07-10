@@ -83,7 +83,7 @@
 	<FieldContainer {styles} id="final-status">
 		<FieldHeader
 			title="Situación Final"
-			description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
+			description="¿Cuál fue tu último resultado en el ramo?"
 			htmlFor="final-status"
 			{styles}
 		/>
