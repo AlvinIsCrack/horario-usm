@@ -16,21 +16,20 @@
 				outline: {
 					root: 'bg-transparent border p-0 gap-0 divide-x rounded-md overflow-hidden',
 					item: 'rounded-none border-none hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-accent data-[state=on]:text-accent-foreground'
+				},
+				unstyled: {
+					root: '',
+					item: ''
 				}
 			},
 			size: {
-				default: { item: 'h-8 px-3' },
-				sm: { item: 'h-7 px-2 text-xs' },
-				lg: { item: 'h-10 px-3' }
+				default: {},
+				sm: { item: 'px-2.5 py-1 text-xs' },
+				lg: { item: 'px-5 py-2 text-base' }
 			},
 			justified: {
-				true: {
-					root: 'w-full',
-					item: 'flex-1'
-				},
-				false: {
-					root: 'w-fit'
-				}
+				true: { root: 'w-full', item: 'flex-1' },
+				false: {}
 			}
 		},
 		defaultVariants: {
@@ -40,87 +39,65 @@
 		}
 	});
 
-	type ItemValue = string | number;
+	type ItemValue = T extends PropertyKey ? T : string;
 
-	type ItemObj<T> = {
-		value: ItemValue;
+	interface ItemObj<V> {
+		value: V;
 		label?: string;
-		icon?: Component;
-		disabled?: boolean;
-		metadata?: T;
-	};
-
-	interface ToggleGroupProps extends VariantProps<typeof toggleGroupStyles> {
-		/** The list of options to be rendered. Each can be a simple value or an object with label/icon. */
-		items: (ItemValue | ItemObj<T>)[];
-		/** The currently selected value(s). Bindable to parent state. */
-		value?: ItemValue | ItemValue[] | null;
-		/** Determines if the group allows selecting only one item or multiple items simultaneously. */
-		type?: 'single' | 'multiple';
-		/** If true, allows deselecting the active item in 'single' mode. */
-		nullable?: boolean;
-		/** If true, the root container fills the parent width and items expand equally. */
-		justified?: boolean;
-		/** The name attribute for the underlying hidden input, used for native form data submission. */
-		name?: string;
-		/** If true, ensures at least one item must be selected for form submission. */
-		required?: boolean;
-		/** If true, disables all interactions for the entire toggle group. */
-		disabled?: boolean;
-		/** An optional Svelte snippet for custom rendering of each toggle item's content. */
-		labelView?: Snippet<[ItemObj<T> & { index: number }]>;
-		/** Callback on update value */
-		onValueChange?: (value: any) => void;
-		class?: string | { root?: string; item?: string };
+		[key: string]: any;
 	}
 
+	type ToggleGroupVariants = VariantProps<typeof toggleGroupStyles>;
+
+	interface BaseProps extends HTMLAttributes<HTMLDivElement>, ToggleGroupVariants {
+		name?: string;
+		required?: boolean;
+		disabled?: boolean;
+		nullable?: boolean;
+		items: ItemObj<ItemValue>[];
+		labelView?: Snippet<[ItemObj<ItemValue> & { index: number }]>;
+		/** Custom item renderer snippet to bypass standard pill design */
+		itemView?: Snippet<[{ item: ItemObj<ItemValue>; active: boolean; index: number }]>;
+	}
+
+	interface SingleProps extends BaseProps {
+		type?: 'single';
+		value?: ItemValue | null;
+		onValueChange?: (value: ItemValue | null) => void;
+	}
+
+	interface MultipleProps extends BaseProps {
+		type: 'multiple';
+		value?: ItemValue[];
+		onValueChange?: (value: ItemValue[] | null) => void;
+	}
+
+	type Props = SingleProps | MultipleProps;
+
 	let {
-		items = [],
-		value = $bindable(),
-		type = 'single',
-		nullable = false,
+		class: className,
 		variant = 'default',
 		size = 'default',
 		justified = false,
-		class: customClass,
+		type = 'single',
+		value = $bindable(),
+		onValueChange,
 		name,
 		required = false,
 		disabled = false,
+		nullable = false,
+		items = [],
 		labelView,
-		onValueChange,
+		itemView,
 		...props
-	}: ToggleGroupProps & Omit<HTMLAttributes<HTMLDivElement>, 'type'> = $props();
+	}: Props = $props();
 
-	const slotClasses = $derived(() => {
-		if (typeof customClass === 'string') {
-			return { root: customClass, item: '' };
-		}
-		return { root: customClass?.root ?? '', item: customClass?.item ?? '' };
-	});
-
-	const { root, item: itemStyle } = toggleGroupStyles({ variant, size, justified });
-
-	/**
-	 * Normalizes input items into a consistent object structure.
-	 */
-	const parsedItems = $derived(
-		items.map(
-			(i): ItemObj<T> =>
-				typeof i === 'object' && i !== null && 'value' in i
-					? (i as ItemObj<T>)
-					: ({ value: i, label: String(i) } as ItemObj<T>)
-		)
+	const slotClasses = $derived(() => toggleGroupStyles({ variant, size, justified }));
+	const valuesArray = $derived(Array.isArray(value) ? value : []);
+	const hasSelection = $derived(
+		type === 'single' ? value !== null && value !== undefined : valuesArray.length > 0
 	);
 
-	// Multi-value evaluation for native form binding state
-	const valuesArray = $derived(Array.isArray(value) ? value : value != null ? [value] : []);
-
-	// Fast validation check for the native hidden element state
-	const hasSelection = $derived(valuesArray.length > 0);
-
-	/**
-	 * Handles selection logic based on group type (single vs multiple).
-	 */
 	function handleSelect(itemValue: ItemValue) {
 		if (disabled) return;
 
@@ -130,6 +107,7 @@
 			} else {
 				value = itemValue;
 			}
+			onValueChange?.(value);
 		} else {
 			const current = Array.isArray(value) ? value : [];
 			if (current.includes(itemValue)) {
@@ -137,29 +115,25 @@
 			} else {
 				value = [...current, itemValue];
 			}
+			onValueChange?.(value);
 		}
-
-		onValueChange?.(value);
 	}
 
-	/**
-	 * Determines if a specific value is currently selected.
-	 */
 	function isChecked(v: ItemValue) {
 		if (type === 'single') return value === v;
 		return Array.isArray(value) && value.includes(v);
 	}
 </script>
 
-{#snippet defaultLabelView(item: ItemObj<T>)}
+{#snippet defaultLabelView(item: ItemObj<ItemValue> & { index: number })}
 	{#if item.label}
 		{item.label}
 	{:else}
-		{item.value}
+		{String(item.value)}
 	{/if}
 {/snippet}
 
-<div class={root({ class: slotClasses().root })} role="group" {...props}>
+<div class={slotClasses().root({ class: className as string })} role="group" {...props}>
 	{#if name}
 		{#if type === 'single'}
 			<input type="hidden" {name} {required} {disabled} value={value ?? ''} />
@@ -173,20 +147,26 @@
 		{/if}
 	{/if}
 
-	{#each parsedItems as item, index (item.value)}
-		{@const checked = isChecked(item.value)}
-		<button
-			type="button"
-			class={itemStyle({ class: slotClasses().item })}
-			data-state={checked ? 'on' : 'off'}
-			disabled={disabled || item.disabled}
-			onclick={() => handleSelect(item.value)}
-		>
-			{#if item.icon}
-				<item.icon class="mr-2 size-4" />
-			{/if}
-
-			{@render (labelView ?? defaultLabelView)({ ...item, index })}
-		</button>
+	{#each items as item, index (item.value)}
+		{@const active = isChecked(item.value)}
+		{#if itemView}
+			{@render itemView({ item, active, index })}
+		{:else}
+			<button
+				type="button"
+				role={type === 'single' ? 'radio' : 'checkbox'}
+				aria-checked={active}
+				disabled={disabled || item.disabled}
+				data-state={active ? 'on' : 'off'}
+				class={slotClasses().item()}
+				onclick={() => handleSelect(item.value)}
+			>
+				{#if labelView}
+					{@render labelView({ ...item, index })}
+				{:else}
+					{@render defaultLabelView({ ...item, index })}
+				{/if}
+			</button>
+		{/if}
 	{/each}
 </div>
