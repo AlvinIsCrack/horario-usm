@@ -4,6 +4,7 @@
 	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
 	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
 	import MaterialSymbolsTimer3 from '$lib/icons/MaterialSymbolsTimer3.svelte';
+	import MingcuteBrainFill from '$lib/icons/MingcuteBrainFill.svelte';
 	import MingcuteBrainLine from '$lib/icons/MingcuteBrainLine.svelte';
 	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
 	import MingcuteCalendarMonthLine from '$lib/icons/MingcuteCalendarMonthLine.svelte';
@@ -93,15 +94,21 @@
 			items={[
 				{
 					value: 'pass',
-					label: 'Pasé',
+					label: 'Aprobado',
 					iconOn: MingcuteCheckCircleFill,
 					iconOff: MingcuteCheckCircleLine
 				},
 				{
 					value: 'fail',
-					label: 'Repetí',
+					label: 'Repetido',
 					iconOn: MingcuteCloseCircleFill,
 					iconOff: MingcuteCloseCircleLine
+				},
+				{
+					value: 'drop',
+					label: 'Botado',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>
@@ -181,7 +188,7 @@
 {#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
 	<FieldContainer {styles} id="dropped-before">
 		<FieldHeader
-			title="Historial de Retiro"
+			title="Botado Previamente"
 			description="¿Habías anulado o desinscrito esta asignatura en semestres anteriores? (Botón de pánico, congelar)"
 			htmlFor="dropped-before"
 			{styles}
@@ -260,7 +267,7 @@
 					value: 'stress-workload',
 					label: 'Estrés',
 					desc: 'Carga',
-					iconOn: MingcuteCheckCircleFill,
+					iconOn: MingcuteBrainFill,
 					iconOff: MingcuteBrainLine
 				},
 				{
