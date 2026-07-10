@@ -14,7 +14,8 @@
 					label: 'text-foreground'
 				},
 				false: {
-					button: 'text-muted-foreground hover:text-foreground cursor-pointer',
+					button:
+						'text-muted-foreground hover:text-foreground cursor-pointer group-has-data-[state=on]:opacity-80',
 					iconContainer: 'text-current',
 					label: 'text-current'
 				}
