@@ -1,7 +1,6 @@
 <script lang="ts">
 	import type { HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
-	import { fade, scale } from 'svelte/transition';
 	import Floating from './Floating.svelte';
 
 	// Definimos el estilo base y sus partes
@@ -36,6 +35,7 @@
 		formatValue = (v) => v, // Formateador para el valor
 		class: _class,
 		disabled = false,
+		onValueChange,
 		...props
 	}: {
 		value?: number;
@@ -46,6 +46,7 @@
 		disabled?: boolean;
 		showValueTooltip?: boolean;
 		formatValue?: (v: number) => string | number;
+		onValueChange?: (v: number) => void;
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	// Normalizar ticks a objetos
@@ -60,6 +61,12 @@
 
 	// Porcentaje para posicionamiento visual
 	let percentage = $derived(((value - min) / (max - min)) * 100);
+
+	$effect(() => {
+		if (onValueChange) {
+			onValueChange(value);
+		}
+	});
 
 	function updateValue(clientX: number) {
 		if (!element || disabled) return;
