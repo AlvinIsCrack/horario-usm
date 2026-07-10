@@ -1,24 +1,5 @@
-<script module>
-	const GRADE_MAP_TO_STRING: Record<number, string> = {
-		1: 'failed-low',
-		2: 'failed-high',
-		3: 'passed-low',
-		4: 'passed-mid',
-		5: 'passed-high'
-	};
-
-	const GRADE_MAP_TO_NUMERIC: Record<string, number> = {
-		'failed-low': 1,
-		'failed-high': 2,
-		'passed-low': 3,
-		'passed-mid': 4,
-		'passed-high': 5
-	};
-</script>
-
 <script lang="ts">
 	import type { FormStateManager } from '$lib/components/ui/form';
-	import Slider from '$lib/components/ui/Slider.svelte';
 	import MingcuteTimeFill from '$lib/helpers/MingcuteTimeFill.svelte';
 	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
 	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
@@ -30,8 +11,8 @@
 	import MingcuteCheckCircleLine from '$lib/icons/MingcuteCheckCircleLine.svelte';
 	import MingcuteCloseCircleFill from '$lib/icons/MingcuteCloseCircleFill.svelte';
 	import MingcuteCloseCircleLine from '$lib/icons/MingcuteCloseCircleLine.svelte';
-	import MingcuteDelete2Fill from '$lib/icons/MingcuteDelete2Fill.svelte';
-	import MingcuteDelete2Line from '$lib/icons/MingcuteDelete2Line.svelte';
+	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
+	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
 	import MingcuteHome4Fill from '$lib/icons/MingcuteHome4Fill.svelte';
@@ -98,34 +79,36 @@
 	/>
 </FieldContainer>
 
-<FieldContainer {styles} id="final-status">
-	<FieldHeader
-		title="Situación Final"
-		description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
-		htmlFor="final-status"
-		{styles}
-	/>
-	<IconToggleField
-		id="final-status"
-		{form}
-		items={[
-			{
-				value: 'pass',
-				label: 'Pasé',
-				iconOn: MingcuteCheckCircleFill,
-				iconOff: MingcuteCheckCircleLine
-			},
-			{
-				value: 'fail',
-				label: 'Repetí',
-				iconOn: MingcuteCloseCircleFill,
-				iconOff: MingcuteCloseCircleLine
-			}
-		]}
-	/>
-</FieldContainer>
+{#if form.values['temporal-context']}
+	<FieldContainer {styles} id="final-status">
+		<FieldHeader
+			title="Situación Final"
+			description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
+			htmlFor="final-status"
+			{styles}
+		/>
+		<IconToggleField
+			id="final-status"
+			{form}
+			items={[
+				{
+					value: 'pass',
+					label: 'Pasé',
+					iconOn: MingcuteCheckCircleFill,
+					iconOff: MingcuteCheckCircleLine
+				},
+				{
+					value: 'fail',
+					label: 'Repetí',
+					iconOn: MingcuteCloseCircleFill,
+					iconOff: MingcuteCloseCircleLine
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
 
-{#if form.values['final-status'] === 'pass' || form.values['final-status'] === 'fail'}
+{#if form.values['final-status']}
 	<FieldContainer {styles} id="used-global">
 		<FieldHeader
 			title="Evaluación Global/Recuperativa"
@@ -160,38 +143,40 @@
 	</FieldContainer>
 {/if}
 
-<FieldContainer {styles} id="previous-attempts">
-	<FieldHeader
-		title="Intentos"
-		description="¿Cuántas veces inscribiste el ramo antes de este resultado? (Incluye semestres que hayas botado/RAV)"
-		htmlFor="previous-attempts"
-		{styles}
-	/>
-	<IconToggleField
-		id="previous-attempts"
-		{form}
-		items={[
-			{
-				value: '1',
-				label: '1ra vez',
-				iconOn: MaterialSymbolsTimer1,
-				iconOff: MaterialSymbolsTimer1
-			},
-			{
-				value: '2-rav',
-				label: '2da vez',
-				iconOn: MaterialSymbolsTimer2,
-				iconOff: MaterialSymbolsTimer2
-			},
-			{
-				value: '3+',
-				label: '3ra+ vez',
-				iconOn: MaterialSymbolsTimer3,
-				iconOff: MaterialSymbolsTimer3
-			}
-		]}
-	/>
-</FieldContainer>
+{#if form.values['used-global']}
+	<FieldContainer {styles} id="previous-attempts">
+		<FieldHeader
+			title="Intentos"
+			description="¿Cuántas veces inscribiste el ramo antes de este resultado? (Incluye semestres que hayas botado/RAV)"
+			htmlFor="previous-attempts"
+			{styles}
+		/>
+		<IconToggleField
+			id="previous-attempts"
+			{form}
+			items={[
+				{
+					value: '1',
+					label: '1ra vez',
+					iconOn: MaterialSymbolsTimer1,
+					iconOff: MaterialSymbolsTimer1
+				},
+				{
+					value: '2-rav',
+					label: '2da vez',
+					iconOn: MaterialSymbolsTimer2,
+					iconOff: MaterialSymbolsTimer2
+				},
+				{
+					value: '3+',
+					label: '3ra+ vez',
+					iconOn: MaterialSymbolsTimer3,
+					iconOff: MaterialSymbolsTimer3
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
 
 {#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
 	<FieldContainer {styles} id="dropped-before">
@@ -222,77 +207,42 @@
 	</FieldContainer>
 {/if}
 
-<!-- 
-<FieldContainer {styles} id="final-grade">
-	<FieldHeader
-		title="Nota Final"
-		description="¿Con qué nota cerraste? Pregunta opcional, 100% anónima, para motivo de estadísticas agregadas."
-		htmlFor="final-grade"
-		{styles}
-	/>
-	<div>
-		<Slider
-			id="final-grade"
-			min={1}
-			max={5}
-			step={1}
-			value={GRADE_MAP_TO_NUMERIC[form.values['final-grade']] || 1}
-			onValueChange={(v) => {
-				const stringValue = GRADE_MAP_TO_STRING[v];
-				if (stringValue) {
-					form.setFieldValue('final-grade', stringValue);
+{#if form.values['previous-attempts']}
+	<FieldContainer {styles} id="dropout-intention">
+		<FieldHeader
+			title="Intención de Abandono"
+			description={form.values['dropped-before'] === 'yes'
+				? 'Durante el último semestre cursado, ¿llegaste a pensar seriamente en botar el ramo?'
+				: '¿En algún momento del semestre pensaste seriamente en botar el ramo?'}
+			htmlFor="dropout-intention"
+			{styles}
+		/>
+		<IconToggleField
+			id="dropout-intention"
+			{form}
+			items={[
+				{
+					value: 'never',
+					label: 'Nunca',
+					iconOn: MingcuteThumbDown2Fill,
+					iconOff: MingcuteThumbDown2Line
+				},
+				{
+					value: 'sometimes',
+					label: 'A Veces',
+					iconOn: MingcuteMinusCircleFill,
+					iconOff: MingcuteMinusCircleLine
+				},
+				{
+					value: 'often',
+					label: 'Demasiado',
+					iconOn: MingcuteThumbUp2Fill,
+					iconOff: MingcuteThumbUp2Line
 				}
-			}}
-			formatValue={(v) => `${v}`}
-			ticks={[
-				{ value: 1, label: '0-39' },
-				{ value: 2, label: '40-54' },
-				{ value: 3, label: '55-69' },
-				{ value: 4, label: '70-84' },
-				{ value: 5, label: '85-100' }
 			]}
 		/>
-		<div class="text-muted-foreground flex justify-between text-center text-xs font-medium">
-			<span>Baja</span>
-			<span>Excelente</span>
-		</div>
-	</div>
-</FieldContainer> -->
-
-<FieldContainer {styles} id="dropout-intention">
-	<FieldHeader
-		title="Intención de Abandono"
-		description={form.values['dropped-before'] === 'yes'
-			? 'Durante el último semestre cursado, ¿llegaste a pensar seriamente en botar el ramo?'
-			: '¿En algún momento del semestre pensaste seriamente en botar el ramo?'}
-		htmlFor="dropout-intention"
-		{styles}
-	/>
-	<IconToggleField
-		id="dropout-intention"
-		{form}
-		items={[
-			{
-				value: 'never',
-				label: 'Nunca',
-				iconOn: MingcuteThumbDown2Fill,
-				iconOff: MingcuteThumbDown2Line
-			},
-			{
-				value: 'sometimes',
-				label: 'A Veces',
-				iconOn: MingcuteMinusCircleFill,
-				iconOff: MingcuteMinusCircleLine
-			},
-			{
-				value: 'often',
-				label: 'Demasiado',
-				iconOn: MingcuteThumbUp2Fill,
-				iconOff: MingcuteThumbUp2Line
-			}
-		]}
-	/>
-</FieldContainer>
+	</FieldContainer>
+{/if}
 
 {#if form.values['dropout-intention'] !== 'never' && form.values['dropout-intention']}
 	<FieldContainer {styles} id="dropout-cause">
@@ -344,35 +294,86 @@
 	</FieldContainer>
 {/if}
 
-<FieldContainer {styles} id="reward-ratio">
-	<FieldHeader
-		title="Esfuerzo y Recompensa"
-		description="¿Qué tanta recompensa (notas/aprendizaje) sientes que obtienes en relación al esfuerzo que inviertes?"
-		htmlFor="reward-ratio"
-		{styles}
-	/>
-	<IconToggleField
-		id="reward-ratio"
-		{form}
-		items={[
-			{
-				value: 'bad',
-				label: 'Poco',
-				iconOn: MingcuteThumbDown2Fill,
-				iconOff: MingcuteThumbDown2Line
-			},
-			{
-				value: 'neutral',
-				label: 'Justo',
-				iconOn: MingcuteMinusCircleFill,
-				iconOff: MingcuteMinusCircleLine
-			},
-			{
-				value: 'good',
-				label: 'Mucho',
-				iconOn: MingcuteThumbUp2Fill,
-				iconOff: MingcuteThumbUp2Line
-			}
-		]}
-	/>
-</FieldContainer>
+{#if form.values['dropout-intention']}
+	<FieldContainer {styles} id="reward-ratio">
+		<FieldHeader
+			title="Esfuerzo y Recompensa"
+			description="¿Qué tanta recompensa (notas/aprendizaje) sientes que obtienes en relación al esfuerzo que inviertes?"
+			htmlFor="reward-ratio"
+			{styles}
+		/>
+		<IconToggleField
+			id="reward-ratio"
+			{form}
+			items={[
+				{
+					value: 'bad',
+					label: 'Poco',
+					iconOn: MingcuteThumbDown2Fill,
+					iconOff: MingcuteThumbDown2Line
+				},
+				{
+					value: 'neutral',
+					label: 'Justo',
+					iconOn: MingcuteMinusCircleFill,
+					iconOff: MingcuteMinusCircleLine
+				},
+				{
+					value: 'good',
+					label: 'Mucho',
+					iconOn: MingcuteThumbUp2Fill,
+					iconOff: MingcuteThumbUp2Line
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
+
+{#if form.values['reward-ratio']}
+	<FieldContainer {styles} id="final-grade">
+		<FieldHeader
+			title="Nota Final"
+			description="¿Con qué nota cerraste? Pregunta opcional/anulable, 100% anónima, para motivo de estadísticas agregadas."
+			htmlFor="final-grade"
+			{styles}
+		/>
+		<IconToggleField
+			id="final-grade"
+			nullable
+			required={false}
+			{form}
+			items={[
+				{
+					value: 'failed-low',
+					label: '0-39',
+					iconOn: MingcuteDiamondSquareFill,
+					iconOff: MingcuteDiamondSquareLine
+				},
+				{
+					value: 'failed-high',
+					label: '40-54',
+					iconOn: MingcuteDiamondSquareFill,
+					iconOff: MingcuteDiamondSquareLine
+				},
+				{
+					value: 'pass-low',
+					label: '55-69',
+					iconOn: MingcuteDiamondSquareFill,
+					iconOff: MingcuteDiamondSquareLine
+				},
+				{
+					value: 'pass-medium',
+					label: '70-84',
+					iconOn: MingcuteDiamondSquareFill,
+					iconOff: MingcuteDiamondSquareLine
+				},
+				{
+					value: 'pass-high',
+					label: '85-100',
+					iconOn: MingcuteDiamondSquareFill,
+					iconOff: MingcuteDiamondSquareLine
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
