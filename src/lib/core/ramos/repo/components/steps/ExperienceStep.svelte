@@ -92,7 +92,7 @@
 <div class={styles.container()}>
 	<FieldHeader
 		title="Situación Final"
-		description="¿Cuál fue tu resultado en el ramo durante ese semestre?"
+		description="¿Cuál fue tu resultado en el ramo al cierre de ese semestre?"
 		htmlFor="final-status"
 		{styles}
 	/>
@@ -111,12 +111,6 @@
 				label: 'Repetí',
 				iconOn: MingcuteCloseCircleFill,
 				iconOff: MingcuteCloseCircleLine
-			},
-			{
-				value: 'drop',
-				label: 'Botado',
-				iconOn: MingcuteDelete2Fill,
-				iconOff: MingcuteDelete2Line
 			}
 		]}
 	/>
@@ -160,7 +154,7 @@
 <div class={styles.container()}>
 	<FieldHeader
 		title="Intentos"
-		description="¿Era la primera vez que dabas el ramo?"
+		description="¿Cuántas veces inscribiste el ramo antes de este resultado? (Incluye semestres que hayas botado/RAV)"
 		htmlFor="previous-attempts"
 		{styles}
 	/>
@@ -175,7 +169,7 @@
 				iconOff: MaterialSymbolsTimer1
 			},
 			{
-				value: '2',
+				value: '2-rav',
 				label: '2da vez',
 				iconOn: MaterialSymbolsTimer2,
 				iconOff: MaterialSymbolsTimer2
@@ -189,6 +183,35 @@
 		]}
 	/>
 </div>
+
+{#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
+	<div class={styles.container()}>
+		<FieldHeader
+			title="Historial de Retiro"
+			description="¿Habías anulado o desinscrito esta asignatura en semestres anteriores? (Botón de pánico, congelar)"
+			htmlFor="dropped-before"
+			{styles}
+		/>
+		<IconToggleField
+			id="dropped-before"
+			{form}
+			items={[
+				{
+					value: 'no',
+					label: 'No',
+					iconOn: MingcuteThumbDown2Fill,
+					iconOff: MingcuteThumbDown2Line
+				},
+				{
+					value: 'yes',
+					label: 'Sí',
+					iconOn: MingcuteThumbUp2Fill,
+					iconOff: MingcuteThumbUp2Line
+				}
+			]}
+		/>
+	</div>
+{/if}
 
 <!-- 
 <div class={styles.container()}>
@@ -227,40 +250,40 @@
 	</div>
 </div> -->
 
-{#if form.values['final-status'] !== 'drop' && form.values['final-status']}
-	<div class={styles.container()}>
-		<FieldHeader
-			title="Intención de Abandono"
-			description="¿En algún momento del semestre pensaste seriamente en botar el ramo por la carga de estrés o dificultad?"
-			htmlFor="dropout-intention"
-			{styles}
-		/>
-		<IconToggleField
-			id="dropout-intention"
-			{form}
-			items={[
-				{
-					value: 'never',
-					label: 'Nunca',
-					iconOn: MingcuteThumbDown2Fill,
-					iconOff: MingcuteThumbDown2Line
-				},
-				{
-					value: 'sometimes',
-					label: 'A Veces',
-					iconOn: MingcuteMinusCircleFill,
-					iconOff: MingcuteMinusCircleLine
-				},
-				{
-					value: 'often',
-					label: 'A Menudo',
-					iconOn: MingcuteThumbUp2Fill,
-					iconOff: MingcuteThumbUp2Line
-				}
-			]}
-		/>
-	</div>
-{/if}
+<div class={styles.container()}>
+	<FieldHeader
+		title="Intención de Abandono"
+		description="{form.values['dropped-before'] === 'yes'
+			? 'Durante el último semestre cursado -ignorando en el que botaste-, ¿llegaste a pensar'
+			: '¿En algún momento del semestre pensaste'} seriamente en botar el ramo por la carga de estrés o dificultad?"
+		htmlFor="dropout-intention"
+		{styles}
+	/>
+	<IconToggleField
+		id="dropout-intention"
+		{form}
+		items={[
+			{
+				value: 'never',
+				label: 'Nunca',
+				iconOn: MingcuteThumbDown2Fill,
+				iconOff: MingcuteThumbDown2Line
+			},
+			{
+				value: 'sometimes',
+				label: 'A Veces',
+				iconOn: MingcuteMinusCircleFill,
+				iconOff: MingcuteMinusCircleLine
+			},
+			{
+				value: 'often',
+				label: 'A Menudo',
+				iconOn: MingcuteThumbUp2Fill,
+				iconOff: MingcuteThumbUp2Line
+			}
+		]}
+	/>
+</div>
 
 <div class={styles.container()}>
 	<FieldHeader
