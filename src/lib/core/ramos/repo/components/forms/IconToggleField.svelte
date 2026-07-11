@@ -108,12 +108,12 @@
 				{/if}
 			</div>
 
-			<span class={styles.label()}>
+			<span class={styles.label({ class: 'min-w-12' })}>
 				{typedItem.label}
 			</span>
 
 			{#if typedItem.desc}
-				<p class="text-muted-foreground max-w-45 text-[11px] leading-tight font-medium">
+				<p class="text-muted-foreground max-w-45 min-w-18 text-[11px] leading-tight font-medium">
 					{typedItem.desc}
 				</p>
 			{/if}

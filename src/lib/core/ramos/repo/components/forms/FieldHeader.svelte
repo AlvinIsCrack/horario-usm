@@ -20,7 +20,7 @@
 			<span class:hidden={optional} class="h-full text-amber-400" title="Requerido">*</span>
 		</label>
 	{/if}
-	<small id="{htmlFor}-help" class={styles.description({ class: 'mt-0 block' })}>
+	<small id="{htmlFor}-help" class={styles.description({ class: 'block' })}>
 		{description}
 	</small>
 </div>
