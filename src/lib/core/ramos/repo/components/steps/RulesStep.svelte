@@ -111,7 +111,7 @@
 				{
 					value: 'intermitent',
 					label: 'Cíclico',
-					desc: 'Demanda alternante',
+					desc: 'Alterna: labs, actividades',
 					iconOn: MingcuteWaveFill,
 					iconOff: MingcuteWaveLine
 				},
