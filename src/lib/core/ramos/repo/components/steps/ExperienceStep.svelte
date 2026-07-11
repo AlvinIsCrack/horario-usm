@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { FormStateManager } from '$lib/components/ui/form';
-	import MingcuteTimeFill from '$lib/helpers/MingcuteTimeFill.svelte';
+	import Toggle from '$lib/components/ui/Toggle.svelte';
+	import { Data } from '$lib/data/data.svelte';
 	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
 	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
 	import MaterialSymbolsTimer3 from '$lib/icons/MaterialSymbolsTimer3.svelte';
@@ -28,7 +29,7 @@
 	import MingcuteThumbDown2Line from '$lib/icons/MingcuteThumbDown2Line.svelte';
 	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
 	import MingcuteThumbUp2Line from '$lib/icons/MingcuteThumbUp2Line.svelte';
-	import MingcuteTimeLine from '$lib/icons/MingcuteTimeLine.svelte';
+	import { slide } from 'svelte/transition';
 	import FieldContainer from '../forms/FieldContainer.svelte';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField from '../forms/IconToggleField.svelte';
@@ -39,12 +40,51 @@
 	}
 
 	let { form, styles }: Props = $props();
+
+	/**
+	 * Reactive evaluation strategies for sequential step resolution.
+	 * Ensures clean rendering boundaries for multi-branch wizard progression.
+	 */
+	const isTemporalContextSelected = $derived(!!form.values['temporal-context']);
+	const previousAttempts = $derived(form.values['previous-attempts']);
+	const isAttemptsSelected = $derived(!!previousAttempts);
+
+	const isDroppedBeforeRequired = $derived(isAttemptsSelected && previousAttempts !== '1');
+	const isDroppedBeforeSelected = $derived(!!form.values['dropped-before']);
+
+	const canShowFinalStatus = $derived(
+		isAttemptsSelected && (!isDroppedBeforeRequired || isDroppedBeforeSelected)
+	);
+
+	const finalStatus = $derived(form.values['final-status']);
+	const isFinalStatusSelected = $derived(!!finalStatus);
+
+	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'drop');
+	const isDropIntentionSelected = $derived(!!form.values['drop-intention']);
+
+	const canShowUsedGlobal = $derived(
+		isFinalStatusSelected && (!isDropIntentionRequired || isDropIntentionSelected)
+	);
+
+	const usedGlobal = $derived(form.values['used-global']);
+	const isUsedGlobalSelected = $derived(!!usedGlobal);
+
+	const isGlobalReasonRequired = $derived(isUsedGlobalSelected && usedGlobal !== 'inexistent');
+	const isGlobalReasonSelected = $derived(
+		!!form.values['global-reason-yes'] || !!form.values['global-reason-no']
+	);
+
+	const canShowCourseFrustration = $derived(
+		isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)
+	);
+
+	const isCourseFrustrationSelected = $derived(!!form.values['course-effort-balance']);
 </script>
 
 <FieldContainer {styles} id="temporal-context">
 	<FieldHeader
-		title="Contexto Temporal"
-		description="¿Hace cuánto lo cursaste, aproximadamente?"
+		title="Recuerdo del Ramo"
+		description="¿Hace cuántos semestres terminaste de cursar este ramo?"
 		htmlFor="temporal-context"
 		{styles}
 	/>
@@ -53,104 +93,34 @@
 		{form}
 		items={[
 			{
-				value: 'recent',
-				label: 'Reciente',
-				iconOn: MingcuteTimeFill,
-				iconOff: MingcuteTimeLine
+				value: '0',
+				label: 'El semestre pasado',
+				iconOn: MingcuteDiamondSquareFill,
+				iconOff: MingcuteDiamondSquareLine
 			},
 			{
-				value: 'one-year',
-				label: '~1 año',
-				iconOn: MingcuteTimeFill,
-				iconOff: MingcuteTimeLine
+				value: '1',
+				label: 'Hace 2 semestres',
+				iconOn: MingcuteDiamondSquareFill,
+				iconOff: MingcuteDiamondSquareLine
 			},
 			{
-				value: 'two-years',
-				label: '~2 años',
-				iconOn: MingcuteTimeFill,
-				iconOff: MingcuteTimeLine
+				value: '2',
+				label: 'Hace 3 o 4 semestres',
+				iconOn: MingcuteDiamondSquareFill,
+				iconOff: MingcuteDiamondSquareLine
 			},
 			{
-				value: 'older',
-				label: '~3+ años',
-				iconOn: MingcuteTimeFill,
-				iconOff: MingcuteTimeLine
+				value: '3',
+				label: 'Hace mucho',
+				iconOn: MingcuteDiamondSquareFill,
+				iconOff: MingcuteDiamondSquareLine
 			}
 		]}
 	/>
 </FieldContainer>
 
-{#if form.values['temporal-context']}
-	<FieldContainer {styles} id="final-status">
-		<FieldHeader
-			title="Situación Final"
-			description="¿Cuál fue tu último resultado en el ramo?"
-			htmlFor="final-status"
-			{styles}
-		/>
-		<IconToggleField
-			id="final-status"
-			{form}
-			items={[
-				{
-					value: 'pass',
-					label: 'Aprobado',
-					iconOn: MingcuteCheckCircleFill,
-					iconOff: MingcuteCheckCircleLine
-				},
-				{
-					value: 'fail',
-					label: 'Repetido',
-					iconOn: MingcuteCloseCircleFill,
-					iconOff: MingcuteCloseCircleLine
-				},
-				{
-					value: 'drop',
-					label: 'Botado',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
-				}
-			]}
-		/>
-	</FieldContainer>
-{/if}
-
-{#if form.values['final-status']}
-	<FieldContainer {styles} id="used-global">
-		<FieldHeader
-			title="Evaluación Global/Recuperativa"
-			description="¿Llegaste a usar el examen global/recuperativo?"
-			htmlFor="used-global"
-			{styles}
-		/>
-		<IconToggleField
-			id="used-global"
-			{form}
-			items={[
-				{
-					value: 'yes',
-					label: 'Sí',
-					iconOn: MingcuteCheckCircleFill,
-					iconOff: MingcuteCheckCircleLine
-				},
-				{
-					value: 'no',
-					label: 'No',
-					iconOn: MingcuteCloseCircleFill,
-					iconOff: MingcuteCloseCircleLine
-				},
-				{
-					value: 'inexistent',
-					label: 'No había',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
-				}
-			]}
-		/>
-	</FieldContainer>
-{/if}
-
-{#if form.values['used-global']}
+{#if isTemporalContextSelected}
 	<FieldContainer {styles} id="previous-attempts">
 		<FieldHeader
 			title="Intentos"
@@ -176,7 +146,7 @@
 				},
 				{
 					value: '3+',
-					label: '3ra+ vez',
+					label: '3ra vez o más',
 					iconOn: MaterialSymbolsTimer3,
 					iconOff: MaterialSymbolsTimer3
 				}
@@ -185,7 +155,7 @@
 	</FieldContainer>
 {/if}
 
-{#if form.values['previous-attempts'] !== '1' && form.values['previous-attempts']}
+{#if isDroppedBeforeRequired}
 	<FieldContainer {styles} id="dropped-before">
 		<FieldHeader
 			title="Botado Previamente"
@@ -203,29 +173,67 @@
 					iconOn: MingcuteThumbDown2Fill,
 					iconOff: MingcuteThumbDown2Line
 				},
+				{ value: 'yes', label: 'Sí', iconOn: MingcuteThumbUp2Fill, iconOff: MingcuteThumbUp2Line }
+			]}
+		/>
+	</FieldContainer>
+{/if}
+
+{#if canShowFinalStatus}
+	<FieldContainer {styles} id="final-status">
+		<FieldHeader
+			title="Situación Final"
+			description="¿Cuál fue tu último resultado en el ramo?"
+			htmlFor="final-status"
+			{styles}
+		/>
+		<IconToggleField
+			id="final-status"
+			{form}
+			items={[
 				{
-					value: 'yes',
-					label: 'Sí',
-					iconOn: MingcuteThumbUp2Fill,
-					iconOff: MingcuteThumbUp2Line
+					value: 'pass',
+					label: 'Aprobado',
+					desc: 'Pasé',
+					iconOn: MingcuteCheckCircleFill,
+					iconOff: MingcuteCheckCircleLine
+				},
+				{
+					value: 'fail-grade',
+					label: 'Reprobado',
+					desc: 'Por nota',
+					iconOn: MingcuteCloseCircleFill,
+					iconOff: MingcuteCloseCircleLine
+				},
+				{
+					value: 'fail-inassistance',
+					label: 'Reprobado',
+					desc: 'Por inasistencia',
+					iconOn: MingcuteCloseCircleFill,
+					iconOff: MingcuteCloseCircleLine
+				},
+				{
+					value: 'drop',
+					label: 'Retirado',
+					desc: 'Botado/RAV',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>
 	</FieldContainer>
 {/if}
 
-{#if form.values['previous-attempts']}
-	<FieldContainer {styles} id="dropout-intention">
+{#if isDropIntentionRequired}
+	<FieldContainer {styles} id="drop-intention">
 		<FieldHeader
-			title="Intención de Abandono"
-			description={form.values['dropped-before'] === 'yes'
-				? 'Durante el último semestre cursado, ¿llegaste a pensar seriamente en botar el ramo?'
-				: '¿En algún momento del semestre pensaste seriamente en botar el ramo?'}
-			htmlFor="dropout-intention"
+			title="Intención de Botar"
+			description="¿Con qué frecuencia o seriedad pensaste en abandonar o desinscribir el ramo?"
+			htmlFor="drop-intention"
 			{styles}
 		/>
 		<IconToggleField
-			id="dropout-intention"
+			id="drop-intention"
 			{form}
 			items={[
 				{
@@ -235,99 +243,20 @@
 					iconOff: MingcuteThumbDown2Line
 				},
 				{
-					value: 'sometimes',
-					label: 'A Veces',
+					value: 'rarely',
+					label: 'Ocasionalmente',
 					iconOn: MingcuteMinusCircleFill,
 					iconOff: MingcuteMinusCircleLine
 				},
 				{
-					value: 'often',
-					label: 'Demasiado',
-					iconOn: MingcuteThumbUp2Fill,
-					iconOff: MingcuteThumbUp2Line
-				}
-			]}
-		/>
-	</FieldContainer>
-{/if}
-
-{#if form.values['dropout-intention'] !== 'never' && form.values['dropout-intention']}
-	<FieldContainer {styles} id="dropout-cause">
-		<FieldHeader
-			title="Causa de Abandono"
-			description="¿Cuál fue el motivo principal de querer botar el ramo?"
-			htmlFor="dropout-cause"
-			{styles}
-		/>
-		<IconToggleField
-			id="dropout-cause"
-			{form}
-			items={[
-				{
-					value: 'stress-workload',
-					label: 'Estrés',
-					desc: 'Carga',
+					value: 'frequently',
+					label: 'Frecuentemente',
 					iconOn: MingcuteBrainFill,
 					iconOff: MingcuteBrainLine
 				},
 				{
-					value: 'difficulty',
-					label: 'Dificultad',
-					iconOn: MingcuteNotebookFill,
-					iconOff: MingcuteNotebookLine
-				},
-				{
-					value: 'professor',
-					label: 'Docencia',
-					iconOn: MingcuteRulerFill,
-					iconOff: MingcuteRulerLine
-				},
-				{
-					value: 'schedule-time',
-					label: 'Horario',
-					desc: 'Tiempo',
-					iconOn: MingcuteCalendarMonthFill,
-					iconOff: MingcuteCalendarMonthLine
-				},
-				{
-					value: 'personal-reasons',
-					label: 'Personal',
-					desc: 'Otro motivo',
-					iconOn: MingcuteHome4Fill,
-					iconOff: MingcuteHome4Line
-				}
-			]}
-		/>
-	</FieldContainer>
-{/if}
-
-{#if form.values['dropout-intention']}
-	<FieldContainer {styles} id="reward-ratio">
-		<FieldHeader
-			title="Esfuerzo y Recompensa"
-			description="¿Qué tanta recompensa (notas/aprendizaje) sientes que obtienes en relación al esfuerzo que inviertes?"
-			htmlFor="reward-ratio"
-			{styles}
-		/>
-		<IconToggleField
-			id="reward-ratio"
-			{form}
-			items={[
-				{
-					value: 'bad',
-					label: 'Poco',
-					iconOn: MingcuteThumbDown2Fill,
-					iconOff: MingcuteThumbDown2Line
-				},
-				{
-					value: 'neutral',
-					label: 'Justo',
-					iconOn: MingcuteMinusCircleFill,
-					iconOff: MingcuteMinusCircleLine
-				},
-				{
-					value: 'good',
-					label: 'Mucho',
+					value: 'critical',
+					label: 'Casi lo hago',
 					iconOn: MingcuteThumbUp2Fill,
 					iconOff: MingcuteThumbUp2Line
 				}
@@ -336,11 +265,160 @@
 	</FieldContainer>
 {/if}
 
-{#if form.values['reward-ratio']}
+{#if canShowUsedGlobal}
+	<FieldContainer {styles} id="used-global">
+		<FieldHeader
+			title="Evaluación Global/Recuperativa"
+			description="¿Rendiste el examen global o recuperativo?"
+			htmlFor="used-global"
+			{styles}
+		/>
+		<IconToggleField
+			id="used-global"
+			{form}
+			items={[
+				{
+					value: 'yes',
+					label: 'Sí',
+					iconOn: MingcuteCheckCircleFill,
+					iconOff: MingcuteCheckCircleLine
+				},
+				{
+					value: 'no',
+					label: 'No',
+					iconOn: MingcuteCloseCircleFill,
+					iconOff: MingcuteCloseCircleLine
+				},
+				{
+					value: 'inexistent',
+					label: 'No aplica',
+					desc: 'El ramo no contempla',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
+
+{#if isGlobalReasonRequired}
+	{#if usedGlobal === 'yes'}
+		<FieldContainer {styles} id="global-reason-yes">
+			<FieldHeader
+				title="Motivo de rendición"
+				description="¿Cuál era tu objetivo principal al dar el examen?"
+				htmlFor="global-reason-yes"
+				{styles}
+			/>
+			<IconToggleField
+				id="global-reason-yes"
+				{form}
+				items={[
+					{
+						value: 'yes-pass',
+						label: 'Para aprobar',
+						desc: 'En riesgo, necesario',
+						iconOn: MingcuteCheckCircleFill,
+						iconOff: MingcuteCheckCircleLine
+					},
+					{
+						value: 'yes-grade',
+						label: 'Para subir nota',
+						desc: 'Mejorar promedio',
+						iconOn: MingcuteCheckCircleFill,
+						iconOff: MingcuteCheckCircleLine
+					},
+					{
+						value: 'yes-recover',
+						label: 'Para recuperar',
+						desc: 'Inasistencia previa',
+						iconOn: MingcuteCalendarMonthFill,
+						iconOff: MingcuteCalendarMonthLine
+					}
+				]}
+			/>
+		</FieldContainer>
+	{:else if usedGlobal === 'no'}
+		<FieldContainer {styles} id="global-reason-no">
+			<FieldHeader
+				title="Motivo de no rendición"
+				description="¿Por qué no te presentaste al examen?"
+				htmlFor="global-reason-no"
+				{styles}
+			/>
+			<IconToggleField
+				id="global-reason-no"
+				{form}
+				items={[
+					{
+						value: 'no-exempt',
+						label: 'Eximido',
+						desc: 'Aprobé antes',
+						iconOn: MingcuteMinusCircleFill,
+						iconOff: MingcuteMinusCircleLine
+					},
+					{
+						value: 'no-abandon',
+						label: 'Inútil',
+						desc: 'Nota inalcanzable',
+						iconOn: MingcuteMinusCircleFill,
+						iconOff: MingcuteMinusCircleLine
+					},
+					{
+						value: 'no-not-possible',
+						label: 'Sin derecho',
+						desc: 'Sin nota mínima',
+						iconOn: MingcuteCloseCircleFill,
+						iconOff: MingcuteCloseCircleLine
+					}
+				]}
+			/>
+		</FieldContainer>
+	{/if}
+{/if}
+
+{#if canShowCourseFrustration}
+	{@const id = 'course-effort-balance'}
+	<FieldContainer {styles} {id}>
+		<FieldHeader
+			title="Relación Esfuerzo vs. Aprendizaje"
+			description="¿Qué tan bien recompensado sientes tu esfuerzo con el nivel de aprendizaje que te dejó el ramo?"
+			htmlFor={id}
+			{styles}
+		/>
+		<IconToggleField
+			{id}
+			{form}
+			items={[
+				{
+					value: 'high',
+					label: 'Mucho',
+					iconOn: MingcuteThumbUp2Fill,
+					iconOff: MingcuteThumbUp2Line
+				},
+				{
+					value: 'neutral',
+					label: 'Equilibrado',
+					desc: 'Esfuerzo justificado',
+					iconOn: MingcuteMinusCircleFill,
+					iconOff: MingcuteMinusCircleLine
+				},
+				{
+					value: 'low',
+					label: 'Poco',
+					iconOn: MingcuteThumbDown2Fill,
+					iconOff: MingcuteThumbDown2Line
+				}
+			]}
+		/>
+	</FieldContainer>
+{/if}
+
+{#if isCourseFrustrationSelected}
 	<FieldContainer {styles} id="final-grade">
 		<FieldHeader
 			title="Nota Final"
-			description="¿Con qué nota cerraste? Pregunta opcional/anulable, 100% anónima, para motivo de estadísticas agregadas."
+			description="¿En qué rango se encuentra la nota con la que cerraste? Opcional y anónima, para motivo de estadísticas agregadas."
 			htmlFor="final-grade"
 			optional
 			{styles}
@@ -353,31 +431,31 @@
 			items={[
 				{
 					value: 'failed-low',
-					label: '0-39',
+					label: '≤39',
 					iconOn: MingcuteDiamondSquareFill,
 					iconOff: MingcuteDiamondSquareLine
 				},
 				{
 					value: 'failed-high',
-					label: '40-54',
+					label: '40 a 54',
 					iconOn: MingcuteDiamondSquareFill,
 					iconOff: MingcuteDiamondSquareLine
 				},
 				{
 					value: 'pass-low',
-					label: '55-69',
+					label: '55 a 65',
 					iconOn: MingcuteDiamondSquareFill,
 					iconOff: MingcuteDiamondSquareLine
 				},
 				{
 					value: 'pass-medium',
-					label: '70-84',
+					label: '66 a 79',
 					iconOn: MingcuteDiamondSquareFill,
 					iconOff: MingcuteDiamondSquareLine
 				},
 				{
 					value: 'pass-high',
-					label: '85-100',
+					label: '≥80',
 					iconOn: MingcuteDiamondSquareFill,
 					iconOff: MingcuteDiamondSquareLine
 				}
