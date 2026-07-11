@@ -246,7 +246,7 @@
 				},
 				{
 					value: 'moderate',
-					label: 'Por Reglamento',
+					label: 'Reglamento',
 					desc: 'Lista, estándar',
 					iconOn: MingcuteUserFollow2Fill,
 					iconOff: MingcuteUserFollow2Line
@@ -254,7 +254,7 @@
 				{
 					value: 'strict',
 					label: 'Crucial',
-					desc: 'Materia única en clase',
+					desc: 'Aprendizaje presencial',
 					iconOn: MingcuteEye2Fill,
 					iconOff: MingcuteEye2Line
 				}
