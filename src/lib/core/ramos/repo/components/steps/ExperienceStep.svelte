@@ -74,11 +74,9 @@
 		!!form.values['global-reason-yes'] || !!form.values['global-reason-no']
 	);
 
-	const canShowCourseFrustration = $derived(
+	const canShowCourseGrade = $derived(
 		isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)
 	);
-
-	const isCourseFrustrationSelected = $derived(!!form.values['course-effort-balance']);
 </script>
 
 <FieldContainer {styles} id="temporal-context">
@@ -377,44 +375,7 @@
 	{/if}
 {/if}
 
-{#if canShowCourseFrustration}
-	{@const id = 'course-effort-balance'}
-	<FieldContainer {styles} {id}>
-		<FieldHeader
-			title="Relación Esfuerzo vs. Aprendizaje"
-			description="¿Cuánta recompensa sientes que hubo para tu esfuerzo con el nivel de aprendizaje que te dejó el ramo?"
-			htmlFor={id}
-			{styles}
-		/>
-		<IconToggleField
-			{id}
-			{form}
-			items={[
-				{
-					value: 'high',
-					label: 'Mucha',
-					iconOn: MingcuteThumbUp2Fill,
-					iconOff: MingcuteThumbUp2Line
-				},
-				{
-					value: 'neutral',
-					label: 'Equilibrada',
-					desc: 'Esfuerzo justificado',
-					iconOn: MingcuteMinusCircleFill,
-					iconOff: MingcuteMinusCircleLine
-				},
-				{
-					value: 'low',
-					label: 'Poca',
-					iconOn: MingcuteThumbDown2Fill,
-					iconOff: MingcuteThumbDown2Line
-				}
-			]}
-		/>
-	</FieldContainer>
-{/if}
-
-{#if isCourseFrustrationSelected}
+{#if canShowCourseGrade}
 	<FieldContainer {styles} id="final-grade">
 		<FieldHeader
 			title="Nota Final"
