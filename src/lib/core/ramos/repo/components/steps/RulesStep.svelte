@@ -33,6 +33,8 @@
 	import MingcuteAngelLine from '$lib/icons/MingcuteAngelLine.svelte';
 	import MingcuteSkullFill from '$lib/icons/MingcuteSkullFill.svelte';
 	import MingcuteSkullLine from '$lib/icons/MingcuteSkullLine.svelte';
+	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
+	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -296,6 +298,13 @@
 					desc: 'Sin piedad, acumulativo',
 					iconOn: MingcuteSkullFill,
 					iconOff: MingcuteSkullLine
+				},
+				{
+					value: 'unknown',
+					label: 'No aplica',
+					desc: 'Depende',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>

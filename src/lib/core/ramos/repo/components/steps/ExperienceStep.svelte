@@ -392,7 +392,7 @@
 			items={[
 				{
 					value: 'high',
-					label: 'Mucho',
+					label: 'Bien recompensado',
 					iconOn: MingcuteThumbUp2Fill,
 					iconOff: MingcuteThumbUp2Line
 				},
@@ -405,7 +405,7 @@
 				},
 				{
 					value: 'low',
-					label: 'Poco',
+					label: 'Injusto',
 					iconOn: MingcuteThumbDown2Fill,
 					iconOff: MingcuteThumbDown2Line
 				}
