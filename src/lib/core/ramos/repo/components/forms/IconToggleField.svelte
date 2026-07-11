@@ -2,7 +2,7 @@
 	const iconToggleStyles = tv({
 		slots: {
 			button:
-				'focus-visible:ring-ring flex min-w-20 flex-col items-center justify-end rounded text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
+				'focus-visible:ring-ring flex flex-col items-center justify-end rounded text-center transition-all duration-200 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50',
 			iconContainer: 'mb-1 transition-transform duration-200',
 			label: 'text-sm leading-none font-semibold transition-colors'
 		},
@@ -78,7 +78,7 @@
 	{items}
 	value={form.values[id]}
 	onValueChange={(val) => form.setFieldValue(id, val)}
-	class="w-full gap-2 bg-transparent"
+	class="w-full gap-4 bg-transparent"
 >
 	{#snippet itemView({ item, active })}
 		{@const typedItem = item as IconToggleItem}
