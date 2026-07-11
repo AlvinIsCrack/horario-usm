@@ -382,7 +382,7 @@
 	<FieldContainer {styles} {id}>
 		<FieldHeader
 			title="Relación Esfuerzo vs. Aprendizaje"
-			description="¿Qué tan bien recompensado sientes tu esfuerzo con el nivel de aprendizaje que te dejó el ramo?"
+			description="¿Cuánta recompensa sientes que hubo para tu esfuerzo con el nivel de aprendizaje que te dejó el ramo?"
 			htmlFor={id}
 			{styles}
 		/>
@@ -392,20 +392,20 @@
 			items={[
 				{
 					value: 'high',
-					label: 'Bien recompensado',
+					label: 'Mucha',
 					iconOn: MingcuteThumbUp2Fill,
 					iconOff: MingcuteThumbUp2Line
 				},
 				{
 					value: 'neutral',
-					label: 'Equilibrado',
+					label: 'Equilibrada',
 					desc: 'Esfuerzo justificado',
 					iconOn: MingcuteMinusCircleFill,
 					iconOff: MingcuteMinusCircleLine
 				},
 				{
 					value: 'low',
-					label: 'Injusto',
+					label: 'Poca',
 					iconOn: MingcuteThumbDown2Fill,
 					iconOff: MingcuteThumbDown2Line
 				}
