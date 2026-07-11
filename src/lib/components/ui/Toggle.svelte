@@ -3,7 +3,7 @@
 	import { tv } from 'tailwind-variants';
 
 	const toggle = tv({
-		base: 'group relative inline-flex items-center justify-center gap-1.5 rounded-md border text-xs font-bold transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer select-none shadow-sm/50',
+		base: 'group relative inline-flex items-center justify-center gap-1.5 rounded border text-xs font-bold transition-all duration-200 ease-out disabled:opacity-50 disabled:pointer-events-none ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 cursor-pointer select-none shadow-sm/50',
 		variants: {
 			pressed: {
 				true: 'shadow-sm',
@@ -94,13 +94,14 @@
 	class={toggle({ pressed, size, variant, class: _class as string })}
 	{...props}
 >
-	{#if pressed}
+	<div
+		class="-ml-1 aspect-square rounded border {pressed ? 'border-transparent!' : 'border-border!'}"
+	>
 		<div
-			class="grid place-items-center overflow-hidden transition-all duration-200 ease-in-out"
-			style:grid-template-columns={pressed ? '1fr' : '0fr'}
-			style:width={pressed ? 'auto' : '0px'}
+			class="grid place-items-center overflow-hidden transition-all duration-200 ease-in-out {pressed
+				? 'visible'
+				: 'invisible'}"
 			style:opacity={pressed ? 1 : 0}
-			style:margin-right={pressed ? '2px' : '0px'}
 			aria-hidden="true"
 		>
 			<svg
@@ -118,7 +119,7 @@
 				<polyline points="20 6 9 17 4 12" />
 			</svg>
 		</div>
-	{/if}
+	</div>
 
 	<span class="truncate">
 		{@render children?.()}
