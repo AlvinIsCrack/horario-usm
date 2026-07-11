@@ -214,7 +214,7 @@
 						])}
 					{:else}
 						{@render effortCalendar([
-							{ day: 8, level: 'high' },
+							{ day: 8, level: 'medium' },
 							{ day: 22, level: 'high' }
 						])}
 					{/if}
