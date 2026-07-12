@@ -10,7 +10,7 @@
 			active: {
 				true: {
 					button: 'text-foreground',
-					iconContainer: 'text-primary brightness-125 drop-shadow-md/20 scale-110',
+					iconContainer: 'text-sky-600 drop-shadow-md/20 scale-110',
 					label: 'text-foreground'
 				},
 				false: {
@@ -23,6 +23,15 @@
 			nullable: {
 				true: {},
 				false: {}
+			},
+			size: {
+				default: {
+					button: ''
+				},
+				sm: {
+					iconContainer: 'mb-0.5',
+					label: 'text-xs'
+				}
 			}
 		},
 		compoundVariants: [
@@ -32,41 +41,60 @@
 				class: {
 					button: 'cursor-pointer!'
 				}
+			},
+			{
+				active: true,
+				nullable: true,
+				class: {
+					iconContainer: 'text-sky-300'
+				}
 			}
 		],
 		defaultVariants: {
 			active: false,
-			nullable: false
+			nullable: false,
+			size: 'default'
 		}
 	});
-</script>
-
-<script lang="ts">
-	import type { Component } from 'svelte';
-	import type { FormStateManager } from '$lib/components/ui/form';
-	import ToggleGroup from '$lib/components/ui/ToggleGroup.svelte';
-	import { tv } from 'tailwind-variants';
 
 	// Domain-focused interface matching infrastructure requirements
-	interface IconToggleItem {
+	export interface IconToggleItem {
 		value: string;
-		label: string;
+		label?: string;
 		desc?: string;
+		tooltip?: string;
 		/** Rendered when active state evaluates to true */
 		iconOn: Component<any>;
 		/** Rendered when active state evaluates to false */
 		iconOff: Component<any>;
+		/** Badge */
+		badge?: Component<any>;
+		/** Optional class */
+		labelClass?: string;
+		containerClass?: string;
 	}
 
-	interface Props {
-		id: string;
-		form: FormStateManager<any>;
+	interface Props extends VariantProps<typeof iconToggleStyles> {
 		items: IconToggleItem[];
 		nullable?: boolean;
 		required?: boolean;
+		class?: string;
 	}
+</script>
 
-	let { id, form, items, nullable = false, required = true }: Props = $props();
+<script lang="ts">
+	import type { Component } from 'svelte';
+	import { getFormContext, getFieldContext } from '$lib/components/ui/form';
+	import ToggleGroup from '$lib/components/ui/ToggleGroup.svelte';
+	import { tv, type VariantProps } from 'tailwind-variants';
+	import Tooltip from '$lib/components/ui/Tooltip.svelte';
+	import { cn } from '$lib/utils';
+	import { shrinkwrap } from '$lib/helpers/actions';
+
+	let { items, nullable = false, required = true, size, class: _class }: Props = $props();
+
+	const form = getFormContext();
+	const id = getFieldContext();
 </script>
 
 <ToggleGroup
@@ -78,45 +106,69 @@
 	{items}
 	value={form.values[id]}
 	onValueChange={(val) => form.setFieldValue(id, val)}
-	class="w-full gap-4 bg-transparent"
+	class="w-full gap-4 place-self-center bg-transparent {_class}"
 >
 	{#snippet itemView({ item, active })}
 		{@const typedItem = item as IconToggleItem}
 		{@const ActiveIcon = typedItem.iconOn}
 		{@const InactiveIcon = typedItem.iconOff}
-		{@const styles = iconToggleStyles({ active, nullable })}
+		{@const styles = iconToggleStyles({ active, nullable, size })}
 
-		<button
-			type="button"
-			role="radio"
-			aria-checked={active}
-			data-state={active ? 'on' : 'off'}
-			onclick={() => {
-				if (active && nullable) {
-					form.setFieldValue(id, null);
-				} else {
-					form.setFieldValue(id, typedItem.value);
-				}
-			}}
-			class={styles.button()}
-		>
-			<div class={styles.iconContainer()}>
-				{#if active}
-					<ActiveIcon class="size-8" />
-				{:else}
-					<InactiveIcon class="size-8" />
+		<Tooltip content={typedItem.tooltip}>
+			<button
+				type="button"
+				role="radio"
+				aria-checked={active}
+				data-state={active ? 'on' : 'off'}
+				onclick={() => {
+					if (active && nullable) {
+						form.setFieldValue(id, null);
+					} else {
+						form.setFieldValue(id, typedItem.value);
+					}
+				}}
+				class={styles.button({ class: ['max-w-24', typedItem.containerClass] })}
+			>
+				<div class={styles.iconContainer({ class: 'relative' })}>
+					{#if active}
+						<ActiveIcon class={size === 'sm' ? 'size-6' : 'size-8'} />
+					{:else}
+						<InactiveIcon class={size === 'sm' ? 'size-6' : 'size-8'} />
+					{/if}
+
+					{#if typedItem.badge}
+						<div
+							class={cn(
+								'bg-card absolute -right-1 bottom-0 z-1 rounded-full p-0.5',
+								active && 'text-foreground'
+							)}
+						>
+							<typedItem.badge class="size-3 scale-125" />
+						</div>
+					{/if}
+				</div>
+
+				<span
+					style:margin-inline="auto"
+					class={styles.label({
+						class: [size === 'sm' ? '' : 'text-pretty', typedItem.labelClass]
+					})}
+				>
+					{typedItem.label}
+				</span>
+
+				{#if typedItem.desc}
+					<span
+						use:shrinkwrap
+						style:margin-inline="auto"
+						class={cn(
+							'text-muted-foreground/80 max-w-full text-xs leading-tight font-medium text-pretty'
+						)}
+					>
+						{typedItem.desc}
+					</span>
 				{/if}
-			</div>
-
-			<span class={styles.label({ class: 'min-w-12' })}>
-				{typedItem.label}
-			</span>
-
-			{#if typedItem.desc}
-				<p class="text-muted-foreground max-w-45 min-w-18 text-[11px] leading-tight font-medium">
-					{typedItem.desc}
-				</p>
-			{/if}
-		</button>
+			</button>
+		</Tooltip>
 	{/snippet}
 </ToggleGroup>

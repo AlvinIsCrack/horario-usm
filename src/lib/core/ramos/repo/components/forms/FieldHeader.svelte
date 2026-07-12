@@ -1,16 +1,16 @@
 <script lang="ts">
+	import { ramoFormVariants } from '../../RamoForm.svelte';
+
 	interface Props {
 		title?: string;
 		description: string;
 		htmlFor: string;
 		optional?: boolean;
-		styles: {
-			label: (config?: { class?: string }) => string;
-			description: (config?: { class?: string }) => string;
-		};
 	}
 
-	let { title, description, htmlFor, styles, optional = false }: Props = $props();
+	let { title, description, htmlFor, optional = false }: Props = $props();
+
+	const styles = ramoFormVariants({});
 </script>
 
 <div>

@@ -1,16 +1,17 @@
 <script module>
 	import { tv } from 'tailwind-variants';
 
-	const ramoFormVariants = tv({
+	export const ramoFormVariants = tv({
 		slots: {
 			wizardStep: '',
 			title: 'label text-lg',
 			label: 'label text-base font-medium text-card-foreground',
 			description: 'text-sm text-muted-foreground max-w-xl mb-2',
 			container:
-				'not-last:mb-4 flex flex-row *:flex-1 *:first:shrink *:not-first:justify-end md:*:first:max-w-1/2 gap-x-16 items-center py-1 px-4 bg-linear-to-r from-transparent to-transparent group-odd:to-accent rounded-md transition-colors duration-400 flex-wrap'
+				'not-last:mb-4 flex flex-row items-start *:flex-1 *:first:shrink *:not-first:justify-end md:*:first:max-w-1/2 gap-x-16 py-1 px-4 bg-linear-to-r from-transparent to-transparent group-odd:to-accent rounded-md transition-colors duration-400 flex-wrap'
 		}
 	});
+
 	const styles = ramoFormVariants({});
 </script>
 
