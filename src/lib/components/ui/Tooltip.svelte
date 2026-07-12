@@ -17,6 +17,7 @@
 	import type { ClassValue, HTMLAttributes } from 'svelte/elements';
 	import { tv } from 'tailwind-variants';
 	import Floating from './Floating.svelte';
+	import { shrinkwrap } from '$lib/helpers/actions';
 
 	let {
 		children,
@@ -46,7 +47,7 @@
 	} & HTMLAttributes<HTMLDivElement> = $props();
 
 	const tooltip = tv({
-		base: 'fixed w-max border text-left leading-tight max-w-xs! font-normal rounded bg-popover px-2 py-1 text-sm text-popover-foreground shadow-sm/50',
+		base: 'fixed w-max border text-center text-pretty leading-tight max-w-xs! font-normal rounded bg-popover px-2 py-1 text-sm text-popover-foreground shadow-sm/50',
 		variants: {
 			position: {
 				top: 'bottom-full left-1/2',
@@ -108,6 +109,8 @@
 
 	// --- LÓGICA ---
 	function show() {
+		if (!content) return;
+
 		clearTimeout(timer);
 		isHovered = true;
 
