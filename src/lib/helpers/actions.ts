@@ -29,3 +29,43 @@ export function portal(node: HTMLElement, id: string = "tooltip-portal") {
         }
     };
 }
+
+interface ShrinkwrapOptions {
+    preventFlicker?: boolean;
+}
+
+export function shrinkwrap(node: HTMLElement, options: ShrinkwrapOptions = {}) {
+    const preventFlicker = options.preventFlicker ?? false;
+
+    if (preventFlicker) {
+        node.style.visibility = 'hidden';
+    }
+
+    const adjustWidth = () => {
+        node.style.width = '';
+
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rect = range.getBoundingClientRect();
+
+        if (rect.width > 0) {
+            node.style.width = `${Math.ceil(rect.width) + 1}px`;
+        }
+
+        if (preventFlicker) {
+            node.style.visibility = '';
+        }
+    };
+
+    requestAnimationFrame(adjustWidth);
+    const resizeObserver = new ResizeObserver(() => requestAnimationFrame(adjustWidth));
+    if (node.parentElement) {
+        resizeObserver.observe(node.parentElement);
+    }
+
+    return {
+        destroy() {
+            resizeObserver.disconnect();
+        }
+    };
+}
