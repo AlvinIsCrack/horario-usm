@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { FormStateManager } from '$lib/components/ui/form';
+	import { Form } from '$lib/components/ui/form';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 
 	interface Props {
@@ -7,23 +8,27 @@
 		styles: any;
 	}
 
-	let { styles }: Props = $props();
+	let { styles, form }: Props = $props();
 </script>
 
-<div class={styles.container()}>
-	<FieldHeader
-		title="El 'Filtro' del Ramo"
-		description="¿Qué unidad o concepto específico es el que 'corta cabezas'? Ese tema que requirió el doble de esfuerzo."
-		htmlFor="course-filter"
-		{styles}
-	/>
-</div>
+{#if form}
+	<Form.Field name="teacher-factor" class={styles.container()}>
+		<FieldHeader
+			title="Factor Docente"
+			description="¿El ramo sigue un programa estandarizado o tu nota final depende casi totalmente del profesor que te tocó?"
+			htmlFor="teacher-factor"
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}
 
-<div class={styles.container()}>
-	<FieldHeader
-		title="El Hito Crítico"
-		description="¿Cuál es la evaluación más difícil o decisiva del semestre? (Ej: El Certamen 2, La entrega final del proyecto)."
-		htmlFor="critical-evaluation"
-		{styles}
-	/>
-</div>
+{#if form.values['teacher-factor']}
+	<Form.Field name="snowball-effect" class={styles.container()}>
+		<FieldHeader
+			title="Continuidad del Contenido (Bola de nieve)"
+			description="Si te pierdes al principio, ¿puedes recuperarte más adelante o cada clase depende estrictamente de la anterior?"
+			htmlFor="snowball-effect"
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}

@@ -1,40 +1,48 @@
 <script lang="ts">
 	import type { FormStateManager } from '$lib/components/ui/form';
-	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
-	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
-	import MingcuteFireFill from '$lib/icons/MingcuteFireFill.svelte';
-	import MingcuteFireLine from '$lib/icons/MingcuteFireLine.svelte';
 	import MingcuteHeartbeatFill from '$lib/icons/MingcuteHeartbeatFill.svelte';
 	import MingcuteHeartbeatLine from '$lib/icons/MingcuteHeartbeatLine.svelte';
 	import MingcuteMenuFill from '$lib/icons/MingcuteMenuFill.svelte';
 	import MingcuteMenuLine from '$lib/icons/MingcuteMenuLine.svelte';
 	import MingcuteWaveFill from '$lib/icons/MingcuteWaveFill.svelte';
 	import MingcuteWaveLine from '$lib/icons/MingcuteWaveLine.svelte';
-	import { slide } from 'svelte/transition';
-	import FieldContainer from '../forms/FieldContainer.svelte';
+	import { Form } from '$lib/components/ui/form';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField from '../forms/IconToggleField.svelte';
-	import ToggleField from '../forms/ToggleField.svelte';
 	import MingcuteUserFollow2Fill from '$lib/icons/MingcuteUserFollow2Fill.svelte';
 	import MingcuteUserFollow2Line from '$lib/icons/MingcuteUserFollow2Line.svelte';
 	import MingcuteEye2Fill from '$lib/icons/MingcuteEye2Fill.svelte';
 	import MingcuteEye2Line from '$lib/icons/MingcuteEye2Line.svelte';
-	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
-	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 	import MingcuteUserQuestionFill from '$lib/icons/MingcuteUserQuestionFill.svelte';
 	import MingcuteUserQuestionLine from '$lib/icons/MingcuteUserQuestionLine.svelte';
-	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
-	import MingcuteThumbUp2Line from '$lib/icons/MingcuteThumbUp2Line.svelte';
 	import MingcuteMinusCircleFill from '$lib/icons/MingcuteMinusCircleFill.svelte';
 	import MingcuteMinusCircleLine from '$lib/icons/MingcuteMinusCircleLine.svelte';
-	import MingcuteCloseCircleFill from '$lib/icons/MingcuteCloseCircleFill.svelte';
-	import MingcuteCloseCircleLine from '$lib/icons/MingcuteCloseCircleLine.svelte';
 	import MingcuteAngelFill from '$lib/icons/MingcuteAngelFill.svelte';
 	import MingcuteAngelLine from '$lib/icons/MingcuteAngelLine.svelte';
 	import MingcuteSkullFill from '$lib/icons/MingcuteSkullFill.svelte';
 	import MingcuteSkullLine from '$lib/icons/MingcuteSkullLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
+	import MingcuteBattery4Fill from '$lib/icons/MingcuteBattery4Fill.svelte';
+	import MingcuteBattery4Line from '$lib/icons/MingcuteBattery4Line.svelte';
+	import MingcuteBattery3Fill from '$lib/icons/MingcuteBattery3Fill.svelte';
+	import MingcuteBattery3Line from '$lib/icons/MingcuteBattery3Line.svelte';
+	import MingcuteBattery2Fill from '$lib/icons/MingcuteBattery2Fill.svelte';
+	import MingcuteBattery2Line from '$lib/icons/MingcuteBattery2Line.svelte';
+	import MingcuteBattery1Fill from '$lib/icons/MingcuteBattery1Fill.svelte';
+	import MingcuteBattery1Line from '$lib/icons/MingcuteBattery1Line.svelte';
+	import MingcuteEyeCloseFill from '$lib/icons/MingcuteEyeCloseFill.svelte';
+	import MingcuteEyeCloseLine from '$lib/icons/MingcuteEyeCloseLine.svelte';
+	import MingcuteUserVisibleFill from '$lib/icons/MingcuteUserVisibleFill.svelte';
+	import MingcuteUserVisibleLine from '$lib/icons/MingcuteUserVisibleLine.svelte';
+	import MingcuteEyeglassFill from '$lib/icons/MingcuteEyeglassFill.svelte';
+	import MingcuteEyeglassLine from '$lib/icons/MingcuteEyeglassLine.svelte';
+	import MingcuteTowerCraneFill from '$lib/icons/MingcuteTowerCraneFill.svelte';
+	import MingcuteTowerCraneLine from '$lib/icons/MingcuteTowerCraneLine.svelte';
+	import MingcuteComputerFill from '$lib/icons/MingcuteComputerFill.svelte';
+	import MingcuteComputerLine from '$lib/icons/MingcuteComputerLine.svelte';
+	import MingcuteToolFill from '$lib/icons/MingcuteToolFill.svelte';
+	import MingcuteToolLine from '$lib/icons/MingcuteToolLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -45,75 +53,74 @@
 </script>
 
 {#if form}
-	{@const id = 'real-work-hours'}
-	<FieldContainer {styles} {id}>
+	<Form.Field name="real-work-hours" class={styles.container()}>
 		<FieldHeader
 			title="Horas de estudio real"
 			description="En una semana típica del ramo ¿cuántas horas a la semana le dedicaste fuera de clases (estudiar, tareas, proyectos)?"
-			htmlFor={id}
-			{styles}
+			htmlFor="real-work-hours"
 		/>
 		<IconToggleField
-			{id}
-			{form}
 			items={[
 				{
 					value: 'light',
 					label: '0-3 hrs',
-					desc: 'Repasos cortos y lecturas',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					desc: 'Ligero',
+					tooltip: 'Repasos cortos',
+					iconOn: MingcuteBattery4Fill,
+					iconOff: MingcuteBattery4Line
 				},
 				{
 					value: 'moderate',
 					label: '4-7 hrs',
-					desc: 'Estudio regular y tareas',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					desc: 'Estándar',
+					tooltip: 'Un par de tardes',
+					iconOn: MingcuteBattery3Fill,
+					iconOff: MingcuteBattery3Line
 				},
 				{
 					value: 'demanding',
 					label: '8-12 hrs',
-					desc: 'Estudio fuerte e informes',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					desc: 'Exigente',
+					tooltip: 'Casi todas las tardes',
+					iconOn: MingcuteBattery2Fill,
+					iconOff: MingcuteBattery2Line
 				},
 				{
 					value: 'intense',
 					label: '13+ hrs',
-					desc: 'Proyectos y dedicación extrema',
-					iconOn: MingcuteFireFill,
-					iconOff: MingcuteFireLine
+					desc: 'Saturado',
+					tooltip: 'Prioridad absoluta',
+					iconOn: MingcuteBattery1Fill,
+					iconOff: MingcuteBattery1Line
 				}
 			]}
 		/>
-	</FieldContainer>
+		<Form.Message />
+	</Form.Field>
 {/if}
 
 {#if form.values['real-work-hours']}
-	{@const id = 'effort-distribution'}
-	<FieldContainer {styles} {id}>
+	<Form.Field name="effort-distribution" class={styles.container()}>
 		<FieldHeader
 			title="Distribución de Esfuerzo"
 			description="¿Es un trabajo constante semana a semana, o se concentra todo a final de mes para las pruebas?"
-			htmlFor={id}
-			{styles}
+			htmlFor="effort-distribution"
 		/>
 		<IconToggleField
-			{id}
-			{form}
 			items={[
 				{
 					value: 'constant',
 					label: 'Constante',
-					desc: 'Ritmo regular y diario',
+					desc: 'Ritmo diario',
+					tooltip: 'Algo que hacer casi todas las semanas: tareas, investigaciones...',
 					iconOn: MingcuteMenuFill,
 					iconOff: MingcuteMenuLine
 				},
 				{
 					value: 'intermitent',
 					label: 'Cíclico',
-					desc: 'Alterna: labs, actividades',
+					desc: 'Alternante',
+					tooltip: 'Períodos de trabajo continuo y descanso: laboratorios, proyectos...',
 					iconOn: MingcuteWaveFill,
 					iconOff: MingcuteWaveLine
 				},
@@ -121,181 +128,85 @@
 					value: 'concentrated',
 					label: 'Concentrado',
 					desc: 'Peaks intensos',
+					tooltip: 'Acumulado en pocas fechas: pocas evaluaciones, solo certamenes o controles...',
 					iconOn: MingcuteHeartbeatFill,
 					iconOff: MingcuteHeartbeatLine
 				}
 			]}
 		/>
-
-		{#if form.values['effort-distribution']}
-			{@const selectedeffort = form.values['effort-distribution']}
-			<div
-				transition:slide={{ axis: 'y' }}
-				class="mt-2 mb-2 flex min-h-20 w-full basis-full! justify-end py-2"
-			>
-				{#snippet effortCalendar(
-					efforts: { day: number; level: 'none' | 'low' | 'medium' | 'high' }[]
-				)}
-					{@const DAYS_SHORT = ['L', 'M', 'X', 'J', 'V', 'S', 'D']}
-					{@const LEVEL_CLASSES = {
-						none: 'text-muted-foreground/60 border-border/30 border',
-						low: 'bg-primary/20 text-primary-dark dark:text-primary-light border-primary/10 border',
-						medium: 'bg-primary/50 text-primary-foreground border-primary/30 border',
-						high: 'bg-primary text-primary-foreground border-primary border'
-					}}
-
-					<div class="w-fit">
-						<div class="bg-card rounded border p-2 shadow-sm">
-							<div
-								class="text-muted-foreground mb-1 grid grid-cols-7 gap-1 text-center text-xs font-medium opacity-80"
-							>
-								{#each DAYS_SHORT as day}
-									<div class="flex aspect-square size-6 w-full items-center justify-center">
-										{day}
-									</div>
-								{/each}
-							</div>
-
-							<div class="grid grid-cols-7 gap-1">
-								{#each Array(28) as _, index}
-									{@const dayNumber = index + 1}
-									{@const weekDay = (dayNumber - 1) % 7}
-									{@const effort = efforts.find((e) => e.day === dayNumber)}
-									{@const level = effort?.level || 'none'}
-									{@const isWeekend = weekDay > 4}
-									{@const noneBg = isWeekend ? 'bg-card' : 'bg-accent'}
-
-									<div
-										class="relative flex aspect-square size-6 w-full items-center justify-center rounded transition-colors duration-200
-                        {LEVEL_CLASSES[level]} 
-                        {level === 'none' ? noneBg : ''}"
-									></div>
-								{/each}
-							</div>
-						</div>
-
-						<div class="text-muted-foreground mt-2 flex flex-wrap justify-center text-xs">
-							<div
-								class="to-primary bg-card from-accent via-primary/20 h-2 w-full rounded-full border bg-linear-to-r from-10% via-50%"
-							></div>
-							<div class="mt-0.5 flex w-full justify-between gap-4">
-								<div>Sin demanda</div>
-								<div>Demanda máxima</div>
-							</div>
-						</div>
-					</div>
-				{/snippet}
-
-				{#if selectedeffort === 'constant'}
-					{@render effortCalendar([
-						{ day: 1, level: 'low' },
-						{ day: 2, level: 'low' },
-						{ day: 3, level: 'low' },
-						{ day: 8, level: 'medium' },
-						{ day: 9, level: 'low' },
-						{ day: 10, level: 'low' },
-						{ day: 15, level: 'medium' },
-						{ day: 16, level: 'low' },
-						{ day: 17, level: 'low' },
-						{ day: 22, level: 'high' },
-						{ day: 23, level: 'medium' },
-						{ day: 24, level: 'low' }
-					])}
-				{:else}
-					{@const iscyclic = selectedeffort === 'intermitent'}
-					{#if iscyclic}
-						{@render effortCalendar([
-							{ day: 1, level: 'medium' },
-							{ day: 2, level: 'low' },
-							{ day: 3, level: 'low' },
-							{ day: 8, level: 'low' },
-							{ day: 9, level: 'low' },
-							{ day: 22, level: 'high' },
-							{ day: 23, level: 'medium' },
-							{ day: 24, level: 'low' }
-						])}
-					{:else}
-						{@render effortCalendar([
-							{ day: 8, level: 'medium' },
-							{ day: 22, level: 'high' }
-						])}
-					{/if}
-				{/if}
-			</div>
-		{/if}
-	</FieldContainer>
+		<Form.Message />
+	</Form.Field>
 {/if}
 
 {#if form.values['effort-distribution']}
-	{@const id = 'assistance-exigence'}
-	<FieldContainer {styles} {id}>
+	<Form.Field name="assistance-exigence" class={styles.container()}>
 		<FieldHeader
 			title="Exigencia de Asistencia"
-			description="¿Qué tan estricta o necesaria es la presencialidad en el ramo? "
-			htmlFor={id}
-			{styles}
+			description="¿Qué tan estricta o necesaria es la presencialidad en el ramo?"
+			htmlFor="assistance-exigence"
 		/>
 		<IconToggleField
-			{id}
-			{form}
 			items={[
 				{
 					value: 'flexible',
 					label: 'Opcional',
-					desc: 'Estudio autónomo',
+					desc: 'Puntual',
+					tooltip: 'Para laboratorios, presentaciones',
 					iconOn: MingcuteUserQuestionFill,
 					iconOff: MingcuteUserQuestionLine
 				},
 				{
 					value: 'moderate',
 					label: 'Reglamento',
-					desc: 'Lista, estándar',
+					desc: 'Exigido',
+					tooltip: 'Porcentaje mínimo de asistencia',
 					iconOn: MingcuteUserFollow2Fill,
 					iconOff: MingcuteUserFollow2Line
 				},
 				{
 					value: 'strict',
 					label: 'Crucial',
-					desc: 'Aprendizaje presencial',
+					desc: 'Necesario',
+					tooltip: 'Cada clase aporta o evalúa',
 					iconOn: MingcuteEye2Fill,
 					iconOff: MingcuteEye2Line
 				}
 			]}
 		/>
-	</FieldContainer>
+		<Form.Message />
+	</Form.Field>
 {/if}
 
 {#if form.values['assistance-exigence']}
-	{@const id = 'relief-mechanics'}
-	<FieldContainer {styles} {id}>
+	<Form.Field name="relief-mechanics" class={styles.container()}>
 		<FieldHeader
 			title="Mecánicas de Alivio"
 			description="¿Cuánta flexibilidad o segundas oportunidades ofrece el ramo si te va mal?"
-			htmlFor={id}
-			{styles}
+			htmlFor="relief-mechanics"
 		/>
 		<IconToggleField
-			{id}
-			{form}
 			items={[
 				{
 					value: 'high',
 					label: 'Alta',
-					desc: 'Alta recuperabilidad ',
+					desc: 'Varias vías',
+					tooltip: 'Actividades adicionales, preguntas extra, bonuses, etc...',
 					iconOn: MingcuteAngelFill,
 					iconOff: MingcuteAngelLine
 				},
 				{
 					value: 'moderate',
 					label: 'Moderada',
-					desc: 'Ayudas justas, mínimas',
+					desc: 'Lo necesario',
+					tooltip: 'Evaluación global o instancia especial única',
 					iconOn: MingcuteMinusCircleFill,
 					iconOff: MingcuteMinusCircleLine
 				},
 				{
 					value: 'none',
 					label: 'Nula',
-					desc: 'Sin piedad, acumulativo',
+					desc: 'Sin piedad',
+					tooltip: 'Ausencia total de recuperación',
 					iconOn: MingcuteSkullFill,
 					iconOff: MingcuteSkullLine
 				},
@@ -308,5 +219,101 @@
 				}
 			]}
 		/>
-	</FieldContainer>
+		<Form.Message />
+	</Form.Field>
+{/if}
+
+{#if form.values['relief-mechanics']}
+	<Form.Field name="predictability" class={styles.container()}>
+		<FieldHeader
+			title="Predictabilidad y Transparencia"
+			description="¿Las pautas de evaluación son fijas y conocidas, o cambian y se definen sobre la marcha?"
+			htmlFor="predictability"
+		/>
+		<IconToggleField
+			items={[
+				{
+					value: 'transparent',
+					label: 'Fijas',
+					desc: 'Explícitas y definitivas',
+					iconOn: MingcuteEye2Fill,
+					iconOff: MingcuteEye2Line
+				},
+				{
+					value: 'predictable',
+					label: 'Estables',
+					desc: 'Claras, ajustes menores',
+					iconOn: MingcuteUserVisibleFill,
+					iconOff: MingcuteUserVisibleLine
+				},
+				{
+					value: 'improvised',
+					label: 'Variables',
+					desc: 'Reglas dinámicas',
+					iconOn: MingcuteEyeglassFill,
+					iconOff: MingcuteEyeglassLine
+				},
+				{
+					value: 'unpredictable',
+					label: 'Inciertas',
+					desc: 'Se definen al evaluar',
+					tooltip: 'Sin pautas previas',
+					iconOn: MingcuteEyeCloseFill,
+					iconOff: MingcuteEyeCloseLine
+				}
+			]}
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}
+
+{#if form.values['predictability']}
+	<Form.Field name="tool-dependency" class={styles.container()}>
+		<FieldHeader
+			title="Dependencia de Recursos"
+			description="¿El ramo se puede cursar con materiales comunes o exige obligatoriamente insumos o herramientas específicas?"
+			htmlFor="tool-dependency"
+		/>
+		<IconToggleField
+			items={[
+				{
+					value: 'none',
+					label: 'Nula',
+					desc: 'Material común',
+					tooltip:
+						'Solo requiere lecturas, apuntes o útiles de escritorio. Se puede estudiar en cualquier lugar.',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
+				},
+				{
+					value: 'low',
+					label: 'Baja',
+					desc: 'PC e Internet básico',
+					tooltip:
+						'Requiere PC estándar y conexión web para navegación, Office, herramientas en la nube o videollamadas.',
+					iconOn: MingcuteComputerFill,
+					iconOff: MingcuteComputerLine
+				},
+				{
+					value: 'medium',
+					label: 'Media',
+					desc: 'Software o insumos',
+					tooltip:
+						'Exige instalar programas pesados, usar licencias universitarias o adquirir herramientas e insumos propios de la profesión.',
+					iconOn: MingcuteToolFill,
+					iconOff: MingcuteToolLine
+				},
+				{
+					value: 'high',
+					label: 'Alta',
+					desc: 'Equipamiento o laboratorios',
+					tooltip:
+						'Depende del uso presencial de equipamiento pesado, laboratorios de ciencias, talleres mecánicos, instrumental médico avanzado o servidores físicos.',
+					iconOn: MingcuteTowerCraneFill,
+					iconOff: MingcuteTowerCraneLine
+				}
+			]}
+		/>
+		<Form.Message />
+	</Form.Field>
 {/if}
