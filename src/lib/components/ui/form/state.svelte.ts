@@ -9,14 +9,17 @@ export interface FormSubmissionHandler<T> {
 }
 
 const FORM_CONTEXT_KEY = Symbol('FORM_CONTEXT_KEY');
+// Dedicated context key for field-level scope resolution (Shadcn pattern)
+const FORM_FIELD_CONTEXT_KEY = Symbol('FORM_FIELD_CONTEXT_KEY');
 
 /**
- * Manages form runtime state, handling dynamic field registration and submission lifecycles.
+ * Manages form runtime state, handling dynamic field registration, 
+ * strict-typed mutations, and submission lifecycles.
  */
 export class FormStateManager<T extends Record<string, any> = Record<string, any>> {
     #initialState: T;
-    #values = $state<Record<string, any>>({});
-    #errors = $state<Record<string, string>>({});
+    #values = $state<Partial<T>>({});
+    #errors = $state<Partial<Record<keyof T, string>>>({});
     #isSubmitting = $state(false);
     #onSubmit: FormSubmissionHandler<T>;
 
@@ -32,11 +35,21 @@ export class FormStateManager<T extends Record<string, any> = Record<string, any
     get isValid() { return Object.keys(this.#errors).length === 0; }
 
     /**
-     * Updates a specific field value by its unique identifier.
-     * Crucial for dynamic field detection without pre-defined local states.
+     * Updates a specific field value ensuring strict type safety matching the schema.
      */
-    setFieldValue(key: string, value: any): void {
+    setFieldValue<K extends keyof T>(key: K, value: T[K]): void {
         this.#values[key] = value;
+        // Clear error on change to provide immediate positive feedback
+        if (this.#errors[key]) {
+            delete this.#errors[key];
+        }
+    }
+
+    /**
+     * Retrieves the current error string for a specific field identifier.
+     */
+    getFieldError<K extends keyof T>(key: K): string | undefined {
+        return this.#errors[key];
     }
 
     /**
@@ -50,10 +63,10 @@ export class FormStateManager<T extends Record<string, any> = Record<string, any
         try {
             const result = await this.#onSubmit(this.#values as T);
             if (!result.success) {
-                this.#errors = result.errors || { _form: 'Submission failed' };
+                this.#errors = result.errors as Partial<Record<keyof T, string>>;
             }
         } catch (error) {
-            this.#errors = { _form: error instanceof Error ? error.message : 'Unknown fatal execution error' };
+            this.#errors = { _form: error instanceof Error ? error.message : 'Unknown execution error' } as any;
         } finally {
             this.#isSubmitting = false;
         }
@@ -75,8 +88,20 @@ export function setFormContext<T extends Record<string, any>>(manager: FormState
 
 export function getFormContext<T extends Record<string, any>>(): FormStateManager<T> {
     const context = getContext<FormStateManager<T>>(FORM_CONTEXT_KEY);
-    if (!context) {
-        throw new Error('Form compound components must be rendered within a Form.Root boundary');
-    }
+    if (!context) throw new Error('Must be used within a Form.Root boundary');
+    return context;
+}
+
+/**
+ * Registers a specific field ID within the Svelte context tree.
+ * Allows nested components (Label, Description, Message, Input) to implicitly know their target field.
+ */
+export function setFieldContext(name: string): void {
+    setContext(FORM_FIELD_CONTEXT_KEY, name);
+}
+
+export function getFieldContext(): string {
+    const context = getContext<string>(FORM_FIELD_CONTEXT_KEY);
+    if (!context) throw new Error('Must be used within a Form.Field boundary');
     return context;
 }
