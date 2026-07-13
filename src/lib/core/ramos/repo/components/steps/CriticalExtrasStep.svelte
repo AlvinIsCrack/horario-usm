@@ -146,7 +146,7 @@
 	{@const maxLength = 400}
 	{@const remainingLength = maxLength - (form.values['comment']?.length || 0)}
 	<Form.Field name="comment" class={styles.container()}>
-		<FieldHeader title="Comentarios Adicionales" htmlFor="comment">
+		<FieldHeader optional title="Comentarios Adicionales" htmlFor="comment">
 			{#snippet description()}
 				<p>¿Qué le dirías a un amigo que va a inscribir este ramo el próximo semestre?</p>
 				<p
