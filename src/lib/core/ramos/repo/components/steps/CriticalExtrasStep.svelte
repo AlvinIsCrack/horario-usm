@@ -35,7 +35,7 @@
 {#if form}
 	<Form.Field name="teacher-factor" class={styles.container()}>
 		<FieldHeader
-			title="Factor Paralelo"
+			title="Factor Docente"
 			description="Si un amigo cursara este mismo ramo en otro paralelo o con otro profesor, ¿creen que su experiencia y exigencia serían muy distintas?"
 			htmlFor="teacher-factor"
 		/>
