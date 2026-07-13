@@ -35,6 +35,7 @@
 	import MaterialSymbolsAbcRounded from '$lib/icons/MaterialSymbolsAbcRounded.svelte';
 	import MingcuteBrainFill from '$lib/icons/MingcuteBrainFill.svelte';
 	import TablerAbc from '$lib/icons/TablerAbc.svelte';
+	import { fade } from 'svelte/transition';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -213,7 +214,8 @@ const iconY = 21 + radius * Math.sin(midAngle);
 					¿Cómo distribuirías {TOTAL_BUDGET} puntos según el nivel de exigencia real de cada bloque?
 					Prioriza los más fuertes sin preocuparte por una exactitud milimétrica
 				</p>
-				<div class="relative mx-auto my-auto aspect-square size-50 pt-2">
+				{#if currentPoints}
+				<div transition:fade={{duration: 200}} class="relative mx-auto my-auto aspect-square size-50 pt-2">
 					<svg viewBox="0 0 42 42" class="h-full w-full -scale-x-100 transform">
 						<circle
 							cx="21"
@@ -266,6 +268,7 @@ const iconY = 21 + radius * Math.sin(midAngle);
 						</text>
 					</svg>
 				</div>
+				{/if}
 			{/snippet}
 		</FieldHeader>
 
