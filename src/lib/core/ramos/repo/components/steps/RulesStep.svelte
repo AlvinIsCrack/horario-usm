@@ -118,18 +118,18 @@
 {/if}
 
 {#if form.values['real-work-hours']}
-	<Form.Field name="effort-distribution" class={styles.container()}>
+	<Form.Field name="course-dynamics" class={styles.container()}>
 		<FieldHeader
-			title="Distribución de Esfuerzo"
-			description="¿Es un trabajo constante semana a semana, o se concentra todo a final de mes para las pruebas?"
-			htmlFor="effort-distribution"
+			title="Dinámica de la Carga"
+			description="¿Cómo se distribuyen la demanda (trabajos, evaluaciones, entregas) a lo largo del semestre?"
+			htmlFor="course-dynamics"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'constant',
-					label: 'Sostenido',
-					desc: 'Ritmo regular',
+					label: 'Flujo Constante',
+					desc: 'Carga constante',
 					tooltip:
 						'Esfuerzo parejo semana a semana. Tareas, controles o entregas regulares que no te permiten estar desconectado del ramo',
 					iconOn: MingcuteArrowRightFill,
@@ -137,8 +137,8 @@
 				},
 				{
 					value: 'intermitent',
-					label: 'Intermitente',
-					desc: 'Por periodos',
+					label: 'Por Hitos',
+						desc: 'Carga períodica',
 					tooltip:
 						'Períodos alternados de alta carga y descanso. Típico de ramos con entregas por fases, laboratorios o proyectos medianos',
 					iconOn: MingcuteRefresh4Fill,
@@ -146,8 +146,8 @@
 				},
 				{
 					value: 'concentrated',
-					label: 'Estacional',
-					desc: 'Peaks críticos',
+					label: 'Picos Críticos',
+					desc: 'Carga puntual',
 					tooltip:
 						'Carga acumulada exclusivamente en fechas críticas. El semestre es relajado, pero colapsa en la semana de certámenes',
 					iconOn: MingcuteHeartbeatFill,
@@ -159,7 +159,7 @@
 	</Form.Field>
 {/if}
 
-{#if form.values['effort-distribution']}
+{#if form.values['course-dynamics']}
 	<Form.Field name="assistance-exigence" class={styles.container()}>
 		<FieldHeader
 			title="Exigencia de Asistencia"
