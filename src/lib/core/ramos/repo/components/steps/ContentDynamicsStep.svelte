@@ -24,6 +24,12 @@
 	import ExpoCurve from '../icons/ExpoCurve.svelte';
 	import LinearCurve from '../icons/LinearCurve.svelte';
 	import WallCurve from '../icons/WallCurve.svelte';
+	import MingcuteThoughtFill from '$lib/icons/MingcuteThoughtFill.svelte';
+	import MingcuteThoughtLine from '$lib/icons/MingcuteThoughtLine.svelte';
+	import MaterialSymbolsChatBubble from '$lib/icons/MaterialSymbolsChatBubble.svelte';
+	import MaterialSymbolsChatBubbleOutline from '$lib/icons/MaterialSymbolsChatBubbleOutline.svelte';
+	import MingcuteStarTopperFill from '$lib/icons/MingcuteStarTopperFill.svelte';
+	import MingcuteStarTopperLine from '$lib/icons/MingcuteStarTopperLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -60,7 +66,7 @@
 				{
 					value: 'null',
 					label: 'Nula',
-					desc: 'Totalmente nuevo',
+					desc: 'Todo nuevo',
 					tooltip:
 						'Entorno completamente ajeno. Sin bases teóricas, nociones previas ni experiencia práctica con la materia.',
 					iconOn: MingcuteForbidCircleFill,
@@ -69,11 +75,11 @@
 				{
 					value: 'low',
 					label: 'Baja',
-					desc: 'Noción conceptual',
+					desc: 'Conceptual',
 					tooltip:
 						'Reconoce términos, conceptos básicos o cultura general del tema, pero carece de práctica o capacidad de aplicación.',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					iconOn: MingcuteThoughtFill,
+					iconOff: MingcuteThoughtLine
 				},
 				{
 					value: 'medium',
@@ -81,8 +87,8 @@
 					desc: 'Base funcional',
 					tooltip:
 						'Comprende la lógica elemental y puede realizar tareas simples, construir maquetas básicas o escribir código inicial.',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					iconOn: MaterialSymbolsChatBubble,
+					iconOff: MaterialSymbolsChatBubbleOutline
 				},
 				{
 					value: 'high',
@@ -90,8 +96,8 @@
 					desc: 'Dominio previo',
 					tooltip:
 						'Experiencia técnica avanzada, técnica previa o manejo fluido de las herramientas antes de cursar la materia.',
-					iconOn: MingcuteDiamondSquareFill,
-					iconOff: MingcuteDiamondSquareLine
+					iconOn: MingcuteStarTopperFill,
+					iconOff: MingcuteStarTopperLine
 				}
 			]}
 		/>
@@ -100,7 +106,6 @@
 {/if}
 
 {#if isAffinitySelected}
-	{@const id = 'skill-taxonomy'}
 	{@const levels = ['Nulo', 'Bajo', 'Medio', 'Alto']}
 	{@const inputs = {
 		'Lógico-Matemática': {
@@ -186,7 +191,8 @@
 				{/each}
 			</div>
 			{#each Object.entries(inputs) as [title, input] (input.id)}
-				<div
+				<Form.Field
+					name={input.id}
 					class="odd:to-card flex w-full flex-row justify-between gap-8 rounded bg-linear-to-r pr-2"
 				>
 					<div class="w-full">
@@ -206,7 +212,7 @@
 							}))}
 						/>
 					</div>
-				</div>
+				</Form.Field>
 			{/each}
 		</div>
 		<Form.Message />
