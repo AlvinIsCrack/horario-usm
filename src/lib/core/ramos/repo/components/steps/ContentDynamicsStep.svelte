@@ -323,37 +323,37 @@
 			items={[
 				{
 					value: 'flat',
-					label: 'Plana',
-					desc: 'Progreso lineal sin fricción',
+					label: 'Fluida',
+					desc: 'Ya traigo las bases',
 					tooltip:
-						'No hay barreras de entrada. Avanzas al mismo ritmo desde el primer día porque los conceptos o herramientas ya te son familiares.',
+						'Usa conocimientos que ya traes de ramos anteriores. No hay conceptos drásticamente nuevos, es asociar y recordar.',
 					iconOn: StraightCurve,
 					iconOff: StraightCurve
 				},
 				{
 					value: 'linear',
-					label: 'Lineal',
-					desc: 'Esfuerzo constante',
+					label: 'Constante',
+					desc: 'Esfuerzo parejo semanal',
 					tooltip:
-						'A mayor tiempo dedicado, mayor aprendizaje. Cada semana sumas un conocimiento nuevo y predecible sin saltos bruscos de dificultad.',
+						'Dificultad constante. Requiere aprender procedimientos prácticos nuevos, pero el esfuerzo necesario es el mismo de principio a fin.',
 					iconOn: LinearCurve,
 					iconOff: LinearCurve
 				},
 				{
 					value: 'exponential',
 					label: 'Exponencial',
-					desc: 'Dificultad incremental',
+					desc: 'Dificultad creciente',
 					tooltip:
-						'Empieza fácil, pero a mitad de semestre la complejidad y la mezcla de conceptos se disparan rápidamente.',
+						'Parte muy amigable y simple, pero a mitad de semestre la complejidad de las materias se dispara drásticamente.',
 					iconOn: ExpoCurve,
 					iconOff: ExpoCurve
 				},
 				{
 					value: 'wall',
 					label: 'Muro',
-					desc: 'Complejidad inicial crítica',
+					desc: 'Duro desde el inicio',
 					tooltip:
-						'Entrada muy difícil o frustrante. Exige romper la cabeza las primeras semanas para entender la lógica base; luego se estabiliza.',
+						'Complejidad crítica desde el primer día. Entorno totalmente nuevo que exige un esfuerzo masivo para no quedar atrás de entrada.',
 					iconOn: WallCurve,
 					iconOff: WallCurve
 				}

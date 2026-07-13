@@ -13,8 +13,6 @@
 	import MingcuteCloseCircleLine from '$lib/icons/MingcuteCloseCircleLine.svelte';
 	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
 	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
-	import MingcuteFireFill from '$lib/icons/MingcuteFireFill.svelte';
-	import MingcuteFireLine from '$lib/icons/MingcuteFireLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
 	import MingcuteHeartCrackFill from '$lib/icons/MingcuteHeartCrackFill.svelte';
@@ -32,6 +30,12 @@
 	import { isFieldAnswered } from '$lib/components/ui/form/helpers';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField, { type IconToggleItem } from '../forms/IconToggleField.svelte';
+	import MingcuteDeleteFill from '$lib/icons/MingcuteDeleteFill.svelte';
+	import MingcuteDeleteLine from '$lib/icons/MingcuteDeleteLine.svelte';
+	import MingcuteSnowFill from '$lib/icons/MingcuteSnowFill.svelte';
+	import MingcuteSnowLine from '$lib/icons/MingcuteSnowLine.svelte';
+	import MingcuteHeartbeat2Fill from '$lib/icons/MingcuteHeartbeat2Fill.svelte';
+	import MingcuteHeartbeat2Line from '$lib/icons/MingcuteHeartbeat2Line.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -355,15 +359,15 @@
 					value: 'drop',
 					label: 'Lo Boté',
 					desc: 'Desinscrito/RAV',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
+					iconOn: MingcuteDeleteFill,
+					iconOff: MingcuteDeleteLine
 				},
 				{
 					value: 'freeze',
 					label: 'Congelé',
 					desc: 'Algo externo',
-					iconOn: MingcuteCalendarMonthFill,
-					iconOff: MingcuteCalendarMonthLine
+					iconOn: MingcuteSnowFill,
+					iconOff: MingcuteSnowLine
 				},
 				{
 					value: 'other',
@@ -508,7 +512,7 @@
 	<Form.Field name="risk-perception" class={styles.container()}>
 		<FieldHeader
 			title="Percepción de Riesgo"
-			description="¿En algún momento del semestre consideraste que el ramo se volvió críticamente difícil de sostener o aprobar?"
+			description="¿Qué tan expuesto o en riesgo te sentiste de reprobar este ramo a lo largo del semestre?"
 			htmlFor="risk-perception"
 		/>
 		<IconToggleField
@@ -516,30 +520,38 @@
 				{
 					value: 'no-risk',
 					label: 'En Control',
-					desc: 'Inofensivo',
+					desc: 'Liviano',
+					tooltip:
+						'El ramo nunca representó una amenaza. Las notas y los tiempos estuvieron bajo control de principio a fin',
 					iconOn: MingcuteHeartFill,
 					iconOff: MingcuteHeartFill
 				},
 				{
 					value: 'low-risk',
 					label: 'Manejable',
-					desc: 'Lo mínimo',
+					desc: 'Esfuerzo normal',
+					tooltip:
+						'Requirió trabajo y atención regular, pero nunca sentí que la situación se me escapara de las manos',
 					iconOn: MingcuteHeartLine,
 					iconOff: MingcuteHeartLine
 				},
 				{
 					value: 'high-risk',
 					label: 'Comprometido',
-					desc: 'Muy exigente',
-					iconOn: MingcuteHeartCrackFill,
-					iconOff: MingcuteHeartCrackLine
+					desc: 'Esfuerzo pesado',
+					tooltip:
+						'Hubo periodos de alta presión y notas en la cuerda floja. Requirió priorizar este ramo sobre otros para salvarlo',
+					iconOn: MingcuteHeartbeat2Fill,
+					iconOff: MingcuteHeartbeat2Line
 				},
 				{
 					value: 'extreme-risk',
 					label: 'Al Límite',
-					desc: 'Casi insostenible',
-					iconOn: MingcuteFireFill,
-					iconOff: MingcuteFireLine
+					desc: 'En pánico',
+					tooltip:
+						'Estrés constante y peligro real de reprobar hasta el último día. Exigió un sacrificio masivo',
+					iconOn: MingcuteHeartCrackFill,
+					iconOff: MingcuteHeartCrackLine
 				}
 			]}
 		/>

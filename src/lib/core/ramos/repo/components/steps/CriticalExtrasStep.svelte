@@ -2,6 +2,10 @@
 	import type { FormStateManager } from '$lib/components/ui/form';
 	import { Form } from '$lib/components/ui/form';
 	import StarCalification from '$lib/components/ui/form/components/StarCalification.svelte';
+	import LucideEqual from '$lib/icons/LucideEqual.svelte';
+	import LucideEqualApproximately from '$lib/icons/LucideEqualApproximately.svelte';
+	import LucideEqualNot from '$lib/icons/LucideEqualNot.svelte';
+	import MaterialSymbolsEqualRounded from '$lib/icons/MaterialSymbolsEqualRounded.svelte';
 	import MingcuteBook2Fill from '$lib/icons/MingcuteBook2Fill.svelte';
 	import MingcuteBook2Line from '$lib/icons/MingcuteBook2Line.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
@@ -31,47 +35,47 @@
 {#if form}
 	<Form.Field name="teacher-factor" class={styles.container()}>
 		<FieldHeader
-			title="Factor Docente"
-			description="¿El ramo sigue un programa estandarizado o tu nota final depende casi totalmente del profesor que te tocó?"
+			title="Factor Paralelo"
+			description="Si un amigo cursara este mismo ramo en otro paralelo o con otro profesor, ¿creen que su experiencia y exigencia serían muy distintas?"
 			htmlFor="teacher-factor"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'null',
-					label: 'No sé',
-					desc: 'Sin información',
+					label: 'Sin opinión',
+					desc: 'No lo sé/poca información',
 					tooltip:
-						'Aún no curso el ramo o no tengo referencias sobre cómo se evalúa ni el impacto de los profesores.',
+						'Aún no curso el ramo o no tengo referencias sobre cómo se evalúa ni el impacto de los profesores',
 					iconOn: MingcuteForbidCircleFill,
 					iconOff: MingcuteForbidCircleLine
 				},
 				{
 					value: 'low',
-					label: 'Bajo',
-					desc: 'Estandarizado',
+					label: 'Coordinado',
+					desc: 'Da lo mismo el paralelo',
 					tooltip:
-						'El ramo sigue un programa estricto. Evaluaciones y notas son idénticas para todas las secciones, sin importar el profesor.',
-					iconOn: MingcuteBook2Fill,
-					iconOff: MingcuteBook2Line
+						'Todos los profesores siguen el mismo ritmo, evalúan con los mismos criterios y las notas son justas e independientes de quién te dicte la clase',
+					iconOn: LucideEqual,
+					iconOff: LucideEqual
 				},
 				{
 					value: 'medium',
-					label: 'Medio',
-					desc: 'Impacto parcial',
+					label: 'Variable',
+					desc: 'Cambia la experiencia',
 					tooltip:
-						'Existe un temario común, pero cada profesor tiene flexibilidad para diseñar sus propias pruebas, tareas o criterios de corrección.',
-					iconOn: MingcuteGroup2Fill,
-					iconOff: MingcuteGroup2Line
+						'Las evaluaciones principales son comunes, pero el nivel de explicación, las exigencias en tareas y el ambiente de la clase cambian según el profesor',
+					iconOn: LucideEqualApproximately,
+					iconOff: LucideEqualApproximately
 				},
 				{
 					value: 'high',
-					label: 'Alto',
-					desc: 'Dependiente',
+					label: 'Lotería',
+					desc: 'Suerte del paralelo',
 					tooltip:
-						'La nota final y la dificultad dependen completamente del criterio, estilo de evaluación y nivel de exigencia del profesor asignado.',
-					iconOn: MingcuteUserLockFill,
-					iconOff: MingcuteUserLockLine
+						'No hay coordinación. El nivel de dificultad, la exigencia en las correcciones y la probabilidad de aprobar dependen casi al 100% del profesor que te toque',
+					iconOn: LucideEqualNot,
+					iconOff: LucideEqualNot
 				}
 			]}
 		/>
@@ -89,26 +93,29 @@
 		<IconToggleField
 			items={[
 				{
-					value: 'low',
-					label: 'Independiente',
+					value: 'independent',
+					label: 'Aislado',
+					desc: 'Remontada fácil',
 					tooltip:
-						'Los contenidos cambian por unidad. Si te va mal en un certamen, puedes partir desde cero y entender el siguiente tema sin problemas.',
+						'Los temas cambian por unidad. Si te va mal en el primer certamen, puedes partir de cero y entender perfecto el segundo',
 					iconOn: MingcuteThreeCirclesFill,
 					iconOff: MingcuteThreeCirclesLine
 				},
 				{
-					value: 'medium',
-					label: 'Gradual',
+					value: 'cumulative',
+					label: 'Conectado',
+					desc: 'Pide constancia',
 					tooltip:
-						'Se necesitan las bases conceptuales, pero es totalmente posible ponerse al día de forma autónoma si te retrasas un par de semanas.',
+						'Las materias se apoyan entre sí. Si te pierdes una clase te va a costar reenganchar, pero es totalmente recuperable con estudio',
 					iconOn: MingcuteWebhookFill,
 					iconOff: MingcuteWebhookLine
 				},
 				{
-					value: 'high',
-					label: 'Secuencial',
+					value: 'chained',
+					label: 'Encadenado',
+					desc: 'Cero retraso',
 					tooltip:
-						'Efecto bola de nieve inmediato. Cada clase construye sobre la anterior; perderse una semana hace casi imposible seguir el hilo del ramo.',
+						'Secuencia estricta de contenido y materia clase a clase. Si no dominas la base de las primeras semanas, es imposible entender lo que sigue',
 					iconOn: MingcuteVersionFill,
 					iconOff: MingcuteVersionLine
 				}
@@ -143,7 +150,7 @@
 			{#snippet description()}
 				<p>¿Qué le dirías a un amigo que va a inscribir este ramo el próximo semestre?</p>
 				<p
-					class="text-muted-foreground/80 -translate-y-2 text-xs opacity-0 transition-all transition-discrete group-hover/field:translate-y-0 group-hover/field:opacity-100"
+					class="-translate-y-2 text-xs font-medium text-sky-500 opacity-0 transition-all transition-discrete group-hover/field:translate-y-0 group-hover/field:opacity-100"
 				>
 					Evita mencionar nombres de profesores. Enfócate en tips de estudio, material clave,
 					advertencias de tiempo o la dinámica real del ramo

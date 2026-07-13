@@ -43,6 +43,12 @@
 	import MingcuteComputerLine from '$lib/icons/MingcuteComputerLine.svelte';
 	import MingcuteToolFill from '$lib/icons/MingcuteToolFill.svelte';
 	import MingcuteToolLine from '$lib/icons/MingcuteToolLine.svelte';
+	import MingcutePaper2Fill from '$lib/icons/MingcutePaper2Fill.svelte';
+	import MingcutePaper2Line from '$lib/icons/MingcutePaper2Line.svelte';
+	import MingcuteTestTubeFill from '$lib/icons/MingcuteTestTubeFill.svelte';
+	import MingcuteTestTubeLine from '$lib/icons/MingcuteTestTubeLine.svelte';
+	import MingcuteBook2Fill from '$lib/icons/MingcuteBook2Fill.svelte';
+	import MingcuteBook2Line from '$lib/icons/MingcuteBook2Line.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -226,38 +232,36 @@
 {#if form.values['relief-mechanics']}
 	<Form.Field name="predictability" class={styles.container()}>
 		<FieldHeader
-			title="Predictabilidad y Transparencia"
-			description="¿Las pautas de evaluación son fijas y conocidas, o cambian y se definen sobre la marcha?"
+			title="Reglas de Evaluación"
+			description="Al rendir una prueba o entregar un trabajo, ¿sabías con exactitud qué te iban a evaluar y cómo se calcularía tu nota?"
 			htmlFor="predictability"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'transparent',
-					label: 'Fijas',
-					desc: 'Explícitas y definitivas',
+					label: 'Predecible',
+					desc: 'Reglas\nfijas',
+					tooltip:
+						'Desde antes de dar la evaluación sabes exactamente qué puntaje tiene cada ítem y qué espera el corrector. La nota final calza perfecto con tu desempeño',
 					iconOn: MingcuteEye2Fill,
 					iconOff: MingcuteEye2Line
 				},
 				{
-					value: 'predictable',
-					label: 'Estables',
-					desc: 'Claras, ajustes menores',
-					iconOn: MingcuteUserVisibleFill,
-					iconOff: MingcuteUserVisibleLine
-				},
-				{
-					value: 'improvised',
-					label: 'Variables',
-					desc: 'Reglas dinámicas',
+					value: 'flexible',
+					label: 'Flexible',
+					desc: 'Reglas\nadaptables',
+					tooltip:
+						'Las pautas básicas existen, pero los criterios específicos o el puntaje se modifican durante el semestre (por ejemplo, después de que a todo el curso le fue mal en una pregunta)',
 					iconOn: MingcuteEyeglassFill,
 					iconOff: MingcuteEyeglassLine
 				},
 				{
 					value: 'unpredictable',
-					label: 'Inciertas',
-					desc: 'Se definen al evaluar',
-					tooltip: 'Sin pautas previas',
+					label: 'Impredecible',
+					desc: 'Reglas\nimprovisadas',
+					tooltip:
+						'Imposible saber qué van a priorizar al corregir. La nota depende del criterio del momento y los reclamos se resuelven bajo reglas que no estaban escritas en ninguna parte',
 					iconOn: MingcuteEyeCloseFill,
 					iconOff: MingcuteEyeCloseLine
 				}
@@ -279,38 +283,38 @@
 				{
 					value: 'none',
 					label: 'Nula',
-					desc: 'Material común',
+					desc: 'Útiles básicos',
 					tooltip:
-						'Solo requiere lecturas, apuntes o útiles de escritorio. Se puede estudiar en cualquier lugar.',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
+						'No exige nada especial. Se cursa perfectamente con cuaderno, lápiz y materiales comunes de escritorio',
+					iconOn: MingcuteBook2Fill,
+					iconOff: MingcuteBook2Line
 				},
 				{
 					value: 'low',
 					label: 'Baja',
-					desc: 'PC e Internet básico',
+					desc: 'Acceso digital',
 					tooltip:
-						'Requiere PC estándar y conexión web para navegación, Office, herramientas en la nube o videollamadas.',
+						'Requiere el uso regular de un computador con internet para correr software básico, simuladores web o redactar informes',
 					iconOn: MingcuteComputerFill,
 					iconOff: MingcuteComputerLine
 				},
 				{
 					value: 'medium',
 					label: 'Media',
-					desc: 'Software o insumos',
+					desc: 'Insumos propios',
 					tooltip:
-						'Exige instalar programas pesados, usar licencias universitarias o adquirir herramientas e insumos propios de la profesión.',
+						'Exige adquirir materiales adicionales por tu cuenta: componentes electrónicos, herramientas manuales, licencias o libros específicos',
 					iconOn: MingcuteToolFill,
 					iconOff: MingcuteToolLine
 				},
 				{
 					value: 'high',
 					label: 'Alta',
-					desc: 'Equipamiento o laboratorios',
+					desc: 'Infraestructura física',
 					tooltip:
-						'Depende del uso presencial de equipamiento pesado, laboratorios de ciencias, talleres mecánicos, instrumental médico avanzado o servidores físicos.',
-					iconOn: MingcuteTowerCraneFill,
-					iconOff: MingcuteTowerCraneLine
+						'Dependencia crítica de hardware especializado del campus, laboratorios de computación avanzados, talleres mecánicos o reactivos químicos',
+					iconOn: MingcuteTestTubeFill,
+					iconOff: MingcuteTestTubeLine
 				}
 			]}
 		/>
