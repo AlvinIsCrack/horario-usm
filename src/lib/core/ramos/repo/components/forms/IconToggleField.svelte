@@ -151,7 +151,7 @@
 				<span
 					style:margin-inline="auto"
 					class={styles.label({
-						class: [size === 'sm' ? '' : 'text-pretty', typedItem.labelClass]
+						class: ['whitespace-pre-line', size === 'sm' ? '' : 'text-pretty', typedItem.labelClass]
 					})}
 				>
 					{typedItem.label}
@@ -162,7 +162,7 @@
 						use:shrinkwrap
 						style:margin-inline="auto"
 						class={cn(
-							'text-muted-foreground/80 max-w-full text-xs leading-tight font-medium text-pretty'
+							'text-muted-foreground/80 mt-0.5 max-w-full text-xs leading-tight font-medium text-pretty whitespace-pre-line'
 						)}
 					>
 						{typedItem.desc}
