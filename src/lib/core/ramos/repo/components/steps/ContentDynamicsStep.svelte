@@ -196,8 +196,8 @@
 
 						const midAngle = (accumulatedPercentage - percentage / 2) * (2 * Math.PI / 100) - (Math.PI / 2);
 						const radius = 15.915; 
-const iconX = 21 + radius * Math.cos(midAngle);
-const iconY = 21 + radius * Math.sin(midAngle);
+						const iconX = 21 + radius * Math.cos(midAngle);
+						const iconY = 21 + radius * Math.sin(midAngle);
 
 						return {
 							key,
