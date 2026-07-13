@@ -520,7 +520,7 @@
 				{
 					value: 'no-risk',
 					label: 'En Control',
-					desc: 'Liviano',
+					desc: 'Cero esfuerzo',
 					tooltip:
 						'El ramo nunca representó una amenaza. Las notas y los tiempos estuvieron bajo control de principio a fin',
 					iconOn: MingcuteHeartFill,
