@@ -128,7 +128,7 @@
 			items={[
 				{
 					value: 'constant',
-					label: 'Flujo Constante',
+					label: 'Sostenido',
 					desc: 'Carga constante',
 					tooltip:
 						'Esfuerzo parejo semana a semana. Tareas, controles o entregas regulares que no te permiten estar desconectado del ramo',
