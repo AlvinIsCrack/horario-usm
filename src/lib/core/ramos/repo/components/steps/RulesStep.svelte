@@ -121,7 +121,7 @@
 	<Form.Field name="course-dynamics" class={styles.container()}>
 		<FieldHeader
 			title="Dinámica de la Carga"
-			description="¿Cómo se distribuyen la demanda (trabajos, evaluaciones, entregas) a lo largo del semestre?"
+			description="¿Cómo se distribuye la demanda (trabajos, evaluaciones, entregas) a lo largo del semestre?"
 			htmlFor="course-dynamics"
 		/>
 		<IconToggleField
