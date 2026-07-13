@@ -49,6 +49,18 @@
 	import MingcuteTestTubeLine from '$lib/icons/MingcuteTestTubeLine.svelte';
 	import MingcuteBook2Fill from '$lib/icons/MingcuteBook2Fill.svelte';
 	import MingcuteBook2Line from '$lib/icons/MingcuteBook2Line.svelte';
+	import MingcuteUserLockFill from '$lib/icons/MingcuteUserLockFill.svelte';
+	import MingcuteUserLockLine from '$lib/icons/MingcuteUserLockLine.svelte';
+	import MingcuteEmojiFill from '$lib/icons/MingcuteEmojiFill.svelte';
+	import MingcuteEmojiLine from '$lib/icons/MingcuteEmojiLine.svelte';
+	import MingcuteSadFill from '$lib/icons/MingcuteSadFill.svelte';
+	import MingcuteSadLine from '$lib/icons/MingcuteSadLine.svelte';
+	import MingcuteLookUpFill from '$lib/icons/MingcuteLookUpFill.svelte';
+	import MingcuteLookUpLine from '$lib/icons/MingcuteLookUpLine.svelte';
+	import MingcuteRefresh4Fill from '$lib/icons/MingcuteRefresh4Fill.svelte';
+	import MingcuteRefresh4Line from '$lib/icons/MingcuteRefresh4Line.svelte';
+	import MingcuteArrowRightFill from '$lib/icons/MingcuteArrowRightFill.svelte';
+	import MingcuteArrowRightLine from '$lib/icons/MingcuteArrowRightLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -116,25 +128,28 @@
 			items={[
 				{
 					value: 'constant',
-					label: 'Constante',
-					desc: 'Ritmo diario',
-					tooltip: 'Algo que hacer casi todas las semanas: tareas, investigaciones...',
-					iconOn: MingcuteMenuFill,
-					iconOff: MingcuteMenuLine
+					label: 'Sostenido',
+					desc: 'Ritmo regular',
+					tooltip:
+						'Esfuerzo parejo semana a semana. Tareas, controles o entregas regulares que no te permiten estar desconectado del ramo',
+					iconOn: MingcuteArrowRightFill,
+					iconOff: MingcuteArrowRightLine
 				},
 				{
 					value: 'intermitent',
-					label: 'Cíclico',
-					desc: 'Alternante',
-					tooltip: 'Períodos de trabajo continuo y descanso: laboratorios, proyectos...',
-					iconOn: MingcuteWaveFill,
-					iconOff: MingcuteWaveLine
+					label: 'Intermitente',
+					desc: 'Por periodos',
+					tooltip:
+						'Períodos alternados de alta carga y descanso. Típico de ramos con entregas por fases, laboratorios o proyectos medianos',
+					iconOn: MingcuteRefresh4Fill,
+					iconOff: MingcuteRefresh4Line
 				},
 				{
 					value: 'concentrated',
-					label: 'Concentrado',
-					desc: 'Peaks intensos',
-					tooltip: 'Acumulado en pocas fechas: pocas evaluaciones, solo certamenes o controles...',
+					label: 'Estacional',
+					desc: 'Peaks críticos',
+					tooltip:
+						'Carga acumulada exclusivamente en fechas críticas. El semestre es relajado, pero colapsa en la semana de certámenes',
 					iconOn: MingcuteHeartbeatFill,
 					iconOff: MingcuteHeartbeatLine
 				}
@@ -156,26 +171,29 @@
 				{
 					value: 'flexible',
 					label: 'Opcional',
-					desc: 'Puntual',
-					tooltip: 'Para laboratorios, presentaciones',
+					desc: 'Asistencia libre',
+					tooltip:
+						'Las clases quedan grabadas o no se controla el ingreso. Puedes pasar el ramo estudiando 100% por tu cuenta',
 					iconOn: MingcuteUserQuestionFill,
 					iconOff: MingcuteUserQuestionLine
 				},
 				{
 					value: 'moderate',
 					label: 'Reglamento',
-					desc: 'Exigido',
-					tooltip: 'Porcentaje mínimo de asistencia',
+					desc: 'Porcentaje min.',
+					tooltip:
+						'Se exige asistencia para tener derecho a rendir evaluaciones o aprobar. Se pasa lista estrictamente',
 					iconOn: MingcuteUserFollow2Fill,
 					iconOff: MingcuteUserFollow2Line
 				},
 				{
 					value: 'strict',
-					label: 'Crucial',
-					desc: 'Necesario',
-					tooltip: 'Cada clase aporta o evalúa',
-					iconOn: MingcuteEye2Fill,
-					iconOff: MingcuteEye2Line
+					label: 'Necesaria',
+					desc: 'Obligatoria/clave',
+					tooltip:
+						'Inasistencia crítica. Cada clase incluye talleres evaluados, laboratorios presenciales o discusión activa que no se pueden recuperar',
+					iconOn: MingcuteUserLockFill,
+					iconOff: MingcuteUserLockLine
 				}
 			]}
 		/>
@@ -194,32 +212,37 @@
 			items={[
 				{
 					value: 'high',
-					label: 'Alta',
+					label: 'Muy flexible',
 					desc: 'Varias vías',
-					tooltip: 'Actividades adicionales, preguntas extra, bonuses, etc...',
-					iconOn: MingcuteAngelFill,
-					iconOff: MingcuteAngelLine
+					tooltip:
+						'El ramo ofrece múltiples opciones para recuperarse: se borra la peor nota, hay certámenes recuperativos globales, tareas de bonus o segundas oportunidades directas',
+					iconOn: MingcuteEmojiFill,
+					iconOff: MingcuteEmojiLine
 				},
 				{
 					value: 'moderate',
-					label: 'Moderada',
-					desc: 'Lo necesario',
-					tooltip: 'Evaluación global o instancia especial única',
-					iconOn: MingcuteMinusCircleFill,
-					iconOff: MingcuteMinusCircleLine
+					label: 'Estándar',
+					desc: 'Opciones básicas',
+					tooltip:
+						'Existen los mecanismos tradicionales de la universidad (como un certamen recuperativo al final del semestre), pero no hay ayudas extras ni tareas salvavidas en el camino',
+					iconOn: MingcuteLookUpFill,
+					iconOff: MingcuteLookUpLine
 				},
 				{
 					value: 'none',
-					label: 'Nula',
-					desc: 'Sin piedad',
-					tooltip: 'Ausencia total de recuperación',
-					iconOn: MingcuteSkullFill,
-					iconOff: MingcuteSkullLine
+					label: 'Cero tolerancia',
+					desc: 'Sin otras vías',
+					tooltip:
+						'Si te va mal en una evaluación, la nota queda congelada. No hay repechajes, trabajos extra ni flexibilidad alguna ante imprevistos',
+					iconOn: MingcuteSadFill,
+					iconOff: MingcuteSadLine
 				},
 				{
 					value: 'unknown',
 					label: 'No aplica',
-					desc: 'Depende',
+					desc: 'Otro motivo',
+					tooltip:
+						'Ramos que por su naturaleza no tienen este formato de notas, que dependen del profesor, u otros motivos',
 					iconOn: MingcuteForbidCircleFill,
 					iconOff: MingcuteForbidCircleLine
 				}
