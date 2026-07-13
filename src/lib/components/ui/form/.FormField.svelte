@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { setFieldContext } from './state.svelte';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		/** Unique identifier matching the schema property */
@@ -15,6 +16,6 @@
 	setFieldContext(name);
 </script>
 
-<div class={className}>
+<div class={cn('group/field', className)}>
 	{@render children()}
 </div>
