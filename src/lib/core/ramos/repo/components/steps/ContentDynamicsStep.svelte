@@ -30,6 +30,7 @@
 	import MaterialSymbolsChatBubbleOutline from '$lib/icons/MaterialSymbolsChatBubbleOutline.svelte';
 	import MingcuteStarTopperFill from '$lib/icons/MingcuteStarTopperFill.svelte';
 	import MingcuteStarTopperLine from '$lib/icons/MingcuteStarTopperLine.svelte';
+	import { cn } from '$lib/utils';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -38,7 +39,7 @@
 
 	let { form, styles }: Props = $props();
 
-	// Target evaluation identifiers for the multi-dimensional taxonomy segment
+	const TOTAL_BUDGET = 12;
 	const TAXONOMY_KEYS = [
 		'logic-math',
 		'memory-concepts',
@@ -48,10 +49,52 @@
 		'motor-execution'
 	];
 
+	const inputs = {
+		'Lógico-Matemática': {
+			description: 'Análisis, cálculo, deducción, resolución lógica.',
+			id: 'logic-math'
+		},
+		'Memoria-Conceptual': {
+			description: 'Memoria, conceptos, reglas, normativas.',
+			id: 'memory-concepts'
+		},
+		'Práctica y Métodos': {
+			description: 'Metodologías, herramientas, protocolos.',
+			id: 'procedure-technique'
+		},
+		'Creativa-Sintética': {
+			description: 'Crear, innovar, diseño, soluciones originales.',
+			id: 'creative-synthetic'
+		},
+		'Trabajo en Equipo': {
+			description: 'Trabajo grupal, liderazgo, comunicación asertiva.',
+			id: 'collaborative-interpersonal'
+		},
+		'Esfuerzo Físico/Taller': {
+			description: 'Destreza motriz, uso de herramientas, esfuerzo físico.',
+			id: 'motor-execution'
+		}
+	};
+
+	const currentPoints = $derived(
+		TAXONOMY_KEYS.reduce((acc, key) => acc + (Number(form.values?.[key]) || 0), 0)
+	);
+
+	const pointsLeft = $derived(TOTAL_BUDGET - currentPoints);
+
+	const isProfileComplete = $derived(currentPoints === TOTAL_BUDGET);
 	const isAffinitySelected = $derived(isFieldAnswered(form, 'affinity'));
-	const isProfileComplete = $derived(areFieldsAnswered(form, TAXONOMY_KEYS));
 	const isAutonomySelected = $derived(isFieldAnswered(form, 'needed-autonomy'));
 	const isGroupFactorSelected = $derived(isFieldAnswered(form, 'group-factor'));
+
+	function handlePointChange(id: string, nextValue: number) {
+		const currentVal = Number(form.values?.[id]) || 0;
+		const diff = nextValue - currentVal;
+
+		if (pointsLeft - diff >= 0 && nextValue >= 0) {
+			form.setFieldValue(id, nextValue);
+		}
+	}
 </script>
 
 {#if form}
@@ -106,113 +149,69 @@
 {/if}
 
 {#if isAffinitySelected}
-	{@const levels = ['Nulo', 'Bajo', 'Medio', 'Alto']}
-	{@const inputs = {
-		'Lógico-Matemática': {
-			description: 'Análisis, cálculo, deducción, resolución lógica.',
-			id: 'logic-math',
-			icon: null,
-			tooltips: [
-				'Sin análisis numérico ni estructuras lógicas.',
-				'Operaciones básicas o deducciones directas.',
-				'Análisis cuantitativo y resolución de problemas.',
-				'Abstracción compleja o razonamiento lógico avanzado.'
-			]
-		},
-		'Memoria-Conceptual': {
-			description: 'Memoria, conceptos, reglas, normativas.',
-			id: 'memory-concepts',
-			icon: null,
-			tooltips: [
-				'Sin carga teórica ni retención de datos.',
-				'Conceptos esenciales y términos elementales.',
-				'Asimilación de marcos teóricos y normativas.',
-				'Dominio de extensos volúmenes de información.'
-			]
-		},
-		'Procedimental-Técnica': {
-			description: 'Metodologías, herramientas, protocolos.',
-			id: 'procedure-technique',
-			icon: null,
-			tooltips: [
-				'Sin uso de métodos ni herramientas guiadas',
-				'Aplicación de guías y tareas estructuradas',
-				'Ejecución activa de procesos y metodologías',
-				'Dominio experto de entornos y protocolos técnicos'
-			]
-		},
-		'Creativa-Sintética': {
-			description: 'Crear, innovar, diseño, soluciones originales.',
-			id: 'creative-synthetic',
-			icon: null,
-			tooltips: [
-				'Tareas mecánicas con soluciones predefinidas',
-				'Adaptaciones o decisiones de diseño simples',
-				'Desarrollo de propuestas e ideas originales',
-				'Creación desde cero de soluciones inéditas'
-			]
-		},
-		'Colaborativa-Interpersonal': {
-			description: 'Trabajo en equipo, liderazgo, comunicación asertiva.',
-			id: 'collaborative-interpersonal',
-			icon: null,
-			tooltips: [
-				'Desempeño y evaluaciones 100% individuales',
-				'Coordinación básica para entregas conjuntas',
-				'Cooperación activa y debates estructurados',
-				'Liderazgo, negociación y exposición continua'
-			]
-		},
-		'Psicomotora-Ejecutiva': {
-			description: 'Destreza motriz, uso de herramientas, esfuerzo físico.',
-			id: 'motor-execution',
-			icon: null,
-			tooltips: [
-				'Actividad netamente cognitiva o de escritorio',
-				'Manipulación básica de instrumentos o equipos',
-				'Uso preciso de herramientas o destreza manual',
-				'Alta exigencia física o coordinación técnica motriz'
-			]
-		}
-	}}
-
+	<!-- Campo 2: Perfil del Ramo mediante Distribución de Puntos[cite: 2] -->
 	<Form.Field name="skill-taxonomy" class={styles.container()}>
-		<FieldHeader
-			title="Perfil del Ramo"
-			description="¿Qué tipo de esfuerzo o razonamiento te exigió más este ramo?"
-			htmlFor="skill-taxonomy"
-		/>
-		<div class="flex w-fit min-w-2/3 flex-col items-end">
-			<div class="text-muted-foreground mr-2 -mb-2 flex flex-row gap-4 px-1 text-xs">
-				{#each levels as level (level)}
-					<div class="relative h-4 w-8">
-						<p class="absolute left-1/2 -translate-x-1/2">{level}</p>
-					</div>
-				{/each}
-			</div>
+		<FieldHeader title="Perfil del Ramo" htmlFor="skill-taxonomy">
+			{#snippet description()}
+				<p>
+					Distribuye {TOTAL_BUDGET} puntos entre los siguientes bloques según el nivel de exigencia real
+					que sentiste en cada uno.
+				</p>
+				<div class="text-foreground mt-2 text-sm">
+					<span class="text-muted-foreground">Puntos distribuidos:</span>
+					{currentPoints} / {TOTAL_BUDGET}
+				</div>
+			{/snippet}
+		</FieldHeader>
+
+		<div class="flex w-full flex-col gap-1">
 			{#each Object.entries(inputs) as [title, input] (input.id)}
-				<Form.Field
-					name={input.id}
-					class="odd:to-card flex w-full flex-row justify-between gap-8 rounded bg-linear-to-r pr-2"
+				{@const value = Number(form.values?.[input.id]) || 0}
+
+				<div
+					class="flex w-full flex-row items-center justify-between gap-4 rounded bg-linear-to-r from-transparent to-transparent px-1 transition-colors odd:to-black/60"
 				>
-					<div class="w-full">
-						<label for={input.id} class="text-sm">{title}</label>
-						<p class={styles.description({ class: 'text-xs' })}>{input.description}</p>
+					<div class="flex-1">
+						<label for={input.id} class="text-sm font-medium">{title}</label>
+						<p class={styles.description({ class: 'text-muted-foreground text-xs' })}>
+							{input.description}
+						</p>
 					</div>
-					<div class="flex items-center justify-center">
-						<IconToggleField
-							size="sm"
-							class="justify-end"
-							items={levels.map((l, i) => ({
-								value: i.toString(),
-								tooltip: input.tooltips[i],
-								containerClass: 'w-8',
-								iconOn: MingcuteDiamondSquareFill,
-								iconOff: MingcuteDiamondSquareLine
-							}))}
-						/>
+
+					<div
+						class={cn(
+							'bg-background flex flex-row items-center overflow-hidden rounded shadow-md/20',
+							value && 'bg-primary/40'
+						)}
+					>
+						<button
+							type="button"
+							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
+							disabled={value <= 0}
+							onclick={() => handlePointChange(input.id, value - 1)}
+						>
+							-
+						</button>
+
+						<span
+							class={cn(
+								'h-full w-7 text-center text-sm font-medium tabular-nums select-none',
+								value && 'font-bold'
+							)}
+						>
+							{value}
+						</span>
+
+						<button
+							type="button"
+							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
+							disabled={pointsLeft <= 0}
+							onclick={() => handlePointChange(input.id, value + 1)}
+						>
+							+
+						</button>
 					</div>
-				</Form.Field>
+				</div>
 			{/each}
 		</div>
 		<Form.Message />
