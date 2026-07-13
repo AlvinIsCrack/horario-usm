@@ -1,7 +1,5 @@
 <script lang="ts">
 	import type { FormStateManager } from '$lib/components/ui/form';
-	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
-	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
 	import MingcuteGroup2Fill from '$lib/icons/MingcuteGroup2Fill.svelte';
@@ -31,6 +29,12 @@
 	import MingcuteStarTopperFill from '$lib/icons/MingcuteStarTopperFill.svelte';
 	import MingcuteStarTopperLine from '$lib/icons/MingcuteStarTopperLine.svelte';
 	import { cn } from '$lib/utils';
+	import MingcutePaletteFill from '$lib/icons/MingcutePaletteFill.svelte';
+	import MingcuteToolFill from '$lib/icons/MingcuteToolFill.svelte';
+	import MaterialSymbolsDirectionsRunRounded from '$lib/icons/MaterialSymbolsDirectionsRunRounded.svelte';
+	import MaterialSymbolsAbcRounded from '$lib/icons/MaterialSymbolsAbcRounded.svelte';
+	import MingcuteBrainFill from '$lib/icons/MingcuteBrainFill.svelte';
+	import TablerAbc from '$lib/icons/TablerAbc.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -39,42 +43,63 @@
 
 	let { form, styles }: Props = $props();
 
-	const TOTAL_BUDGET = 12;
-	const TAXONOMY_KEYS = [
-		'logic-math',
-		'memory-concepts',
-		'procedure-technique',
-		'creative-synthetic',
-		'collaborative-interpersonal',
-		'motor-execution'
-	];
+	const TOTAL_BUDGET = 100;
+	const STEP = 10;
 
-	const inputs = {
-		'Lógico-Matemática': {
-			description: 'Análisis, cálculo, deducción, resolución lógica.',
-			id: 'logic-math'
+	const INPUTS = {
+    'logic-math': {
+        label: 'Lógico-Matemática',
+        description: 'Análisis, cálculo, deducción, resolución lógica.',
+        icon: MingcuteBrainFill
+    },
+    'memory-concepts': {
+        label: 'Memoria-Conceptual',
+        description: 'Memoria, conceptos, reglas, normativas.',
+        icon: TablerAbc
+    },
+    'procedure-technique': {
+        label: 'Práctica y Métodos',
+        description: 'Metodologías, herramientas, protocolos.',
+        icon: MingcuteToolFill
+    },
+    'creative-synthetic': {
+        label: 'Creativa-Sintética',
+        description: 'Crear, innovar, diseño, soluciones originales.',
+        icon: MingcutePaletteFill
+    },
+    'collaborative-interpersonal': {
+        label: 'Trabajo en Equipo',
+        description: 'Trabajo grupal, liderazgo, comunicación asertiva.',
+        icon: MingcuteGroup3Fill
+    },
+    'motor-execution': {
+        label: 'Esfuerzo Físico/Taller',
+        description: 'Destreza motriz, uso de herramientas, esfuerzo físico.',
+        icon: MaterialSymbolsDirectionsRunRounded
+    }
+} as const;
+	const TAXONOMY_KEYS = Object.keys(INPUTS);
+
+	const colorScale: Record<string, { stroke: string; text: string }> = {
+		'logic-math': { stroke: 'stroke-sky-700', text: 'text-sky-600' },
+		'memory-concepts': {
+			stroke: 'stroke-red-400',
+			text: 'text-red-400'
 		},
-		'Memoria-Conceptual': {
-			description: 'Memoria, conceptos, reglas, normativas.',
-			id: 'memory-concepts'
+		'procedure-technique': {
+			stroke: 'stroke-lime-500',
+			text: 'text-lime-400'
 		},
-		'Práctica y Métodos': {
-			description: 'Metodologías, herramientas, protocolos.',
-			id: 'procedure-technique'
+		'creative-synthetic': {
+			stroke: 'stroke-amber-500',
+			text: 'text-amber-500'
 		},
-		'Creativa-Sintética': {
-			description: 'Crear, innovar, diseño, soluciones originales.',
-			id: 'creative-synthetic'
+		'collaborative-interpersonal': {
+			stroke: 'stroke-purple-500',
+			text: 'text-purple-500'
 		},
-		'Trabajo en Equipo': {
-			description: 'Trabajo grupal, liderazgo, comunicación asertiva.',
-			id: 'collaborative-interpersonal'
-		},
-		'Esfuerzo Físico/Taller': {
-			description: 'Destreza motriz, uso de herramientas, esfuerzo físico.',
-			id: 'motor-execution'
-		}
-	};
+		'motor-execution': { stroke: 'stroke-gray-300', text: 'text-gray-300' }
+	} as const;
 
 	const currentPoints = $derived(
 		TAXONOMY_KEYS.reduce((acc, key) => acc + (Number(form.values?.[key]) || 0), 0)
@@ -153,26 +178,114 @@
 	<Form.Field name="skill-taxonomy" class={styles.container()}>
 		<FieldHeader title="Perfil del Ramo" htmlFor="skill-taxonomy">
 			{#snippet description()}
+				{@const pieSlices = (() => {
+					let accumulatedPercentage = 0;
+					const entries = TAXONOMY_KEYS.map((key) => [key, Number(form.values?.[key]) || 0]);
+					return entries.map(([key, value]) => {
+						const percentage = TOTAL_BUDGET > 0 ? (+value / TOTAL_BUDGET) * 100 : 0;
+						const strokeDasharray = `${percentage} ${100 - percentage}`;
+						const strokeDashoffset = 100 - accumulatedPercentage + 25;
+						accumulatedPercentage += percentage;
+
+						const colors = colorScale[key] ?? {
+							bg: 'bg-muted',
+							stroke: 'stroke-white',
+							text: 'text-foreground'
+						};
+
+						const midAngle = (accumulatedPercentage - percentage / 2) * (2 * Math.PI / 100) - (Math.PI / 2);
+						const radius = 15.915; 
+const iconX = 21 + radius * Math.cos(midAngle);
+const iconY = 21 + radius * Math.sin(midAngle);
+
+						return {
+							key,
+							value,
+							strokeDasharray,
+							strokeDashoffset,
+							colors,
+							iconX,
+    						iconY
+						};
+					});
+				})()}
 				<p>
-					Distribuye {TOTAL_BUDGET} puntos entre los siguientes bloques según el nivel de exigencia real
-					que sentiste en cada uno.
+					¿Cómo distribuirías {TOTAL_BUDGET} puntos según el nivel de exigencia real de cada bloque?
+					Prioriza los más fuertes sin preocuparte por una exactitud milimétrica
 				</p>
-				<div class="text-foreground mt-2 text-sm">
-					<span class="text-muted-foreground">Puntos distribuidos:</span>
-					{currentPoints} / {TOTAL_BUDGET}
+				<div class="relative mx-auto my-auto aspect-square size-50 pt-2">
+					<svg viewBox="0 0 42 42" class="h-full w-full -scale-x-100 transform">
+						<circle
+							cx="21"
+							cy="21"
+							r="15.915"
+							fill="transparent"
+							stroke-width="8"
+							class="stroke-accent"
+						/>
+
+						{#each pieSlices as slice}
+								<circle
+									cx="21"
+									cy="21"
+									r="15.915"
+									fill="transparent"
+									stroke-width="8"
+									stroke-dasharray={slice.strokeDasharray}
+									stroke-dashoffset={slice.strokeDashoffset}
+									class={cn('transition-all duration-300 ease-in-out', slice.colors.stroke)}
+								/>
+								{#if +slice.value > 0}
+									{@const IconComponent = INPUTS[slice.key as keyof typeof INPUTS].icon}
+									<g 
+										transform="translate({slice.iconX}, {slice.iconY})"
+										class="origin-center starting:opacity-0 opacity-100 pointer-events-none text-white transition-all"
+									>
+										<IconComponent
+										width="6"
+										height="6"
+										x="-3"
+										y="-3"
+										class="-scale-x-100 drop-shadow-md/60"
+										/>
+									</g>
+								{/if}
+						{/each}
+
+						<text
+							x="21"
+							y="21"
+							dominant-baseline="central"
+							text-anchor="middle"
+							class={cn(
+								'fill-muted-foreground origin-center -scale-x-100 transform text-[4px] font-medium',
+								currentPoints >= TOTAL_BUDGET && 'fill-card-foreground font-bold'
+							)}
+						>
+							{currentPoints}/{TOTAL_BUDGET}
+						</text>
+					</svg>
 				</div>
 			{/snippet}
 		</FieldHeader>
 
 		<div class="flex w-full flex-col gap-1">
-			{#each Object.entries(inputs) as [title, input] (input.id)}
-				{@const value = Number(form.values?.[input.id]) || 0}
+			{#each Object.entries(INPUTS) as [id, input] (id)}
+				{@const value = Number(form.values?.[id]) || 0}
+				{@const color = colorScale[id] ?? {
+					bg: 'bg-muted',
+					stroke: 'stroke-white',
+					text: 'text-foreground'
+				}}
 
 				<div
 					class="flex w-full flex-row items-center justify-between gap-4 rounded bg-linear-to-r from-transparent to-transparent px-1 transition-colors odd:to-black/60"
 				>
 					<div class="flex-1">
-						<label for={input.id} class="text-sm font-medium">{title}</label>
+						<label for={id} class="text-sm font-medium {color.text}">
+							<input.icon class="size-5 inline"/>
+							{input.label}
+						</label>
 						<p class={styles.description({ class: 'text-muted-foreground text-xs' })}>
 							{input.description}
 						</p>
@@ -188,7 +301,7 @@
 							type="button"
 							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
 							disabled={value <= 0}
-							onclick={() => handlePointChange(input.id, value - 1)}
+							onclick={() => handlePointChange(id, value - STEP)}
 						>
 							-
 						</button>
@@ -206,7 +319,7 @@
 							type="button"
 							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
 							disabled={pointsLeft <= 0}
-							onclick={() => handlePointChange(input.id, value + 1)}
+							onclick={() => handlePointChange(id, value + STEP)}
 						>
 							+
 						</button>
