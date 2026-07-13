@@ -1,9 +1,10 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { ramoFormVariants } from '../../RamoForm.svelte';
 
 	interface Props {
 		title?: string;
-		description: string;
+		description: string | Snippet;
 		htmlFor: string;
 		optional?: boolean;
 	}
@@ -21,6 +22,10 @@
 		</label>
 	{/if}
 	<small id="{htmlFor}-help" class={styles.description({ class: 'block' })}>
-		{description}
+		{#if typeof description === 'string'}
+			{description}
+		{:else}
+			{@render description?.()}
+		{/if}
 	</small>
 </div>
