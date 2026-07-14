@@ -38,6 +38,8 @@
 	import MingcuteHeartbeat2Line from '$lib/icons/MingcuteHeartbeat2Line.svelte';
 	import MingcuteShieldShapeFill from '$lib/icons/MingcuteShieldShapeFill.svelte';
 	import MingcuteShieldShapeLine from '$lib/icons/MingcuteShieldShapeLine.svelte';
+	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
+	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -69,16 +71,23 @@
 			(isFailureReasonRequired && isFailureReasonSelected) ||
 			(isPendingReasonRequired && isPendingReasonSelected)
 	);
-	const canShowUsedGlobal = $derived(isFinalStatusSelected && isBranchingPathResolved);
+	
+	const canShowHasGlobal = $derived(isFinalStatusSelected && isBranchingPathResolved);
+	const hasGlobal = $derived(form.values['has-global']);
+	const isHasGlobalSelected = $derived(isFieldAnswered(form, 'has-global'));
 
+	const canShowUsedGlobal = $derived(canShowHasGlobal && isHasGlobalSelected && hasGlobal === 'yes');
 	const usedGlobal = $derived(form.values['used-global']);
 	const isUsedGlobalSelected = $derived(isFieldAnswered(form, 'used-global'));
-	const isGlobalReasonRequired = $derived(usedGlobal === 'yes' || usedGlobal === 'no');
+
+	const isGlobalReasonRequired = $derived(isUsedGlobalSelected && (usedGlobal === 'yes' || usedGlobal === 'no'));
 	const isGlobalReasonSelected = $derived(
 		isFieldAnswered(form, 'global-reason-yes') || isFieldAnswered(form, 'global-reason-no')
 	);
+
 	const canShowDropIntention = $derived(
-		isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)
+		isHasGlobalSelected && 
+		(hasGlobal !== 'yes' || (isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)))
 	);
 
 	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'drop');
@@ -352,7 +361,7 @@
 	<Form.Field name="pending-reason" class={styles.container()}>
 		<FieldHeader
 			title="Estado de Incompletitud"
-			description="¿Cuál fue la vía por la que el ramo quedó pendiente o sin terminar?"
+			description="¿Por qué el ramo quedó pendiente o sin terminar?"
 			htmlFor="pending-reason"
 		/>
 		<IconToggleField
@@ -384,11 +393,50 @@
 	</Form.Field>
 {/if}
 
+{#if canShowHasGlobal}
+	<Form.Field name="has-global" class={styles.container()}>
+		<FieldHeader
+			title="Existencia de Global"
+			description="¿Tiene este ramo una instancia de examen global final del semestre?"
+			htmlFor="has-global"
+		/>
+		<IconToggleField
+			items={[
+				{
+					value: 'yes',
+					label: 'Sí, existe',
+					desc: 'Sí planificado',
+					tooltip: 'El ramo contempla formalmente un certamen global',
+					iconOn: MingcuteCheckCircleFill,
+					iconOff: MingcuteCheckCircleLine
+				},
+				{
+					value: 'no',
+					label: 'No existe',
+					desc: 'Sin global',
+					tooltip: 'No existe esa instancia en el ramo bajo ninguna circunstancia',
+					iconOn: MingcuteCloseCircleFill,
+					iconOff: MingcuteCloseCircleLine
+				},
+				{
+					value: 'unknown',
+					label: 'No sé',
+					desc: 'No recuerdo',
+					tooltip: 'No estoy seguro o no recuerdo si el programa de estudios contemplaba esta evaluación',
+					iconOn: MingcuteQuestionFill,
+					iconOff: MingcuteQuestionLine
+				}
+			]}
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}
+
 {#if canShowUsedGlobal}
 	<Form.Field name="used-global" class={styles.container()}>
 		<FieldHeader
-			title="Evaluación Global/Recuperativa"
-			description="¿Rendiste el examen global o recuperativo?"
+			title="Evaluación Global"
+			description="¿Rendiste el examen global?"
 			htmlFor="used-global"
 		/>
 		<IconToggleField
@@ -406,14 +454,6 @@
 					desc: 'No asistí',
 					iconOn: MingcuteCloseCircleFill,
 					iconOff: MingcuteCloseCircleLine
-				},
-				{
-					value: 'unknown',
-					label: 'No sé',
-					desc: 'Otro motivo',
-					tooltip: 'No estoy seguro, no recuerdo, otro motivo',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>
@@ -421,7 +461,7 @@
 	</Form.Field>
 {/if}
 
-{#if isGlobalReasonRequired}
+{#if isGlobalReasonRequired && hasGlobal === 'yes'}
 	{#if usedGlobal === 'yes'}
 		<Form.Field name="global-reason-yes" class={styles.container()}>
 			<FieldHeader
