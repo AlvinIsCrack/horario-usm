@@ -514,7 +514,7 @@
 	<Form.Field name="risk-perception" class={styles.container()}>
 		<FieldHeader
 			title="Percepción de Riesgo"
-			description="¿Qué tan cerca te sentiste de reprobar este ramo durante el semestre?"
+			description="¿Qué tan cerca te sentiste de reprobar este ramo a lo largo del semestre?"
 			htmlFor="risk-perception"
 		/>
 		<IconToggleField
