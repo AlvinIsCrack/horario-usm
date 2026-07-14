@@ -40,6 +40,7 @@
 	import MingcuteShieldShapeLine from '$lib/icons/MingcuteShieldShapeLine.svelte';
 	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
 	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -226,6 +227,28 @@
 	/>
 	<Form.Message />
 </Form.Field>
+
+{#if isTemporalContextSelected}
+	<Form.Field name="professor-name" class={styles.container()}>
+		<FieldHeader 
+			optional 
+			title="Profesor del paralelo" 
+			description="¿Con qué docente cursaste la asignatura? Opcional y anónimo." 
+			htmlFor="professor-name" 
+		/>
+		<div class="w-full flex justify-end">
+			<Input
+				id="professor-name"
+				name="professor-name"
+				type="text"
+				placeholder="Ej: Federico Santa María, Pepito..."
+				bind:value={() => form.values['professor-name'], (v) => form.setFieldValue('professor-name', v)}
+				class="md:max-w-xs"
+			/>
+		</div>
+		<Form.Message />
+	</Form.Field>
+{/if}
 
 {#if isTemporalContextSelected}
 	<Form.Field name="previous-attempts" class={styles.container()}>
