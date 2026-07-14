@@ -35,17 +35,17 @@
 </script>
 
 {#if form}
-	<Form.Field name="organization-coordination" class={styles.container()}>
+	<Form.Field name="course-order-coordination" class={styles.container()}>
 		<FieldHeader
 			title="Orden y Cumplimiento"
 			description="¿Qué tan ordenada fue la gestión del equipo docente (evaluaciones, entrega de notas, coordinación de paralelos)?"
-			htmlFor="organization-coordination"
+			htmlFor="course-order-coordination"
 		/>
 		<IconToggleField
             items={[
                 {
-                    value: 'low',
-                    label: 'Ordenado',
+                    value: 'efficient',
+                    label: 'Eficiente',
                     desc: 'Todo al día',
                     tooltip:
                         'Excelente gestión. Las fechas de evaluación se respetan estrictamente, las notas se entregan en los plazos acordados y el equipo docente está bien comunicado',
@@ -53,8 +53,8 @@
                     iconOff: MingcuteCalendarMonthLine
                 },
                 {
-                    value: 'medium',
-                    label: 'Irregular',
+                    value: 'regular',
+                    label: 'Regular',
                     desc: 'Atraso ocasional',
                     tooltip:
                         'Gestión aceptable pero con ripios. Hay demoras esporádicas en la entrega de notas, desajustes menores entre profesores o cambios de fecha avisados con poco tiempo',
@@ -62,8 +62,8 @@
                     iconOff: MingcuteCalendarTimeAddLine
                 },
                 {
-                    value: 'high',
-                    label: 'Caótico',
+                    value: 'deficient',
+                    label: 'Deficiente',
                     desc: 'Improvisado',
                     tooltip:
                         'Mala gestión. Fechas que cambian constantemente, notas que tardan semanas o meses en publicarse y evidente falta de comunicación en el equipo docente',
@@ -76,12 +76,12 @@
 	</Form.Field>
 {/if}
 
-{#if form.values['organization-coordination']}
-	<Form.Field name="snowball-effect" class={styles.container()}>
+{#if form.values['course-order-coordination']}
+	<Form.Field name="content-continuity" class={styles.container()}>
 		<FieldHeader
 			title="Continuidad del Contenido"
 			description="Si te pierdes al principio, ¿puedes recuperarte más adelante o cada clase depende estrictamente de la anterior?"
-			htmlFor="snowball-effect"
+			htmlFor="content-continuity"
 		/>
 		<IconToggleField
 			items={[
@@ -104,7 +104,7 @@
 					iconOff: MingcuteWebhookLine
 				},
 				{
-					value: 'chained',
+					value: 'strict-secuencial',
 					label: 'Encadenado',
 					desc: 'Cero retraso',
 					tooltip:
@@ -118,7 +118,7 @@
 	</Form.Field>
 {/if}
 
-{#if form.values['snowball-effect']}
+{#if form.values['content-continuity']}
 	<Form.Field name="relevance-utility" class={styles.container()}>
 		<FieldHeader
 			title="Relevancia y Utilidad"
@@ -166,27 +166,27 @@
 {/if}
 
 {#if form.values['relevance-utility']}
-	<Form.Field name="calification" class={styles.container()}>
+	<Form.Field name="course-calification" class={styles.container()}>
 		<FieldHeader
 			title="Calificación Personal"
 			description="¿Qué nota resume tu experiencia con este ramo? Piensa en lo desafiante, frustrante o gratificante que fue cursarlo"
-			htmlFor="calification"
+			htmlFor="course-calification"
 		/>
 		<StarCalification
-			star={form.values['calification'] || 0}
+			star={form.values['course-calification'] || 0}
 			onValueChange={(_new) => {
-				form.setFieldValue('calification', _new);
+				form.setFieldValue('course-calification', _new);
 			}}
 		/>
 		<Form.Message />
 	</Form.Field>
 {/if}
 
-{#if form.values['calification']}
+{#if form.values['course-calification']}
 	{@const maxLength = 400}
-	{@const remainingLength = maxLength - (form.values['comment']?.length || 0)}
-	<Form.Field name="comment" class={styles.container()}>
-		<FieldHeader optional title="Comentarios Adicionales" htmlFor="comment">
+	{@const remainingLength = maxLength - (form.values['additional-comments']?.length || 0)}
+	<Form.Field name="additional-comments" class={styles.container()}>
+		<FieldHeader optional title="Comentarios Adicionales" htmlFor="additional-comments">
 			{#snippet description()}
 				<p>¿Qué le dirías a un amigo que va a inscribir este ramo el próximo semestre?</p>
 				<p
@@ -199,7 +199,7 @@
 		</FieldHeader>
 		<div class="flex flex-col items-end gap-1">
 			<span
-				id="comment-counter"
+				id="additional-comments-counter"
 				class={cn(
 					'text-muted-foreground text-xs',
 					remainingLength < 100 && 'text-amber-500',
@@ -210,18 +210,18 @@
 				{remainingLength} caracteres restantes
 			</span>
 			<textarea
-				id="comment"
-				name="comment"
+				id="additional-comments"
+				name="additional-comments"
 				bind:value={
-					() => form.values['comment'],
+					() => form.values['additional-comments'],
 					(v) => {
-						form.setFieldValue('comment', v);
+						form.setFieldValue('additional-comments', v);
 					}
 				}
 				maxlength={maxLength}
 				rows={4}
 				placeholder=""
-				aria-describedby="comment-help"
+				aria-describedby="additional-comments-help"
 				style:max-height="calc(5lh+10px)"
 				class={cn(
 					'placeholder:text-muted-foreground/80 w-full flex-1 overflow-y-auto rounded border p-2 text-sm placeholder:text-sm'
