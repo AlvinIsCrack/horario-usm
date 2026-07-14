@@ -57,7 +57,7 @@
 {#if form}
 	<Form.Field name="real-work-hours" class={styles.container()}>
 		<FieldHeader
-			title="Horas de estudio real"
+			title="Horas Dedicadas al Ramo"
 			description="En una semana típica del ramo ¿cuántas horas a la semana le dedicaste fuera de clases (estudiar, tareas, proyectos)?"
 			htmlFor="real-work-hours"
 		/>
@@ -102,11 +102,11 @@
 {/if}
 
 {#if form.values['real-work-hours']}
-	<Form.Field name="course-dynamics" class={styles.container()}>
+	<Form.Field name="demand-distribution" class={styles.container()}>
 		<FieldHeader
 			title="Dinámica de la Carga"
 			description="¿Cómo se distribuye la demanda (trabajos, evaluaciones, entregas) a lo largo del semestre?"
-			htmlFor="course-dynamics"
+			htmlFor="demand-distribution"
 		/>
 		<IconToggleField
 			items={[
@@ -120,7 +120,7 @@
 					iconOff: MingcuteArrowRightLine
 				},
 				{
-					value: 'intermitent',
+					value: 'intermitent-periodic',
 					label: 'Por Hitos',
 						desc: 'Carga períodica',
 					tooltip:
@@ -129,7 +129,7 @@
 					iconOff: MingcuteRefresh4Line
 				},
 				{
-					value: 'concentrated',
+					value: 'concentrated-peaks',
 					label: 'Picos Críticos',
 					desc: 'Carga puntual',
 					tooltip:
@@ -153,7 +153,7 @@
 		<IconToggleField
 			items={[
 				{
-					value: 'flexible',
+					value: 'flexible-optional',
 					label: 'Opcional',
 					desc: 'Asistencia libre',
 					tooltip:
@@ -162,7 +162,7 @@
 					iconOff: MingcuteUserQuestionLine
 				},
 				{
-					value: 'moderate',
+					value: 'regulated',
 					label: 'Reglamento',
 					desc: 'Porcentaje min.',
 					tooltip:
@@ -171,7 +171,7 @@
 					iconOff: MingcuteUserFollow2Line
 				},
 				{
-					value: 'strict',
+					value: 'strict-necessary',
 					label: 'Necesaria',
 					desc: 'Obligatoria/clave',
 					tooltip:
@@ -186,11 +186,11 @@
 {/if}
 
 {#if form.values['assistance-exigence']}
-	<Form.Field name="relief-mechanics" class={styles.container()}>
+	<Form.Field name="relief-mechanics-life-guards" class={styles.container()}>
 		<FieldHeader
 			title="Mecánicas de Alivio"
 			description="¿Cuánta flexibilidad o segundas oportunidades ofrece el ramo si te va mal?"
-			htmlFor="relief-mechanics"
+			htmlFor="relief-mechanics-life-guard"
 		/>
 		<IconToggleField
 			items={[
@@ -204,7 +204,7 @@
 					iconOff: MingcuteEmojiLine
 				},
 				{
-					value: 'moderate',
+					value: 'standard',
 					label: 'Estándar',
 					desc: 'Opciones básicas',
 					tooltip:
@@ -222,7 +222,7 @@
 					iconOff: MingcuteSadLine
 				},
 				{
-					value: 'unknown',
+					value: 'unknown-other',
 					label: 'No aplica',
 					desc: 'Otro motivo',
 					tooltip:
@@ -255,7 +255,7 @@
 					iconOff: MingcuteEye2Line
 				},
 				{
-					value: 'flexible',
+					value: 'flexible-rules',
 					label: 'Flexible',
 					desc: 'Reglas\nadaptables',
 					tooltip:
