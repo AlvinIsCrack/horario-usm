@@ -8,10 +8,20 @@
 	import MaterialSymbolsEqualRounded from '$lib/icons/MaterialSymbolsEqualRounded.svelte';
 	import MingcuteBook2Fill from '$lib/icons/MingcuteBook2Fill.svelte';
 	import MingcuteBook2Line from '$lib/icons/MingcuteBook2Line.svelte';
+	import MingcuteBriefcaseFill from '$lib/icons/MingcuteBriefcaseFill.svelte';
+	import MingcuteBriefcaseLine from '$lib/icons/MingcuteBriefcaseLine.svelte';
+	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
+	import MingcuteCalendarMonthLine from '$lib/icons/MingcuteCalendarMonthLine.svelte';
+	import MingcuteCalendarTimeAddFill from '$lib/icons/MingcuteCalendarTimeAddFill.svelte';
+	import MingcuteCalendarTimeAddLine from '$lib/icons/MingcuteCalendarTimeAddLine.svelte';
+	import MingcuteFolderDeleteFill from '$lib/icons/MingcuteFolderDeleteFill.svelte';
+	import MingcuteFolderDeleteLine from '$lib/icons/MingcuteFolderDeleteLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
 	import MingcuteGroup2Fill from '$lib/icons/MingcuteGroup2Fill.svelte';
 	import MingcuteGroup2Line from '$lib/icons/MingcuteGroup2Line.svelte';
+	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
+	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 	import MingcuteThreeCirclesFill from '$lib/icons/MingcuteThreeCirclesFill.svelte';
 	import MingcuteThreeCirclesLine from '$lib/icons/MingcuteThreeCirclesLine.svelte';
 	import MingcuteUserLockFill from '$lib/icons/MingcuteUserLockFill.svelte';
@@ -20,6 +30,8 @@
 	import MingcuteVersionLine from '$lib/icons/MingcuteVersionLine.svelte';
 	import MingcuteWebhookFill from '$lib/icons/MingcuteWebhookFill.svelte';
 	import MingcuteWebhookLine from '$lib/icons/MingcuteWebhookLine.svelte';
+	import TablerPuzzle from '$lib/icons/TablerPuzzle.svelte';
+	import TablerPuzzleFilled from '$lib/icons/TablerPuzzleFilled.svelte';
 	import { cn } from '$lib/utils';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField from '../forms/IconToggleField.svelte';
@@ -33,57 +45,48 @@
 </script>
 
 {#if form}
-	<Form.Field name="teacher-factor" class={styles.container()}>
+	<Form.Field name="organization-coordination" class={styles.container()}>
 		<FieldHeader
-			title="Factor Docente"
-			description="Si un amigo cursara este mismo ramo en otro paralelo o con otro profesor, ¿creen que su experiencia y exigencia serían muy distintas?"
-			htmlFor="teacher-factor"
+			title="Orden y Cumplimiento"
+			description="¿Qué tan ordenada fue la gestión del equipo docente (evaluaciones, entrega de notas, coordinación de paralelos)?"
+			htmlFor="organization-coordination"
 		/>
 		<IconToggleField
-			items={[
-				{
-					value: 'null',
-					label: 'Sin opinión',
-					desc: 'No lo sé/poca información',
-					tooltip:
-						'Aún no curso el ramo o no tengo referencias sobre cómo se evalúa ni el impacto de los profesores',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
-				},
-				{
-					value: 'low',
-					label: 'Coordinado',
-					desc: 'Da lo mismo el paralelo',
-					tooltip:
-						'Todos los profesores siguen el mismo ritmo, evalúan con los mismos criterios y las notas son justas e independientes de quién te dicte la clase',
-					iconOn: LucideEqual,
-					iconOff: LucideEqual
-				},
-				{
-					value: 'medium',
-					label: 'Variable',
-					desc: 'Cambia la experiencia',
-					tooltip:
-						'Las evaluaciones principales son comunes, pero el nivel de explicación, las exigencias en tareas y el ambiente de la clase cambian según el profesor',
-					iconOn: LucideEqualApproximately,
-					iconOff: LucideEqualApproximately
-				},
-				{
-					value: 'high',
-					label: 'Lotería',
-					desc: 'Suerte del paralelo',
-					tooltip:
-						'No hay coordinación. El nivel de dificultad, la exigencia en las correcciones y la probabilidad de aprobar dependen casi al 100% del profesor que te toque',
-					iconOn: LucideEqualNot,
-					iconOff: LucideEqualNot
-				}
-			]}
-		/>
+            items={[
+                {
+                    value: 'low',
+                    label: 'Ordenado',
+                    desc: 'Todo al día',
+                    tooltip:
+                        'Excelente gestión. Las fechas de evaluación se respetan estrictamente, las notas se entregan en los plazos acordados y el equipo docente está bien comunicado',
+                    iconOn: MingcuteCalendarMonthFill,
+                    iconOff: MingcuteCalendarMonthLine
+                },
+                {
+                    value: 'medium',
+                    label: 'Irregular',
+                    desc: 'Atraso ocasional',
+                    tooltip:
+                        'Gestión aceptable pero con ripios. Hay demoras esporádicas en la entrega de notas, desajustes menores entre profesores o cambios de fecha avisados con poco tiempo',
+                    iconOn: MingcuteCalendarTimeAddFill,
+                    iconOff: MingcuteCalendarTimeAddLine
+                },
+                {
+                    value: 'high',
+                    label: 'Caótico',
+                    desc: 'Improvisado',
+                    tooltip:
+                        'Mala gestión. Fechas que cambian constantemente, notas que tardan semanas o meses en publicarse y evidente falta de comunicación en el equipo docente',
+                    iconOn: MingcuteQuestionFill,
+                    iconOff: MingcuteQuestionLine
+                }
+            ]}
+        />
 		<Form.Message />
 	</Form.Field>
 {/if}
 
-{#if form.values['teacher-factor']}
+{#if form.values['organization-coordination']}
 	<Form.Field name="snowball-effect" class={styles.container()}>
 		<FieldHeader
 			title="Continuidad del Contenido"
@@ -115,7 +118,7 @@
 					label: 'Encadenado',
 					desc: 'Cero retraso',
 					tooltip:
-						'Secuencia estricta de contenido y materia clase a clase. Si no dominas la base de las primeras semanas, es imposible entender lo que sigue',
+						'Secuencia estricta de contenido clase a clase. Si no dominas la base de las primeras semanas, es imposible entender lo que sigue',
 					iconOn: MingcuteVersionFill,
 					iconOff: MingcuteVersionLine
 				}
@@ -126,6 +129,53 @@
 {/if}
 
 {#if form.values['snowball-effect']}
+	<Form.Field name="relevance-utility" class={styles.container()}>
+		<FieldHeader
+			title="Relevancia y Utilidad"
+			description="¿Sientes que los contenidos aprendidos en este ramo son útiles o relevantes para tu formación profesional?"
+			htmlFor="relevance-utility"
+		/>
+		<IconToggleField
+			items={[
+				{
+					value: 'no-opinion',
+					label: "Sin opinión",
+					desc: "No sé",
+					tooltip: "Me falta avanzar más o no soy capaz de responder",
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
+				},
+				{
+					value: 'low',
+					label: "Trámite",
+					desc: "Poco útil",
+					tooltip: 'Contenido obsoleto o desconectado del perfil de la carrera',
+					iconOn: MingcuteFolderDeleteFill,
+					iconOff: MingcuteFolderDeleteLine
+				},
+				{
+					value: 'medium',
+					label: "Formativo",
+					desc: "Suma buena base",
+					tooltip: "Aporta lógica, pensamiento crítico y bases teóricas útiles",
+					iconOn: TablerPuzzleFilled,
+					iconOff: TablerPuzzle
+				},
+				{
+					value: 'high',
+					label: "Esencial",
+					desc: "Uso real",
+					tooltip: "Herramientas clave y modernas que usaré directo en el trabajo",
+					iconOn: MingcuteBriefcaseFill,
+					iconOff: MingcuteBriefcaseLine
+				},
+			]}
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}
+
+{#if form.values['relevance-utility']}
 	<Form.Field name="calification" class={styles.container()}>
 		<FieldHeader
 			title="Calificación Personal"
