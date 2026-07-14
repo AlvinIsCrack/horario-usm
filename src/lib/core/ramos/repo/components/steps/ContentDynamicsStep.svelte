@@ -49,58 +49,44 @@
 
 	const INPUTS = {
     'logic-math': {
-        label: 'Lógico-Matemática',
-        description: 'Análisis, cálculo, deducción, resolución lógica.',
-        icon: MingcuteBrainFill
+        label: 'Análisis y Deducción',
+        description: 'Cálculo matemático, lógica abstracta, resolución de problemas o programación.',
+        icon: MingcuteBrainFill,
+        colors: { stroke: 'stroke-sky-700', text: 'text-sky-600' }
     },
     'memory-concepts': {
-        label: 'Memoria-Conceptual',
-        description: 'Memoria, conceptos, reglas, normativas.',
-        icon: TablerAbc
+        label: 'Teoría y Memorización',
+        description: 'Memorizar datos o conceptos: leyes, fórmulas, anatomía, teoría o clasificaciones.',
+        icon: TablerAbc,
+        colors: { stroke: 'stroke-red-400', text: 'text-red-400' }
     },
     'procedure-technique': {
-        label: 'Práctica y Métodos',
-        description: 'Metodologías, herramientas, protocolos.',
-        icon: MingcuteToolFill
+        label: 'Herramientas y Protocolos',
+        description: 'Uso de software técnico (CAD, planillas), normativas de diseño o manuales de procedimiento.',
+        icon: MingcuteToolFill,
+        colors: { stroke: 'stroke-lime-500', text: 'text-lime-400' }
     },
     'creative-synthetic': {
-        label: 'Creativa-Sintética',
-        description: 'Crear, innovar, diseño, soluciones originales.',
-        icon: MingcutePaletteFill
+        label: 'Diseño y Creación',
+        description: 'Proyectos desde cero, ideas originales, expresión artística o soluciones abiertas sin respuesta única.',
+        icon: MingcutePaletteFill,
+        colors: { stroke: 'stroke-amber-500', text: 'text-amber-500' }
     },
     'collaborative-interpersonal': {
-        label: 'Trabajo en Equipo',
-        description: 'Trabajo grupal, liderazgo, comunicación asertiva.',
-        icon: MingcuteGroup3Fill
+        label: 'Coordinación y Grupo',
+        description: 'Trabajo en equipo, exposiciones orales, debates o roles de liderazgo.',
+        icon: MingcuteGroup3Fill,
+        colors: { stroke: 'stroke-purple-500', text: 'text-purple-500' }
     },
     'motor-execution': {
-        label: 'Esfuerzo Físico/Taller',
-        description: 'Destreza motriz, uso de herramientas, esfuerzo físico.',
-        icon: MaterialSymbolsDirectionsRunRounded
+        label: 'Ejecución Práctica o Física',
+        description: 'Trabajo manual o corporal: laboratorios, maquetación, instrumental o actividad física.',
+        icon: MaterialSymbolsDirectionsRunRounded,
+        colors: { stroke: 'stroke-gray-300', text: 'text-gray-300' }
     }
 } as const;
-	const TAXONOMY_KEYS = Object.keys(INPUTS);
 
-	const colorScale: Record<string, { stroke: string; text: string }> = {
-		'logic-math': { stroke: 'stroke-sky-700', text: 'text-sky-600' },
-		'memory-concepts': {
-			stroke: 'stroke-red-400',
-			text: 'text-red-400'
-		},
-		'procedure-technique': {
-			stroke: 'stroke-lime-500',
-			text: 'text-lime-400'
-		},
-		'creative-synthetic': {
-			stroke: 'stroke-amber-500',
-			text: 'text-amber-500'
-		},
-		'collaborative-interpersonal': {
-			stroke: 'stroke-purple-500',
-			text: 'text-purple-500'
-		},
-		'motor-execution': { stroke: 'stroke-gray-300', text: 'text-gray-300' }
-	} as const;
+const TAXONOMY_KEYS = Object.keys(INPUTS);
 
 	const currentPoints = $derived(
 		TAXONOMY_KEYS.reduce((acc, key) => acc + (Number(form.values?.[key]) || 0), 0)
@@ -187,7 +173,7 @@
 						const strokeDashoffset = 100 - accumulatedPercentage + 25;
 						accumulatedPercentage += percentage;
 
-						const colors = colorScale[key] ?? {
+						const colors = INPUTS[key as keyof typeof INPUTS]?.colors ?? {
 							bg: 'bg-muted',
 							stroke: 'stroke-white',
 							text: 'text-foreground'
@@ -274,14 +260,14 @@
 		<div class="flex w-full flex-col gap-1">
 			{#each Object.entries(INPUTS) as [id, input] (id)}
 				{@const value = Number(form.values?.[id]) || 0}
-				{@const color = colorScale[id] ?? {
+				{@const color = input.colors ?? {
 					bg: 'bg-muted',
 					stroke: 'stroke-white',
 					text: 'text-foreground'
 				}}
 
 				<div
-					class="flex w-full flex-row items-center justify-between gap-4 rounded bg-linear-to-r from-transparent to-transparent px-1 transition-colors odd:to-black/60"
+					class="flex w-full flex-row items-center justify-between gap-4 rounded bg-linear-to-r from-transparent to-transparent pr-2 transition-colors odd:to-black/60"
 				>
 					<div class="flex-1">
 						<label for={id} class="text-sm font-medium {color.text}">
@@ -295,13 +281,13 @@
 
 					<div
 						class={cn(
-							'bg-background flex flex-row items-center overflow-hidden rounded shadow-md/20',
+							'bg-background border flex flex-row items-center overflow-hidden rounded shadow-md/20',
 							value && 'bg-primary/40'
 						)}
 					>
 						<button
 							type="button"
-							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
+							class="bg-muted cursor-pointer hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
 							disabled={value <= 0}
 							onclick={() => handlePointChange(id, value - STEP)}
 						>
@@ -319,7 +305,7 @@
 
 						<button
 							type="button"
-							class="bg-muted hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
+							class="bg-muted cursor-pointer hover:bg-muted/80 flex h-7 w-7 items-center justify-center rounded text-sm font-bold transition-all disabled:pointer-events-none disabled:opacity-30"
 							disabled={pointsLeft <= 0}
 							onclick={() => handlePointChange(id, value + STEP)}
 						>
