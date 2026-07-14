@@ -16,6 +16,7 @@
 	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 	import MingcuteThreeCirclesFill from '$lib/icons/MingcuteThreeCirclesFill.svelte';
 	import MingcuteThreeCirclesLine from '$lib/icons/MingcuteThreeCirclesLine.svelte';
+	import MingcuteUser2Fill from '$lib/icons/MingcuteUser2Fill.svelte';
 	import MingcuteVersionFill from '$lib/icons/MingcuteVersionFill.svelte';
 	import MingcuteVersionLine from '$lib/icons/MingcuteVersionLine.svelte';
 	import MingcuteWebhookFill from '$lib/icons/MingcuteWebhookFill.svelte';
@@ -198,17 +199,25 @@
 			{/snippet}
 		</FieldHeader>
 		<div class="flex flex-col items-end gap-1">
-			<span
+			<div class="w-full flex flex-row justify-between gap-8">
+				{#if form.values['professor-name']}
+					<div class="text-sm border rounded-full px-4 select-none bg-card">
+						<MingcuteUser2Fill class="inline -ml-2"/>
+						{form.values['professor-name']}
+					</div>
+				{/if}
+				<p
 				id="additional-comments-counter"
 				class={cn(
-					'text-muted-foreground text-xs',
+					'ml-auto text-muted-foreground text-xs',
 					remainingLength < 100 && 'text-amber-500',
 					remainingLength < 20 && 'text-destructive-foreground'
 				)}
 				aria-live="polite"
 			>
 				{remainingLength} caracteres restantes
-			</span>
+			</p>
+			</div>
 			<textarea
 				id="additional-comments"
 				name="additional-comments"
