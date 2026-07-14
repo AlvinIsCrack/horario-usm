@@ -22,7 +22,7 @@
 	{@const active = star >= value}
 	{@const Icon = active ? MingcuteStarFill : MingcuteStarLine}
 	{@const label = labels[value - 1]}
-	<button class="flex flex-col items-center" onclick={() => onValueChange?.(value, star)}>
+	<button type="button" class="flex flex-col items-center" onclick={() => onValueChange?.(value, star)}>
 		<Icon
 			class={cn(
 				'text-muted-foreground size-8 cursor-pointer transition-all duration-200',
