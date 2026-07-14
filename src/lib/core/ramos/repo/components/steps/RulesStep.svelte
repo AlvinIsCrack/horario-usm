@@ -143,7 +143,7 @@
 	</Form.Field>
 {/if}
 
-{#if form.values['course-dynamics']}
+{#if form.values['demand-distribution']}
 	<Form.Field name="assistance-exigence" class={styles.container()}>
 		<FieldHeader
 			title="Asistencia Necesaria"
@@ -190,7 +190,7 @@
 		<FieldHeader
 			title="Mecánicas de Alivio"
 			description="¿Cuánta flexibilidad o segundas oportunidades ofrece el ramo si te va mal?"
-			htmlFor="relief-mechanics-life-guard"
+			htmlFor="relief-mechanics-life-guards"
 		/>
 		<IconToggleField
 			items={[
@@ -236,7 +236,7 @@
 	</Form.Field>
 {/if}
 
-{#if form.values['relief-mechanics']}
+{#if form.values['relief-mechanics-life-guards']}
 	<Form.Field name="predictability" class={styles.container()}>
 		<FieldHeader
 			title="Reglas de Evaluación"
