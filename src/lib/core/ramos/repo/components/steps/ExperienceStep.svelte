@@ -36,6 +36,8 @@
 	import MingcuteSnowLine from '$lib/icons/MingcuteSnowLine.svelte';
 	import MingcuteHeartbeat2Fill from '$lib/icons/MingcuteHeartbeat2Fill.svelte';
 	import MingcuteHeartbeat2Line from '$lib/icons/MingcuteHeartbeat2Line.svelte';
+	import MingcuteShieldShapeFill from '$lib/icons/MingcuteShieldShapeFill.svelte';
+	import MingcuteShieldShapeLine from '$lib/icons/MingcuteShieldShapeLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -512,49 +514,45 @@
 	<Form.Field name="risk-perception" class={styles.container()}>
 		<FieldHeader
 			title="Percepción de Riesgo"
-			description="¿Qué tan expuesto o en riesgo te sentiste de reprobar este ramo a lo largo del semestre?"
+			description="¿Qué tan cerca te sentiste de reprobar este ramo durante el semestre?"
 			htmlFor="risk-perception"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'no-risk',
-					label: 'En Control',
-					desc: 'Cero esfuerzo',
-					tooltip:
-						'El ramo nunca representó una amenaza. Las notas y los tiempos estuvieron bajo control de principio a fin',
-					iconOn: MingcuteHeartFill,
-					iconOff: MingcuteHeartFill
+					label: 'Seguro',
+					desc: 'Sin riesgo',
+					tooltip: 'El ramo estuvo bajo control de principio a fin. Nunca representó una amenaza de reprobación',
+					iconOn: MingcuteShieldShapeFill,
+					iconOff: MingcuteShieldShapeLine
 				},
 				{
 					value: 'low-risk',
 					label: 'Manejable',
-					desc: 'Esfuerzo normal',
-					tooltip:
-						'Requirió trabajo y atención regular, pero nunca sentí que la situación se me escapara de las manos',
-					iconOn: MingcuteHeartLine,
+					desc: 'Riesgo bajo',
+					tooltip: 'Requirió atención regular. Hubo dudas menores, pero la situación nunca se escapó de las manos',
+					iconOn: MingcuteHeartFill,
 					iconOff: MingcuteHeartLine
 				},
 				{
 					value: 'high-risk',
-					label: 'Comprometido',
-					desc: 'Esfuerzo pesado',
-					tooltip:
-						'Hubo periodos de alta presión y notas en la cuerda floja. Requirió priorizar este ramo sobre otros para salvarlo',
+					label: 'Peligroso',
+					desc: 'Riesgo alto',
+					tooltip: 'Periodos de alta presión y notas en la cuerda floja. Estuve muy cerca de perder el ramo',
 					iconOn: MingcuteHeartbeat2Fill,
 					iconOff: MingcuteHeartbeat2Line
 				},
 				{
 					value: 'extreme-risk',
-					label: 'Al Límite',
-					desc: 'En pánico',
-					tooltip:
-						'Estrés constante y peligro real de reprobar hasta el último día. Exigió un sacrificio masivo',
+					label: 'Crítico',
+					desc: 'Al límite',
+					tooltip: 'Peligro real de reprobar hasta el último día. Se sintió como un escenario casi imposible de salvar',
 					iconOn: MingcuteHeartCrackFill,
 					iconOff: MingcuteHeartCrackLine
 				}
 			]}
-		/>
+			/>
 		<Form.Message />
 	</Form.Field>
 {/if}
