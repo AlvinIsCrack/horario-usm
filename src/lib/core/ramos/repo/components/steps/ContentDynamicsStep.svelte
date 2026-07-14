@@ -109,7 +109,7 @@
 	const pointsLeft = $derived(TOTAL_BUDGET - currentPoints);
 
 	const isProfileComplete = $derived(currentPoints === TOTAL_BUDGET);
-	const isAffinitySelected = $derived(isFieldAnswered(form, 'affinity'));
+	const isAffinitySelected = $derived(isFieldAnswered(form, 'familiarity-level'));
 	const isAutonomySelected = $derived(isFieldAnswered(form, 'needed-autonomy'));
 	const isGroupFactorSelected = $derived(isFieldAnswered(form, 'group-factor'));
 
@@ -124,11 +124,11 @@
 </script>
 
 {#if form}
-	<Form.Field name="familiarity_level" class={styles.container()}>
+	<Form.Field name="familiarity-level" class={styles.container()}>
 		<FieldHeader
 			title="Familiaridad Previa"
 			description="¿Qué tan cercano, intuitivo o familiar te resultaba el entorno conceptual, técnico o práctico de este ramo antes de cursarlo?"
-			htmlFor="familiarity_level"
+			htmlFor="familiarity-level"
 		/>
 		<IconToggleField
 			items={[
