@@ -28,7 +28,7 @@
 	 * Processes the aggregated multi-step wizard data layout.
 	 */
 	function handleFormCompletion(payload: Record<string, any>): void {
-		// Target execution logic for processing form submission
+		alert('Gracias por completar ah');
 	}
 
 	// Single source of truth for all dynamic IDs inside this form scope
