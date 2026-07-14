@@ -29,6 +29,7 @@
 	 */
 	function handleFormCompletion(payload: Record<string, any>): void {
 		alert('Gracias por completar ah');
+		console.log(payload)
 	}
 
 	// Single source of truth for all dynamic IDs inside this form scope
