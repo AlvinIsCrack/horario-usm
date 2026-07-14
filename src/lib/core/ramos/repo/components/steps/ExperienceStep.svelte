@@ -403,15 +403,15 @@
 				{
 					value: 'no',
 					label: 'No',
-					desc: 'Falté/no hay',
+					desc: 'No asistí',
 					iconOn: MingcuteCloseCircleFill,
 					iconOff: MingcuteCloseCircleLine
 				},
 				{
 					value: 'unknown',
 					label: 'No sé',
-					desc: 'No recuerdo',
-					tooltip: 'No estoy seguro, o no recuerdo',
+					desc: 'Otro motivo',
+					tooltip: 'No estoy seguro, no recuerdo, otro motivo',
 					iconOn: MingcuteForbidCircleFill,
 					iconOff: MingcuteForbidCircleLine
 				}
@@ -498,7 +498,7 @@
 					{
 						value: 'other',
 						label: 'No Aplica',
-						desc: 'No hay/otro',
+						desc: 'Otro motivo',
 						tooltip: 'Otros motivos',
 						iconOn: MingcuteForbidCircleFill,
 						iconOff: MingcuteForbidCircleLine
