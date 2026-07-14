@@ -2,12 +2,6 @@
 	import type { FormStateManager } from '$lib/components/ui/form';
 	import { Form } from '$lib/components/ui/form';
 	import StarCalification from '$lib/components/ui/form/components/StarCalification.svelte';
-	import LucideEqual from '$lib/icons/LucideEqual.svelte';
-	import LucideEqualApproximately from '$lib/icons/LucideEqualApproximately.svelte';
-	import LucideEqualNot from '$lib/icons/LucideEqualNot.svelte';
-	import MaterialSymbolsEqualRounded from '$lib/icons/MaterialSymbolsEqualRounded.svelte';
-	import MingcuteBook2Fill from '$lib/icons/MingcuteBook2Fill.svelte';
-	import MingcuteBook2Line from '$lib/icons/MingcuteBook2Line.svelte';
 	import MingcuteBriefcaseFill from '$lib/icons/MingcuteBriefcaseFill.svelte';
 	import MingcuteBriefcaseLine from '$lib/icons/MingcuteBriefcaseLine.svelte';
 	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
@@ -18,14 +12,10 @@
 	import MingcuteFolderDeleteLine from '$lib/icons/MingcuteFolderDeleteLine.svelte';
 	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
 	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
-	import MingcuteGroup2Fill from '$lib/icons/MingcuteGroup2Fill.svelte';
-	import MingcuteGroup2Line from '$lib/icons/MingcuteGroup2Line.svelte';
 	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
 	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 	import MingcuteThreeCirclesFill from '$lib/icons/MingcuteThreeCirclesFill.svelte';
 	import MingcuteThreeCirclesLine from '$lib/icons/MingcuteThreeCirclesLine.svelte';
-	import MingcuteUserLockFill from '$lib/icons/MingcuteUserLockFill.svelte';
-	import MingcuteUserLockLine from '$lib/icons/MingcuteUserLockLine.svelte';
 	import MingcuteVersionFill from '$lib/icons/MingcuteVersionFill.svelte';
 	import MingcuteVersionLine from '$lib/icons/MingcuteVersionLine.svelte';
 	import MingcuteWebhookFill from '$lib/icons/MingcuteWebhookFill.svelte';
