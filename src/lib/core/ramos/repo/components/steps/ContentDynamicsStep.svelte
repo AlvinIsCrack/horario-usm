@@ -124,11 +124,11 @@
 </script>
 
 {#if form}
-	<Form.Field name="affinity" class={styles.container()}>
+	<Form.Field name="familiarity_level" class={styles.container()}>
 		<FieldHeader
 			title="Familiaridad Previa"
 			description="¿Qué tan cercano, intuitivo o familiar te resultaba el entorno conceptual, técnico o práctico de este ramo antes de cursarlo?"
-			htmlFor="affinity"
+			htmlFor="familiarity_level"
 		/>
 		<IconToggleField
 			items={[
@@ -175,7 +175,6 @@
 {/if}
 
 {#if isAffinitySelected}
-	<!-- Campo 2: Perfil del Ramo mediante Distribución de Puntos[cite: 2] -->
 	<Form.Field name="skill-taxonomy" class={styles.container()}>
 		<FieldHeader title="Perfil del Ramo" htmlFor="skill-taxonomy">
 			{#snippet description()}
@@ -344,7 +343,7 @@
 		<IconToggleField
 			items={[
 				{
-					value: 'low',
+					value: 'guided',
 					label: 'Baja',
 					desc: 'Guiado',
 					tooltip:
@@ -362,7 +361,7 @@
 					iconOff: MingcuteListSearchLine
 				},
 				{
-					value: 'high',
+					value: 'independent',
 					label: 'Alta',
 					desc: 'Independiente',
 					tooltip:
@@ -395,7 +394,7 @@
 					iconOff: MingcuteForbidCircleLine
 				},
 				{
-					value: 'low',
+					value: 'group-support',
 					label: 'Baja',
 					desc: 'Apoyo grupal',
 					tooltip:
@@ -404,7 +403,7 @@
 					iconOff: MingcuteUser3Line
 				},
 				{
-					value: 'medium',
+					value: 'hybrid',
 					label: 'Media',
 					desc: 'Híbrido',
 					tooltip:
@@ -413,7 +412,7 @@
 					iconOff: MingcuteGroup2Line
 				},
 				{
-					value: 'high',
+					value: 'colective',
 					label: 'Alta',
 					desc: 'Colectivo',
 					tooltip:
