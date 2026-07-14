@@ -162,8 +162,8 @@
 {#if form.values['course-dynamics']}
 	<Form.Field name="assistance-exigence" class={styles.container()}>
 		<FieldHeader
-			title="Exigencia de Asistencia"
-			description="¿Qué tan estricta o necesaria es la presencialidad en el ramo?"
+			title="Asistencia Necesaria"
+			description="¿Qué tan obligatoria es la presencialidad para las clases en sí? Ignora lo ocasional: exposiciones, laboratorios, o similares."
 			htmlFor="assistance-exigence"
 		/>
 		<IconToggleField
