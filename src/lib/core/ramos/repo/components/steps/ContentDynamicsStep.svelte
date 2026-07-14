@@ -48,43 +48,43 @@
 	const STEP = 10;
 
 	const INPUTS = {
-    'logic-math': {
-        label: 'Análisis y Deducción',
-        description: 'Cálculo matemático, lógica abstracta, resolución de problemas o programación.',
-        icon: MingcuteBrainFill,
-        colors: { stroke: 'stroke-sky-700', text: 'text-sky-600' }
-    },
-    'memory-concepts': {
-        label: 'Teoría y Memorización',
-        description: 'Memorizar datos o conceptos: leyes, fórmulas, anatomía, teoría o clasificaciones.',
-        icon: TablerAbc,
-        colors: { stroke: 'stroke-red-400', text: 'text-red-400' }
-    },
-    'procedure-technique': {
-        label: 'Herramientas y Protocolos',
-        description: 'Uso de software técnico (CAD, planillas), normativas de diseño o manuales de procedimiento.',
-        icon: MingcuteToolFill,
-        colors: { stroke: 'stroke-lime-500', text: 'text-lime-400' }
-    },
-    'creative-synthetic': {
-        label: 'Diseño y Creación',
-        description: 'Proyectos desde cero, ideas originales, expresión artística o soluciones abiertas sin respuesta única.',
-        icon: MingcutePaletteFill,
-        colors: { stroke: 'stroke-amber-500', text: 'text-amber-500' }
-    },
-    'collaborative-interpersonal': {
-        label: 'Coordinación y Grupo',
-        description: 'Trabajo en equipo, exposiciones orales, debates o roles de liderazgo.',
-        icon: MingcuteGroup3Fill,
-        colors: { stroke: 'stroke-purple-500', text: 'text-purple-500' }
-    },
-    'motor-execution': {
-        label: 'Ejecución Práctica o Física',
-        description: 'Trabajo manual o corporal: laboratorios, maquetación, instrumental o actividad física.',
-        icon: MaterialSymbolsDirectionsRunRounded,
-        colors: { stroke: 'stroke-gray-300', text: 'text-gray-300' }
-    }
-} as const;
+		'logic-math': {
+			label: 'Análisis y Deducción',
+			description: 'Cálculo matemático, lógica abstracta, resolución de problemas o programación.',
+			icon: MingcuteBrainFill,
+			colors: { stroke: 'stroke-sky-500', text: 'text-sky-600' }
+		},
+		'memory-concepts': {
+			label: 'Teoría y Memorización',
+			description: 'Memorizar datos o conceptos: leyes, fórmulas, anatomía, teoría o clasificaciones.',
+			icon: TablerAbc,
+			colors: { stroke: 'stroke-red-400', text: 'text-red-500' }
+		},
+		'procedure-technique': {
+			label: 'Herramientas y Protocolos',
+			description: 'Uso de software técnico (CAD, planillas), normativas de diseño o manuales de procedimiento.',
+			icon: MingcuteToolFill,
+			colors: { stroke: 'stroke-green-400', text: 'text-green-500' }
+		},
+		'creative-synthetic': {
+			label: 'Diseño y Creación',
+			description: 'Proyectos desde cero, ideas originales, expresión artística o soluciones abiertas sin respuesta única.',
+			icon: MingcutePaletteFill,
+			colors: { stroke: 'stroke-amber-400', text: 'text-amber-500' }
+		},
+		'collaborative-interpersonal': {
+			label: 'Coordinación y Grupo',
+			description: 'Trabajo en equipo, exposiciones orales, debates o roles de liderazgo.',
+			icon: MingcuteGroup3Fill,
+			colors: { stroke: 'stroke-violet-400', text: 'text-violet-500' }
+		},
+		'motor-execution': {
+			label: 'Ejecución Práctica o Física',
+			description: 'Trabajo manual o corporal: laboratorios, maquetación, instrumental o actividad física.',
+			icon: MaterialSymbolsDirectionsRunRounded,
+			colors: { stroke: 'stroke-slate-400', text: 'text-slate-300' }
+		}
+	} as const;
 
 const TAXONOMY_KEYS = Object.keys(INPUTS);
 
