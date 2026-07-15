@@ -56,7 +56,7 @@
                 {
                     value: 'regular',
                     label: 'Regular',
-                    desc: 'Atraso ocasional',
+                    desc: 'Solo detalles',
                     tooltip:
                         'Gestión aceptable pero con ripios. Hay demoras esporádicas en la entrega de notas, desajustes menores entre profesores o cambios de fecha avisados con poco tiempo',
                     iconOn: MingcuteCalendarTimeAddFill,
