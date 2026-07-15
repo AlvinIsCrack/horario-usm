@@ -372,8 +372,8 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 			items={[
 				{
 					value: 'none',
-					label: 'Nula',
-					desc: 'Individual',
+					label: 'Individual',
+					desc: 'Eval. puramente personales',
 					tooltip:
 						'El ramo se aprueba mediante el esfuerzo puramente personal; no hay trabajos en equipo.',
 					iconOn: MingcuteForbidCircleFill,
@@ -381,8 +381,8 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 				},
 				{
 					value: 'group-support',
-					label: 'Baja',
-					desc: 'Apoyo grupal',
+					label: 'Apoyo',
+					desc: 'Eval. grupales menores',
 					tooltip:
 						'El trabajo es individual, pero incluye tareas o talleres breves en equipo que suman puntaje.',
 					iconOn: MingcuteUser3Fill,
@@ -390,8 +390,8 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 				},
 				{
 					value: 'hybrid',
-					label: 'Media',
-					desc: 'Híbrido',
+					label: 'Híbrido',
+					desc: 'Proyecto o lab. pesado',
 					tooltip:
 						'La teoría se evalúa de forma individual, pero hay un proyecto o laboratorio grupal obligatorio y pesado.',
 					iconOn: MingcuteGroup2Fill,
@@ -399,8 +399,8 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 				},
 				{
 					value: 'colective',
-					label: 'Alta',
-					desc: 'Colectivo',
+					label: 'Grupal',
+					desc: 'Trabajo en equipo crítico',
 					tooltip:
 						'La mayor parte del ramo y la nota final dependen críticamente del desempeño y coordinación del grupo.',
 					iconOn: MingcuteGroup3Fill,
