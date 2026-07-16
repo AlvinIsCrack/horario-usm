@@ -1,103 +1,5 @@
-<script lang="ts">
-	import type { FormStateManager } from '$lib/components/ui/form';
-	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
-	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
-	import MaterialSymbolsTimer3 from '$lib/icons/MaterialSymbolsTimer3.svelte';
-	import MingcuteArrowUpCircleFill from '$lib/icons/MingcuteArrowUpCircleFill.svelte';
-	import MingcuteArrowUpCircleLine from '$lib/icons/MingcuteArrowUpCircleLine.svelte';
-	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
-	import MingcuteCalendarMonthLine from '$lib/icons/MingcuteCalendarMonthLine.svelte';
-	import MingcuteCheckCircleFill from '$lib/icons/MingcuteCheckCircleFill.svelte';
-	import MingcuteCheckCircleLine from '$lib/icons/MingcuteCheckCircleLine.svelte';
-	import MingcuteCloseCircleFill from '$lib/icons/MingcuteCloseCircleFill.svelte';
-	import MingcuteCloseCircleLine from '$lib/icons/MingcuteCloseCircleLine.svelte';
-	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
-	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
-	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
-	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
-	import MingcuteHeartCrackFill from '$lib/icons/MingcuteHeartCrackFill.svelte';
-	import MingcuteHeartCrackLine from '$lib/icons/MingcuteHeartCrackLine.svelte';
-	import MingcuteHeartFill from '$lib/icons/MingcuteHeartFill.svelte';
-	import MingcuteHeartLine from '$lib/icons/MingcuteHeartLine.svelte';
-	import MingcuteMinusCircleFill from '$lib/icons/MingcuteMinusCircleFill.svelte';
-	import MingcuteMinusCircleLine from '$lib/icons/MingcuteMinusCircleLine.svelte';
-	import MingcuteThumbDown2Fill from '$lib/icons/MingcuteThumbDown2Fill.svelte';
-	import MingcuteThumbDown2Line from '$lib/icons/MingcuteThumbDown2Line.svelte';
-	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
-	import MingcuteThumbUp2Line from '$lib/icons/MingcuteThumbUp2Line.svelte';
-	import MingcuteUser2Fill from '$lib/icons/MingcuteUser2Fill.svelte';
-	import { Form } from '$lib/components/ui/form';
-	import { isFieldAnswered } from '$lib/components/ui/form/helpers';
-	import FieldHeader from '../forms/FieldHeader.svelte';
-	import IconToggleField, { type IconToggleItem } from '../forms/IconToggleField.svelte';
-	import MingcuteDeleteFill from '$lib/icons/MingcuteDeleteFill.svelte';
-	import MingcuteDeleteLine from '$lib/icons/MingcuteDeleteLine.svelte';
-	import MingcuteSnowFill from '$lib/icons/MingcuteSnowFill.svelte';
-	import MingcuteSnowLine from '$lib/icons/MingcuteSnowLine.svelte';
-	import MingcuteHeartbeat2Fill from '$lib/icons/MingcuteHeartbeat2Fill.svelte';
-	import MingcuteHeartbeat2Line from '$lib/icons/MingcuteHeartbeat2Line.svelte';
-	import MingcuteShieldShapeFill from '$lib/icons/MingcuteShieldShapeFill.svelte';
-	import MingcuteShieldShapeLine from '$lib/icons/MingcuteShieldShapeLine.svelte';
-	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
-	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-
-	interface Props {
-		form: FormStateManager<any>;
-		styles: any;
-	}
-
-	let { form, styles }: Props = $props();
-
-	const isTemporalContextSelected = $derived(isFieldAnswered(form, 'temporal-context'));
-	const previousAttempts = $derived(form.values['previous-attempts']);
-	const isAttemptsSelected = $derived(isFieldAnswered(form, 'previous-attempts'));
-
-	const isDroppedBeforeRequired = $derived(isAttemptsSelected && previousAttempts !== '1');
-	const isDroppedBeforeSelected = $derived(isFieldAnswered(form, 'dropped-before'));
-	const canShowFinalStatus = $derived(
-		isAttemptsSelected && (!isDroppedBeforeRequired || isDroppedBeforeSelected)
-	);
-
-	const finalStatus = $derived(form.values['final-status']);
-	const isFinalStatusSelected = $derived(isFieldAnswered(form, 'final-status'));
-	const isFailureReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'fail');
-	const isFailureReasonSelected = $derived(isFieldAnswered(form, 'failure-reason'));
-
-	const isPendingReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'pending');
-	const isPendingReasonSelected = $derived(isFieldAnswered(form, 'pending-reason'));
-
-	const isBranchingPathResolved = $derived(
-		finalStatus === 'pass' ||
-			(isFailureReasonRequired && isFailureReasonSelected) ||
-			(isPendingReasonRequired && isPendingReasonSelected)
-	);
+<script module>
 	
-	const canShowHasGlobal = $derived(isFinalStatusSelected && isBranchingPathResolved);
-	const hasGlobal = $derived(form.values['has-global']);
-	const isHasGlobalSelected = $derived(isFieldAnswered(form, 'has-global'));
-
-	const canShowUsedGlobal = $derived(canShowHasGlobal && isHasGlobalSelected && hasGlobal === 'yes');
-	const usedGlobal = $derived(form.values['used-global']);
-	const isUsedGlobalSelected = $derived(isFieldAnswered(form, 'used-global'));
-
-	const isGlobalReasonRequired = $derived(isUsedGlobalSelected && (usedGlobal === 'yes' || usedGlobal === 'no'));
-	const isGlobalReasonSelected = $derived(
-		isFieldAnswered(form, 'global-reason-yes') || isFieldAnswered(form, 'global-reason-no')
-	);
-
-	const canShowDropIntention = $derived(
-		isHasGlobalSelected && 
-		(hasGlobal !== 'yes' || (isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)))
-	);
-
-	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'drop');
-	const isDropIntentionSelected = $derived(isFieldAnswered(form, 'risk-perception'));
-	const canShowCourseGrade = $derived(
-		canShowDropIntention &&
-			(!isDropIntentionRequired || isDropIntentionSelected) &&
-			finalStatus !== 'drop'
-	);
 
 	/**
 	 * Evaluation matrix containing all predefined grade range thresholds.
@@ -168,11 +70,78 @@
 			iconOff: MingcuteDiamondSquareLine
 		}
 	};
+</script>
+
+<script lang="ts">
+	import type { FormStateManager } from '$lib/components/ui/form';
+	import MaterialSymbolsTimer1 from '$lib/icons/MaterialSymbolsTimer1.svelte';
+	import MaterialSymbolsTimer2 from '$lib/icons/MaterialSymbolsTimer2.svelte';
+	import MaterialSymbolsTimer3 from '$lib/icons/MaterialSymbolsTimer3.svelte';
+	import MingcuteArrowUpCircleFill from '$lib/icons/MingcuteArrowUpCircleFill.svelte';
+	import MingcuteArrowUpCircleLine from '$lib/icons/MingcuteArrowUpCircleLine.svelte';
+	import MingcuteCalendarMonthFill from '$lib/icons/MingcuteCalendarMonthFill.svelte';
+	import MingcuteCalendarMonthLine from '$lib/icons/MingcuteCalendarMonthLine.svelte';
+	import MingcuteCheckCircleFill from '$lib/icons/MingcuteCheckCircleFill.svelte';
+	import MingcuteCheckCircleLine from '$lib/icons/MingcuteCheckCircleLine.svelte';
+	import MingcuteCloseCircleFill from '$lib/icons/MingcuteCloseCircleFill.svelte';
+	import MingcuteCloseCircleLine from '$lib/icons/MingcuteCloseCircleLine.svelte';
+	import MingcuteDiamondSquareFill from '$lib/icons/MingcuteDiamondSquareFill.svelte';
+	import MingcuteDiamondSquareLine from '$lib/icons/MingcuteDiamondSquareLine.svelte';
+	import MingcuteForbidCircleFill from '$lib/icons/MingcuteForbidCircleFill.svelte';
+	import MingcuteForbidCircleLine from '$lib/icons/MingcuteForbidCircleLine.svelte';
+	import MingcuteHeartCrackFill from '$lib/icons/MingcuteHeartCrackFill.svelte';
+	import MingcuteHeartCrackLine from '$lib/icons/MingcuteHeartCrackLine.svelte';
+	import MingcuteHeartFill from '$lib/icons/MingcuteHeartFill.svelte';
+	import MingcuteHeartLine from '$lib/icons/MingcuteHeartLine.svelte';
+	import MingcuteMinusCircleFill from '$lib/icons/MingcuteMinusCircleFill.svelte';
+	import MingcuteMinusCircleLine from '$lib/icons/MingcuteMinusCircleLine.svelte';
+	import MingcuteThumbDown2Fill from '$lib/icons/MingcuteThumbDown2Fill.svelte';
+	import MingcuteThumbDown2Line from '$lib/icons/MingcuteThumbDown2Line.svelte';
+	import MingcuteThumbUp2Fill from '$lib/icons/MingcuteThumbUp2Fill.svelte';
+	import MingcuteThumbUp2Line from '$lib/icons/MingcuteThumbUp2Line.svelte';
+	import MingcuteUser2Fill from '$lib/icons/MingcuteUser2Fill.svelte';
+	import { Form } from '$lib/components/ui/form';
+	import { isFieldAnswered } from '$lib/components/ui/form/helpers';
+	import FieldHeader from '../forms/FieldHeader.svelte';
+	import IconToggleField, { type IconToggleItem } from '../forms/IconToggleField.svelte';
+	import MingcuteDeleteFill from '$lib/icons/MingcuteDeleteFill.svelte';
+	import MingcuteDeleteLine from '$lib/icons/MingcuteDeleteLine.svelte';
+	import MingcuteSnowFill from '$lib/icons/MingcuteSnowFill.svelte';
+	import MingcuteSnowLine from '$lib/icons/MingcuteSnowLine.svelte';
+	import MingcuteHeartbeat2Fill from '$lib/icons/MingcuteHeartbeat2Fill.svelte';
+	import MingcuteHeartbeat2Line from '$lib/icons/MingcuteHeartbeat2Line.svelte';
+	import MingcuteShieldShapeFill from '$lib/icons/MingcuteShieldShapeFill.svelte';
+	import MingcuteShieldShapeLine from '$lib/icons/MingcuteShieldShapeLine.svelte';
+	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
+	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+
+	interface Props {
+		form: FormStateManager<any>;
+		styles: any;
+	}
+
+	let { form, styles }: Props = $props();
+
+	const isTemporalContextSelected = $derived(isFieldAnswered(form, 'temporal-context'));
+	const previousAttempts = $derived(form.values['previous-attempts']);
+	const isAttemptsSelected = $derived(isFieldAnswered(form, 'previous-attempts'));
+
+	const isDroppedBeforeRequired = $derived(isAttemptsSelected && previousAttempts !== '1');
+	const isDroppedBeforeSelected = $derived(isFieldAnswered(form, 'dropped-before'));
+	const canShowFinalStatus = $derived(
+		isAttemptsSelected && (!isDroppedBeforeRequired || isDroppedBeforeSelected)
+	);
+
+	const finalStatus = $derived(form.values['final-status']);
+	const isFinalStatusSelected = $derived(isFieldAnswered(form, 'final-status'));
+	const isFailureReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'fail');
+	const isFailureReasonSelected = $derived(isFieldAnswered(form, 'failure-reason'));
 
 	/**
 	 * Dynamically evaluates and filters available grade buckets.
 	 */
-	const filteredGradeItems = $derived(() => {
+	const filteredGradeItems = $derived.by(() => {
 		const allOptions = Object.values(GRADE_OPTIONS);
 
 		if (finalStatus === 'pass') {
@@ -185,6 +154,41 @@
 
 		return [];
 	});
+
+	const isPendingReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'pending');
+	const isPendingReasonSelected = $derived(isFieldAnswered(form, 'pending-reason'));
+
+	const isBranchingPathResolved = $derived(
+		finalStatus === 'pass' ||
+			(isFailureReasonRequired && isFailureReasonSelected) ||
+			(isPendingReasonRequired && isPendingReasonSelected)
+	);
+	
+	const canShowHasGlobal = $derived(isFinalStatusSelected && isBranchingPathResolved);
+	const hasGlobal = $derived(form.values['has-global']);
+	const isHasGlobalSelected = $derived(isFieldAnswered(form, 'has-global'));
+
+	const canShowUsedGlobal = $derived(canShowHasGlobal && isHasGlobalSelected && hasGlobal === 'yes');
+	const usedGlobal = $derived(form.values['used-global']);
+	const isUsedGlobalSelected = $derived(isFieldAnswered(form, 'used-global'));
+
+	const isGlobalReasonRequired = $derived(isUsedGlobalSelected && (usedGlobal === 'yes' || usedGlobal === 'no'));
+	const isGlobalReasonSelected = $derived(
+		isFieldAnswered(form, 'global-reason-yes') || isFieldAnswered(form, 'global-reason-no')
+	);
+
+	const canShowDropIntention = $derived(
+		isHasGlobalSelected && 
+		(hasGlobal !== 'yes' || (isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)))
+	);
+
+	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'drop');
+	const isDropIntentionSelected = $derived(isFieldAnswered(form, 'risk-perception'));
+	const canShowCourseGrade = $derived(
+		filteredGradeItems?.length &&
+		canShowDropIntention &&
+			(!isDropIntentionRequired || isDropIntentionSelected) &&
+			finalStatus !== 'drop');
 </script>
 
 <Form.Field name="temporal-context" class={styles.container()}>
@@ -606,7 +610,7 @@
 			htmlFor="final-grade"
 			optional
 		/>
-		<IconToggleField nullable required={false} items={filteredGradeItems()} />
+		<IconToggleField nullable required={false} items={filteredGradeItems} />
 		<Form.Message />
 	</Form.Field>
 {/if}
