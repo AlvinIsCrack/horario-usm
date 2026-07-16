@@ -249,35 +249,35 @@
 	<Form.Field name="predictability" class={styles.container()}>
 		<FieldHeader
 			title="Reglas de Evaluación"
-			description="Al rendir una prueba o entregar un trabajo, ¿sabías con exactitud qué te iban a evaluar y cómo se calcularía tu nota?"
+			description="¿Qué tan claras, constantes y respetadas eran las reglas de corrección al momento de evaluar tus pruebas o trabajos?"
 			htmlFor="predictability"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'transparent',
-					label: 'Predecible',
-					desc: 'Fijo',
+					label: 'Justo',
+					desc: 'Sin sorpresas',
 					tooltip:
-						'Desde antes de dar la evaluación sabes exactamente qué puntaje tiene cada ítem y qué espera el corrector. La nota final calza perfecto con tu desempeño',
+						'Todo se sabe de antes. Conoces el puntaje exacto de cada ítem, qué espera el corrector y la nota calza con tu desempeño',
 					iconOn: MingcuteEye2Fill,
 					iconOff: MingcuteEye2Line
 				},
 				{
 					value: 'flexible-rules',
-					label: 'Flexible',
-					desc: 'Adaptable',
+					label: 'Inconsistente',
+					desc: 'Depende del caso',
 					tooltip:
-						'Las pautas básicas existen, pero los criterios específicos o el puntaje se modifican durante el semestre (por ejemplo, después de que a todo el curso le fue mal en una pregunta)',
+						'Existen pautas básicas, pero los criterios específicos se ajustan o improvisan sobre la marcha (por ejemplo, según cómo le vaya al curso)',
 					iconOn: MingcuteEyeglassFill,
 					iconOff: MingcuteEyeglassLine
 				},
 				{
 					value: 'unpredictable',
-					label: 'Impredecible',
-					desc: 'Improvisado',
+					label: 'Injusto',
+					desc: 'Una lotería',
 					tooltip:
-						'Imposible saber qué van a priorizar al corregir. La nota depende del criterio del momento y los reclamos se resuelven bajo reglas que no estaban escritas en ninguna parte',
+						'Imposible saber qué van a priorizar al corregir. La nota depende del humor del corrector y los reclamos no tienen reglas escritas',
 					iconOn: MingcuteEyeCloseFill,
 					iconOff: MingcuteEyeCloseLine
 				}
