@@ -185,29 +185,29 @@
 <Form.Field name="temporal-context" class={styles.container()}>
 	<FieldHeader
 		title="Recuerdo del Ramo"
-		description="¿Hace cuántos semestres terminaste de cursar este ramo?"
+		description="¿Hace cuántos semestres/periodos terminaste de cursar este ramo?"
 		htmlFor="temporal-context"
 	/>
 	<IconToggleField
 		items={[
 			{
 				value: '0',
-				label: '1 semestre',
-				desc: 'Reciente',
+				label: '1 periodo',
+				desc: 'Recién',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
 			},
 			{
 				value: '1',
-				label: '2 semestres',
-				desc: 'Fresco',
+				label: '2 periodos',
+				desc: 'Hace poco',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
 			},
 			{
 				value: '2',
-				label: '3-4 semestres',
-				desc: 'Pasado',
+				label: '3 a 4 per.',
+				desc: 'Hace rato',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
 			},
