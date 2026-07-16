@@ -257,7 +257,7 @@
 				{
 					value: 'transparent',
 					label: 'Predecible',
-					desc: 'Reglas\nfijas',
+					desc: 'Fijo',
 					tooltip:
 						'Desde antes de dar la evaluación sabes exactamente qué puntaje tiene cada ítem y qué espera el corrector. La nota final calza perfecto con tu desempeño',
 					iconOn: MingcuteEye2Fill,
@@ -266,7 +266,7 @@
 				{
 					value: 'flexible-rules',
 					label: 'Flexible',
-					desc: 'Reglas\nadaptables',
+					desc: 'Adaptable',
 					tooltip:
 						'Las pautas básicas existen, pero los criterios específicos o el puntaje se modifican durante el semestre (por ejemplo, después de que a todo el curso le fue mal en una pregunta)',
 					iconOn: MingcuteEyeglassFill,
@@ -275,7 +275,7 @@
 				{
 					value: 'unpredictable',
 					label: 'Impredecible',
-					desc: 'Reglas\nimprovisadas',
+					desc: 'Improvisado',
 					tooltip:
 						'Imposible saber qué van a priorizar al corregir. La nota depende del criterio del momento y los reclamos se resuelven bajo reglas que no estaban escritas en ninguna parte',
 					iconOn: MingcuteEyeCloseFill,
