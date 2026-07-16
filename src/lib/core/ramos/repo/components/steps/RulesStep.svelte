@@ -153,31 +153,40 @@
 		<IconToggleField
 			items={[
 				{
-					value: 'flexible-optional',
-					label: 'Opcional',
-					desc: 'Asistencia libre',
+					value: 'flexible',
+					label: 'Libre',
+					desc: 'Sin control',
 					tooltip:
-						'Las clases quedan grabadas o no se controla el ingreso. Puedes pasar el ramo estudiando 100% por tu cuenta',
+						'Las clases no tienen control de asistencia ni evaluaciones sorpresa. Puedes pasar el ramo estudiando por tu cuenta.',
 					iconOn: MingcuteUserQuestionFill,
 					iconOff: MingcuteUserQuestionLine
 				},
 				{
 					value: 'regulated',
-					label: 'Reglamento',
-					desc: 'Porcentaje min.',
+					label: 'Por Norma',
+					desc: 'Porcentaje mín.',
 					tooltip:
-						'Se exige asistencia para tener derecho a rendir evaluaciones o aprobar. Se pasa lista estrictamente',
+						'Se pasa lista estrictamente. Se exige un porcentaje de asistencia por reglamento para tener derecho a aprobar.',
 					iconOn: MingcuteUserFollow2Fill,
 					iconOff: MingcuteUserFollow2Line
 				},
 				{
-					value: 'strict-necessary',
-					label: 'Necesaria',
-					desc: 'Obligatoria/clave',
+					value: 'critical',
+					label: 'Crítica',
+					desc: 'Eval. en clases',
 					tooltip:
-						'Inasistencia crítica. Cada clase incluye talleres evaluados, laboratorios presenciales o discusión activa que no se pueden recuperar',
+						'Inasistencia penalizada en notas. Cada clase incluye talleres evaluados, controles o discusión activa que no se pueden recuperar.',
 					iconOn: MingcuteUserLockFill,
 					iconOff: MingcuteUserLockLine
+				},
+				{
+					value: 'not-applicable',
+					label: 'No Aplica',
+					desc: 'Casos especiales',
+					tooltip:
+						'Ramos 100% online asíncronos, trabajos de título, prácticas u otros formatos donde el concepto de asistencia a clases no aplica.',
+					iconOn: MingcuteForbidCircleFill,
+					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>
