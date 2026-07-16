@@ -327,44 +327,36 @@
 		<IconToggleField
 			items={[
 				{
-					value: '0-19',
-					label: '0-19%',
-					desc: 'Muy difícil',
+					value: 'extreme',
+					label: 'Imposible',
+					desc: 'Reto máximo',
 					tooltip: 'Excepcionalmente difícil; la gran mayoría reprueba y aprobar es un logro',
 					iconOn: MingcuteSkullFill,
 					iconOff: MingcuteSkullLine
 				},
 				{
-					value: '20-39',
-					label: '20-39%',
-					desc: 'Difícil',
+					value: 'hard',
+					label: 'Difícil',
+					desc: 'Exigente',
 					tooltip: 'Alta probabilidad de reprobación; exige dedicarle mucho tiempo para salvarse',
 					iconOn: MingcuteThumbDown2Fill,
 					iconOff: MingcuteThumbDown2Line
 				},
 				{
-					value: '40-59',
-					label: '40-59%',
-					desc: 'Moderado',
+					value: 'passable',
+					label: 'Moderado',
+					desc: 'Regular',
 					tooltip: 'Requiere esfuerzo constante y estudio regular para aprobar sin sorpresas',
 					iconOn: MingcuteMinusCircleFill,
 					iconOff: MingcuteMinusCircleLine
 				},
 				{
-					value: '60-79',
-					label: '60-79%',
-					desc: 'Fácil',
-					tooltip: 'Con asistencia a clases y estudio básico es suficiente para aprobar bien',
+					value: 'easy',
+					label: 'Fácil',
+					desc: 'Estudio básico',
+					tooltip: 'Con estudio básico es suficiente para aprobar bien',
 					iconOn: MingcuteThumbUp2Fill,
 					iconOff: MingcuteThumbUp2Line
-				},
-				{
-					value: '80-100',
-					label: '80-100%',
-					desc: 'Muy fácil',
-					tooltip: 'Se pasa casi sin estudiar; la reprobación es casi nula',
-					iconOn: MingcuteAngelFill,
-					iconOff: MingcuteAngelLine
 				}
 			]}
 		/>
