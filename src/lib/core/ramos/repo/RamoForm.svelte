@@ -7,8 +7,13 @@
 			title: 'label text-lg',
 			label: 'label text-base font-medium text-card-foreground',
 			description: 'text-sm text-muted-foreground max-w-xl mb-2',
-			container:
-				'not-last:mb-4 flex flex-row items-start *:flex-1 *:first:shrink *:not-first:justify-end md:*:first:max-w-1/2 gap-x-16 py-1 px-4 bg-linear-to-r from-transparent to-transparent odd:to-accent rounded-md transition-all duration-400 flex-wrap starting:h-0 starting:max-h-0 starting:opacity-0 opacity-100 max-h-auto overflow-hidden'
+			container: [
+				'flex flex-row items-start *:flex-1 *:first:shrink *:not-first:justify-end md:*:first:max-w-1/2 flex-wrap max-h-auto overflow-hidden',
+				'not-last:mb-4 gap-x-16 py-1 px-4 rounded-md',
+				'bg-linear-to-r from-card bg-accent/60 odd:bg-accent',
+				'transition-all duration-400 opacity-100 starting:h-0 starting:max-h-0 starting:opacity-0',
+				'has-data-[state=on]:bg-primary/40 has-data-[state=on]:odd:bg-primary/60 has-[textarea:not(:placeholder-shown)]:bg-primary/60 has-[textarea:not(:placeholder-shown)]:odd:bg-primary/60'
+			]
 		}
 	});
 
