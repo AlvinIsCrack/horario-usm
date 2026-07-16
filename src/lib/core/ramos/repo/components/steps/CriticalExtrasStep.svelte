@@ -81,35 +81,35 @@
 	<Form.Field name="content-continuity" class={styles.container()}>
 		<FieldHeader
 			title="Continuidad del Contenido"
-			description="Si te pierdes al principio, ¿puedes recuperarte más adelante o cada clase depende estrictamente de la anterior?"
+			description="¿Qué tan de conectados son los contenidos del ramo, por si pierdes el hilo y quieres recuperar?"
 			htmlFor="content-continuity"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'independent',
-					label: 'Aislado',
-					desc: 'Remontada fácil',
+					label: 'Independientes',
+					desc: 'Temas aislados',
 					tooltip:
-						'Los temas cambian por unidad. Si te va mal en el primer certamen, puedes partir de cero y entender perfecto el segundo',
+						'Si te va mal en un certamen, puedes partir de cero y recuperarte perfectamente para el siguiente',
 					iconOn: MingcuteThreeCirclesFill,
 					iconOff: MingcuteThreeCirclesLine
 				},
 				{
 					value: 'cumulative',
-					label: 'Conectado',
-					desc: 'Pide constancia',
+					label: 'Acumulativos',
+					desc: 'Temas en apoyo',
 					tooltip:
-						'Las materias se apoyan entre sí. Si te pierdes una clase te va a costar reenganchar, pero es totalmente recuperable con estudio',
+						'Perder una clase dificulta avanzar, pero es totalmente recuperable estudiando por tu cuenta',
 					iconOn: MingcuteWebhookFill,
 					iconOff: MingcuteWebhookLine
 				},
 				{
 					value: 'strict-secuencial',
-					label: 'Encadenado',
-					desc: 'Cero retraso',
+					label: 'Dependientes',
+					desc: 'Efecto dominó',
 					tooltip:
-						'Secuencia estricta de contenido clase a clase. Si no dominas la base de las primeras semanas, es imposible entender lo que sigue',
+						'No entender la base hace matemáticamente y conceptualmente imposible digerir lo que sigue',
 					iconOn: MingcuteVersionFill,
 					iconOff: MingcuteVersionLine
 				}
