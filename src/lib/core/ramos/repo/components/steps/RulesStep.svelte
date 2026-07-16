@@ -58,7 +58,7 @@
 	<Form.Field name="real-work-hours" class={styles.container()}>
 		<FieldHeader
 			title="Horas Dedicadas al Ramo"
-			description="En una semana típica del ramo ¿cuántas horas a la semana le dedicaste fuera de clases (estudiar, tareas, proyectos)?"
+			description="En una semana típica del ramo ¿cuántas horas a la semana le dedicaste personalmente fuera de clases (estudiar, tareas, proyectos)?"
 			htmlFor="real-work-hours"
 		/>
 		<IconToggleField
@@ -66,32 +66,32 @@
 				{
 					value: 'light',
 					label: '0-3 hrs',
-					desc: 'Ligero',
-					tooltip: 'Repasos cortos',
+					desc: 'Repasos cortos',
+					tooltip: 'Lo llevé al día sin mucho esfuerzo extra',
 					iconOn: MingcuteBattery4Fill,
 					iconOff: MingcuteBattery4Line
 				},
 				{
 					value: 'moderate',
 					label: '4-7 hrs',
-					desc: 'Estándar',
-					tooltip: 'Un par de tardes',
+					desc: 'Par de tardes',
+					tooltip: 'Le dediqué el tiempo justo y necesario',
 					iconOn: MingcuteBattery3Fill,
 					iconOff: MingcuteBattery3Line
 				},
 				{
 					value: 'demanding',
 					label: '8-12 hrs',
-					desc: 'Exigente',
-					tooltip: 'Casi todas las tardes',
+					desc: 'Varias tardes',
+					tooltip: 'Tuve que hacer varios sacrificios',
 					iconOn: MingcuteBattery2Fill,
 					iconOff: MingcuteBattery2Line
 				},
 				{
 					value: 'intense',
 					label: '13+ hrs',
-					desc: 'Saturado',
-					tooltip: 'Prioridad absoluta',
+					desc: 'Día y noche',
+					tooltip: 'Fue el ramo que se llevó todo mi semestre',
 					iconOn: MingcuteBattery1Fill,
 					iconOff: MingcuteBattery1Line
 				}
