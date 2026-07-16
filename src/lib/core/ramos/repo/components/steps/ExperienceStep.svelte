@@ -285,14 +285,14 @@
 			items={[
 				{
 					value: 'pass',
-					label: 'Sí',
+					label: 'Sí aprobé',
 					desc: 'Pasé',
 					iconOn: MingcuteCheckCircleFill,
 					iconOff: MingcuteCheckCircleLine
 				},
 				{
 					value: 'fail',
-					label: 'No',
+					label: 'No aprobé',
 					desc: 'Repetí',
 					iconOn: MingcuteCloseCircleFill,
 					iconOff: MingcuteCloseCircleLine
