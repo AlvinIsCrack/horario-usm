@@ -47,7 +47,7 @@
                 {
                     value: 'efficient',
                     label: 'Eficiente',
-                    desc: 'Todo al día',
+                    desc: 'Cero atraso',
                     tooltip:
                         'Excelente gestión. Las fechas de evaluación se respetan estrictamente, las notas se entregan en los plazos acordados y el equipo docente está bien comunicado',
                     iconOn: MingcuteCalendarMonthFill,
@@ -56,7 +56,7 @@
                 {
                     value: 'regular',
                     label: 'Regular',
-                    desc: 'Solo detalles',
+                    desc: 'Con detalles',
                     tooltip:
                         'Gestión aceptable pero con ripios. Hay demoras esporádicas en la entrega de notas, desajustes menores entre profesores o cambios de fecha avisados con poco tiempo',
                     iconOn: MingcuteCalendarTimeAddFill,
