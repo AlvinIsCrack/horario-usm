@@ -137,9 +137,6 @@
 
 	const finalStatus = $derived(form.values['final-status']);
 	const isFinalStatusSelected = $derived(isFieldAnswered(form, 'final-status'));
-	
-	const isFailureReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'fail');
-	const isFailureReasonSelected = $derived(isFieldAnswered(form, 'failure-reason'));
 
 	/**
 	 * Dynamically evaluates and filters available grade buckets based on final course outcome.
@@ -151,28 +148,23 @@
 			return allOptions.filter((option) => option.at >= 55).sort((a, b) => a.at - b.at);
 		}
 
-		// Included additional fail conditions based on schema intent
-		if (finalStatus === 'fail' || finalStatus === 'fail-grade' || finalStatus === 'fail-inassistance') {
+		if (finalStatus === 'fail-grade' || finalStatus === 'fail-attendance') {
 			return allOptions.filter((option) => option.at < 55).sort((a, b) => a.at - b.at);
 		}
 
 		return [];
 	});
 
-	const isPendingReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'pending');
-	const isPendingReasonSelected = $derived(isFieldAnswered(form, 'pending-reason'));
+	// Dropping or freezing states resolve directly without additional branching
+	const isBranchingPathResolved = $derived(isFinalStatusSelected);
 
-	const isBranchingPathResolved = $derived(
-		finalStatus === 'pass' ||
-			(isFailureReasonRequired && isFailureReasonSelected) ||
-			(isPendingReasonRequired && isPendingReasonSelected)
-	);
-
-	// Re-routed drop intention directly to the resolved branching path, skipping global exam logic
+	// Direct progression to subsequent questions once the main status is selected
 	const canShowDropIntention = $derived(isFinalStatusSelected && isBranchingPathResolved);
 
-	// A risk perception is not required if the course was left pending/dropped. 
-	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'pending');
+	// Risk perception is omitted for non-completion/dropped academic scenarios
+	const isDropIntentionRequired = $derived(
+		isFinalStatusSelected && finalStatus !== 'dropped' && finalStatus !== 'frozen-other'
+	);
 	const isDropIntentionSelected = $derived(isFieldAnswered(form, 'risk-perception'));
 	
 	const canShowCourseGrade = $derived(
@@ -285,103 +277,38 @@
 	<Form.Field name="final-status" class={styles.container()}>
 		<FieldHeader
 			title="Situación Final"
-			description="¿Cuál fue tu último resultado en el ramo?"
+			description="¿Aprobaste el ramo, después de todo?"
 			htmlFor="final-status"
 		/>
 		<IconToggleField
 			items={[
 				{
 					value: 'pass',
-					label: 'Aprobado',
+					label: 'Sí',
 					desc: 'Pasé',
 					iconOn: MingcuteCheckCircleFill,
 					iconOff: MingcuteCheckCircleLine
 				},
 				{
 					value: 'fail',
-					label: 'Reprobado',
+					label: 'No',
 					desc: 'Repetí',
 					iconOn: MingcuteCloseCircleFill,
 					iconOff: MingcuteCloseCircleLine
 				},
 				{
-					value: 'pending',
-					label: 'Pendiente',
-					desc: 'No terminé',
-					iconOn: MingcuteMinusCircleFill,
-					iconOff: MingcuteMinusCircleLine
-				}
-			]}
-		/>
-		<Form.Message />
-	</Form.Field>
-{/if}
-
-{#if isFailureReasonRequired}
-	<Form.Field name="failure-reason" class={styles.container()}>
-		<FieldHeader
-			title="Motivo de Reprobación"
-			description="¿Por qué reprobaste la asignatura?"
-			htmlFor="failure-reason"
-		/>
-		<IconToggleField
-			items={[
-				{
-					value: 'grade',
-					label: 'Por Nota',
-					desc: 'No me dió',
-					iconOn: MingcuteCloseCircleFill,
-					iconOff: MingcuteCloseCircleLine
-				},
-				{
-					value: 'attendance',
-					label: 'Por Asistencia',
-					desc: 'Exigía',
-					iconOn: MingcuteUser2Fill,
-					iconOff: MingcuteUser2Fill
-				},
-				{
-					value: 'other',
-					label: 'Otro',
-					desc: 'Es complicado',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
-				}
-			]}
-		/>
-		<Form.Message />
-	</Form.Field>
-{/if}
-
-{#if isPendingReasonRequired}
-	<Form.Field name="pending-reason" class={styles.container()}>
-		<FieldHeader
-			title="Estado de Incompletitud"
-			description="¿Por qué el ramo quedó pendiente o sin terminar?"
-			htmlFor="pending-reason"
-		/>
-		<IconToggleField
-			items={[
-				{
-					value: 'drop',
-					label: 'Lo Boté',
-					desc: 'Desinscrito/RAV',
+					value: 'dropped',
+					label: 'Retirado',
+					desc: 'RAV/anulado',
 					iconOn: MingcuteDeleteFill,
 					iconOff: MingcuteDeleteLine
 				},
 				{
-					value: 'freeze',
-					label: 'Congelé',
-					desc: 'Algo externo',
+					value: 'frozen-other',
+					label: 'Otro',
+					desc: 'Fuerza mayor',
 					iconOn: MingcuteSnowFill,
 					iconOff: MingcuteSnowLine
-				},
-				{
-					value: 'other',
-					label: 'Otro',
-					desc: 'Es complicado',
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
 				}
 			]}
 		/>
