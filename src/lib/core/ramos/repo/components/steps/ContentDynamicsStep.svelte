@@ -15,13 +15,9 @@
 	import MingcuteUser3Fill from '$lib/icons/MingcuteUser3Fill.svelte';
 	import MingcuteUser3Line from '$lib/icons/MingcuteUser3Line.svelte';
 	import { Form } from '$lib/components/ui/form';
-	import { isFieldAnswered, areFieldsAnswered } from '$lib/components/ui/form/helpers';
+	import { isFieldAnswered } from '$lib/components/ui/form/helpers';
 	import FieldHeader from '../forms/FieldHeader.svelte';
 	import IconToggleField from '../forms/IconToggleField.svelte';
-	import StraightCurve from '../icons/ConstantCurve.svelte';
-	import ExpoCurve from '../icons/ExpoCurve.svelte';
-	import LinearCurve from '../icons/LinearCurve.svelte';
-	import WallCurve from '../icons/WallCurve.svelte';
 	import MingcuteThoughtFill from '$lib/icons/MingcuteThoughtFill.svelte';
 	import MingcuteThoughtLine from '$lib/icons/MingcuteThoughtLine.svelte';
 	import MaterialSymbolsChatBubble from '$lib/icons/MaterialSymbolsChatBubble.svelte';
@@ -32,7 +28,6 @@
 	import MingcutePaletteFill from '$lib/icons/MingcutePaletteFill.svelte';
 	import MingcuteToolFill from '$lib/icons/MingcuteToolFill.svelte';
 	import MaterialSymbolsDirectionsRunRounded from '$lib/icons/MaterialSymbolsDirectionsRunRounded.svelte';
-	import MaterialSymbolsAbcRounded from '$lib/icons/MaterialSymbolsAbcRounded.svelte';
 	import MingcuteBrainFill from '$lib/icons/MingcuteBrainFill.svelte';
 	import TablerAbc from '$lib/icons/TablerAbc.svelte';
 	import { fade } from 'svelte/transition';
