@@ -115,6 +115,10 @@
 	import MingcuteQuestionFill from '$lib/icons/MingcuteQuestionFill.svelte';
 	import MingcuteQuestionLine from '$lib/icons/MingcuteQuestionLine.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
+	import MingcuteSkullFill from '$lib/icons/MingcuteSkullFill.svelte';
+	import MingcuteSkullLine from '$lib/icons/MingcuteSkullLine.svelte';
+	import MingcuteAngelFill from '$lib/icons/MingcuteAngelFill.svelte';
+	import MingcuteAngelLine from '$lib/icons/MingcuteAngelLine.svelte';
 
 	interface Props {
 		form: FormStateManager<any>;
@@ -138,6 +142,9 @@
 	const finalStatus = $derived(form.values['final-status']);
 	const isFinalStatusSelected = $derived(isFieldAnswered(form, 'final-status'));
 
+	const isSurvivabilityRequired = $derived(isFinalStatusSelected);
+	const isSurvivabilitySelected = $derived(isFieldAnswered(form, 'survivability-perception'));
+
 	/**
 	 * Dynamically evaluates and filters available grade buckets based on final course outcome.
 	 */
@@ -159,7 +166,11 @@
 	const isBranchingPathResolved = $derived(isFinalStatusSelected);
 
 	// Direct progression to subsequent questions once the main status is selected
-	const canShowDropIntention = $derived(isFinalStatusSelected && isBranchingPathResolved);
+	const canShowDropIntention = $derived(
+		isFinalStatusSelected && 
+		isBranchingPathResolved && 
+		isSurvivabilitySelected
+	);
 
 	// Risk perception is omitted for non-completion/dropped academic scenarios
 	const isDropIntentionRequired = $derived(
@@ -316,11 +327,66 @@
 	</Form.Field>
 {/if}
 
+{#if isFinalStatusSelected}
+	<Form.Field name="survivability-perception" class={styles.container()}>
+		<FieldHeader
+			title="Sobrevivencia del Ramo"
+			description="¿Qué tan probable de pasar es este ramo para un estudiante promedio?"
+			htmlFor="survivability-perception"
+		/>
+		<IconToggleField
+			items={[
+				{
+					value: '0-19',
+					label: '0-19%',
+					desc: 'Muy difícil',
+					tooltip: 'Excepcionalmente difícil; la gran mayoría reprueba y aprobar es un logro',
+					iconOn: MingcuteSkullFill,
+					iconOff: MingcuteSkullLine
+				},
+				{
+					value: '20-39',
+					label: '20-39%',
+					desc: 'Difícil',
+					tooltip: 'Alta probabilidad de reprobación; exige dedicarle mucho tiempo para salvarse',
+					iconOn: MingcuteThumbDown2Fill,
+					iconOff: MingcuteThumbDown2Line
+				},
+				{
+					value: '40-59',
+					label: '40-59%',
+					desc: 'Moderado',
+					tooltip: 'Requiere esfuerzo constante y estudio regular para aprobar sin sorpresas',
+					iconOn: MingcuteMinusCircleFill,
+					iconOff: MingcuteMinusCircleLine
+				},
+				{
+					value: '60-79',
+					label: '60-79%',
+					desc: 'Fácil',
+					tooltip: 'Con asistencia a clases y estudio básico es suficiente para aprobar bien',
+					iconOn: MingcuteThumbUp2Fill,
+					iconOff: MingcuteThumbUp2Line
+				},
+				{
+					value: '80-100',
+					label: '80-100%',
+					desc: 'Muy fácil',
+					tooltip: 'Se pasa casi sin estudiar; la reprobación es casi nula',
+					iconOn: MingcuteAngelFill,
+					iconOff: MingcuteAngelLine
+				}
+			]}
+		/>
+		<Form.Message />
+	</Form.Field>
+{/if}
+
 {#if canShowDropIntention && isDropIntentionRequired}
 	<Form.Field name="risk-perception" class={styles.container()}>
 		<FieldHeader
 			title="Percepción de Riesgo"
-			description="¿Qué tan cerca te sentiste de reprobar este ramo a lo largo del semestre?"
+			description="A lo largo de tu experiencia personal, ¿qué tan cerca te sentiste tú de reprobar este ramo?"
 			htmlFor="risk-perception"
 		/>
 		<IconToggleField
