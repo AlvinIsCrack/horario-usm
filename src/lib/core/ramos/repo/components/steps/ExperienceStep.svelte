@@ -155,7 +155,7 @@
 			return allOptions.filter((option) => option.at >= 55).sort((a, b) => a.at - b.at);
 		}
 
-		if (finalStatus === 'fail-grade' || finalStatus === 'fail-attendance') {
+		if (finalStatus === 'fail') {
 			return allOptions.filter((option) => option.at < 55).sort((a, b) => a.at - b.at);
 		}
 
