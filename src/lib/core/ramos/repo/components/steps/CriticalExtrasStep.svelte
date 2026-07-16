@@ -120,53 +120,6 @@
 {/if}
 
 {#if form.values['content-continuity']}
-	<Form.Field name="relevance-utility" class={styles.container()}>
-		<FieldHeader
-			title="Relevancia y Utilidad"
-			description="¿Sientes que los contenidos aprendidos en este ramo son útiles o relevantes para tu formación profesional?"
-			htmlFor="relevance-utility"
-		/>
-		<IconToggleField
-			items={[
-				{
-					value: 'no-opinion',
-					label: "Sin opinión",
-					desc: "No sé",
-					tooltip: "Me falta avanzar más o no soy capaz de responder",
-					iconOn: MingcuteForbidCircleFill,
-					iconOff: MingcuteForbidCircleLine
-				},
-				{
-					value: 'low',
-					label: "Trámite",
-					desc: "Poco útil",
-					tooltip: 'Contenido obsoleto o desconectado del perfil de la carrera',
-					iconOn: MingcuteFolderDeleteFill,
-					iconOff: MingcuteFolderDeleteLine
-				},
-				{
-					value: 'medium',
-					label: "Formativo",
-					desc: "Suma buena base",
-					tooltip: "Aporta lógica, pensamiento crítico y bases teóricas útiles",
-					iconOn: TablerPuzzleFilled,
-					iconOff: TablerPuzzle
-				},
-				{
-					value: 'high',
-					label: "Esencial",
-					desc: "Uso real",
-					tooltip: "Herramientas clave y modernas que usaré directo en el trabajo",
-					iconOn: MingcuteBriefcaseFill,
-					iconOff: MingcuteBriefcaseLine
-				},
-			]}
-		/>
-		<Form.Message />
-	</Form.Field>
-{/if}
-
-{#if form.values['relevance-utility']}
 	<Form.Field name="course-calification" class={styles.container()}>
 		<FieldHeader
 			title="Calificación Personal"
