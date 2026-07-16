@@ -129,17 +129,20 @@
 
 	const isDroppedBeforeRequired = $derived(isAttemptsSelected && previousAttempts !== '1');
 	const isDroppedBeforeSelected = $derived(isFieldAnswered(form, 'dropped-before'));
+	
+	// Determine if the user has reached the final status question
 	const canShowFinalStatus = $derived(
 		isAttemptsSelected && (!isDroppedBeforeRequired || isDroppedBeforeSelected)
 	);
 
 	const finalStatus = $derived(form.values['final-status']);
 	const isFinalStatusSelected = $derived(isFieldAnswered(form, 'final-status'));
+	
 	const isFailureReasonRequired = $derived(isFinalStatusSelected && finalStatus === 'fail');
 	const isFailureReasonSelected = $derived(isFieldAnswered(form, 'failure-reason'));
 
 	/**
-	 * Dynamically evaluates and filters available grade buckets.
+	 * Dynamically evaluates and filters available grade buckets based on final course outcome.
 	 */
 	const filteredGradeItems = $derived.by(() => {
 		const allOptions = Object.values(GRADE_OPTIONS);
@@ -148,7 +151,8 @@
 			return allOptions.filter((option) => option.at >= 55).sort((a, b) => a.at - b.at);
 		}
 
-		if (finalStatus === 'fail-grade' || finalStatus === 'fail-inassistance') {
+		// Included additional fail conditions based on schema intent
+		if (finalStatus === 'fail' || finalStatus === 'fail-grade' || finalStatus === 'fail-inassistance') {
 			return allOptions.filter((option) => option.at < 55).sort((a, b) => a.at - b.at);
 		}
 
@@ -163,32 +167,19 @@
 			(isFailureReasonRequired && isFailureReasonSelected) ||
 			(isPendingReasonRequired && isPendingReasonSelected)
 	);
-	
-	const canShowHasGlobal = $derived(isFinalStatusSelected && isBranchingPathResolved);
-	const hasGlobal = $derived(form.values['has-global']);
-	const isHasGlobalSelected = $derived(isFieldAnswered(form, 'has-global'));
 
-	const canShowUsedGlobal = $derived(canShowHasGlobal && isHasGlobalSelected && hasGlobal === 'yes');
-	const usedGlobal = $derived(form.values['used-global']);
-	const isUsedGlobalSelected = $derived(isFieldAnswered(form, 'used-global'));
+	// Re-routed drop intention directly to the resolved branching path, skipping global exam logic
+	const canShowDropIntention = $derived(isFinalStatusSelected && isBranchingPathResolved);
 
-	const isGlobalReasonRequired = $derived(isUsedGlobalSelected && (usedGlobal === 'yes' || usedGlobal === 'no'));
-	const isGlobalReasonSelected = $derived(
-		isFieldAnswered(form, 'global-reason-yes') || isFieldAnswered(form, 'global-reason-no')
-	);
-
-	const canShowDropIntention = $derived(
-		isHasGlobalSelected && 
-		(hasGlobal !== 'yes' || (isUsedGlobalSelected && (!isGlobalReasonRequired || isGlobalReasonSelected)))
-	);
-
-	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'drop');
+	// A risk perception is not required if the course was left pending/dropped. 
+	const isDropIntentionRequired = $derived(isFinalStatusSelected && finalStatus !== 'pending');
 	const isDropIntentionSelected = $derived(isFieldAnswered(form, 'risk-perception'));
+	
 	const canShowCourseGrade = $derived(
-		filteredGradeItems?.length &&
+		(filteredGradeItems?.length ?? 0) > 0 &&
 		canShowDropIntention &&
-			(!isDropIntentionRequired || isDropIntentionSelected) &&
-			finalStatus !== 'drop');
+		(!isDropIntentionRequired || isDropIntentionSelected)
+	);
 </script>
 
 <Form.Field name="temporal-context" class={styles.container()}>
@@ -396,163 +387,6 @@
 		/>
 		<Form.Message />
 	</Form.Field>
-{/if}
-
-{#if canShowHasGlobal}
-	<Form.Field name="has-global" class={styles.container()}>
-		<FieldHeader
-			title="Existencia de Global"
-			description="¿Tiene este ramo una instancia de examen global final del semestre?"
-			htmlFor="has-global"
-		/>
-		<IconToggleField
-			items={[
-				{
-					value: 'yes',
-					label: 'Sí, existe',
-					desc: 'Sí planificado',
-					tooltip: 'El ramo contempla formalmente un certamen global',
-					iconOn: MingcuteCheckCircleFill,
-					iconOff: MingcuteCheckCircleLine
-				},
-				{
-					value: 'no',
-					label: 'No existe',
-					desc: 'Sin global',
-					tooltip: 'No existe esa instancia en el ramo bajo ninguna circunstancia',
-					iconOn: MingcuteCloseCircleFill,
-					iconOff: MingcuteCloseCircleLine
-				},
-				{
-					value: 'unknown',
-					label: 'No sé',
-					desc: 'No recuerdo',
-					tooltip: 'No estoy seguro o no recuerdo si el programa de estudios contemplaba esta evaluación',
-					iconOn: MingcuteQuestionFill,
-					iconOff: MingcuteQuestionLine
-				}
-			]}
-		/>
-		<Form.Message />
-	</Form.Field>
-{/if}
-
-{#if canShowUsedGlobal}
-	<Form.Field name="used-global" class={styles.container()}>
-		<FieldHeader
-			title="Evaluación Global"
-			description="¿Rendiste el examen global?"
-			htmlFor="used-global"
-		/>
-		<IconToggleField
-			items={[
-				{
-					value: 'yes',
-					label: 'Sí',
-					desc: 'Asistí',
-					iconOn: MingcuteCheckCircleFill,
-					iconOff: MingcuteCheckCircleLine
-				},
-				{
-					value: 'no',
-					label: 'No',
-					desc: 'No asistí',
-					iconOn: MingcuteCloseCircleFill,
-					iconOff: MingcuteCloseCircleLine
-				}
-			]}
-		/>
-		<Form.Message />
-	</Form.Field>
-{/if}
-
-{#if isGlobalReasonRequired && hasGlobal === 'yes'}
-	{#if usedGlobal === 'yes'}
-		<Form.Field name="global-reason-yes" class={styles.container()}>
-			<FieldHeader
-				title="Motivo de rendición"
-				description="¿Cuál era tu objetivo principal al dar el examen?"
-				htmlFor="global-reason-yes"
-			/>
-			<IconToggleField
-				items={[
-					{
-						value: 'yes-pass',
-						label: 'Para Aprobar',
-						desc: 'Necesidad',
-						iconOn: MingcuteCheckCircleFill,
-						iconOff: MingcuteCheckCircleLine
-					},
-					{
-						value: 'yes-grade',
-						label: 'Para Nota',
-						desc: 'Subir promedio',
-						iconOn: MingcuteArrowUpCircleFill,
-						iconOff: MingcuteArrowUpCircleLine
-					},
-					{
-						value: 'yes-recover',
-						label: 'Recuperar',
-						desc: 'Inasistencia',
-						iconOn: MingcuteCalendarMonthFill,
-						iconOff: MingcuteCalendarMonthLine
-					},
-					{
-						value: 'other',
-						label: 'No aplica',
-						desc: 'Otro motivo',
-						iconOn: MingcuteForbidCircleFill,
-						iconOff: MingcuteForbidCircleLine
-					}
-				]}
-			/>
-			<Form.Message />
-		</Form.Field>
-	{:else if usedGlobal === 'no'}
-		<Form.Field name="global-reason-no" class={styles.container()}>
-			<FieldHeader
-				title="Motivo de no rendición"
-				description="¿Por qué no te presentaste al examen?"
-				htmlFor="global-reason-no"
-			/>
-			<IconToggleField
-				items={[
-					{
-						value: 'no-exempt',
-						label: 'Eximido',
-						desc: 'Aprobado',
-						iconOn: MingcuteCheckCircleFill,
-						iconOff: MingcuteCheckCircleLine
-					},
-					{
-						value: 'no-abandon',
-						label: 'Inútil',
-						desc: 'Inalcanzable',
-						tooltip: 'Nota inalcanzable, no valía la pena',
-						iconOn: MingcuteMinusCircleFill,
-						iconOff: MingcuteMinusCircleLine
-					},
-					{
-						value: 'no-not-possible',
-						label: 'Sin Derecho',
-						desc: 'Incapacidad',
-						tooltip: 'No cumplía requisitos',
-						iconOn: MingcuteCloseCircleFill,
-						iconOff: MingcuteCloseCircleLine
-					},
-					{
-						value: 'other',
-						label: 'No Aplica',
-						desc: 'Otro motivo',
-						tooltip: 'Otros motivos',
-						iconOn: MingcuteForbidCircleFill,
-						iconOff: MingcuteForbidCircleLine
-					}
-				]}
-			/>
-			<Form.Message />
-		</Form.Field>
-	{/if}
 {/if}
 
 {#if canShowDropIntention && isDropIntentionRequired}
