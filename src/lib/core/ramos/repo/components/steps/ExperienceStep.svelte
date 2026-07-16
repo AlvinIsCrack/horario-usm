@@ -197,21 +197,21 @@
 		items={[
 			{
 				value: '0',
-				label: '1 sem.',
+				label: '1 semestre',
 				desc: 'Reciente',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
 			},
 			{
 				value: '1',
-				label: '2 sem.',
+				label: '2 semestres',
 				desc: 'Fresco',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
 			},
 			{
 				value: '2',
-				label: '3-4 sem.',
+				label: '3-4 semestres',
 				desc: 'Pasado',
 				iconOn: MingcuteDiamondSquareFill,
 				iconOff: MingcuteDiamondSquareLine
@@ -227,28 +227,6 @@
 	/>
 	<Form.Message />
 </Form.Field>
-
-{#if isTemporalContextSelected}
-	<Form.Field name="professor-name" class={styles.container()}>
-		<FieldHeader 
-			optional 
-			title="Profesor del paralelo" 
-			description="¿Con qué docente cursaste la asignatura? Opcional y anónimo." 
-			htmlFor="professor-name" 
-		/>
-		<div class="w-full flex justify-end">
-			<Input
-				id="professor-name"
-				name="professor-name"
-				type="text"
-				placeholder="Ej: Federico Santa María, Pepito..."
-				bind:value={() => form.values['professor-name'], (v) => form.setFieldValue('professor-name', v)}
-				class="md:max-w-xs"
-			/>
-		</div>
-		<Form.Message />
-	</Form.Field>
-{/if}
 
 {#if isTemporalContextSelected}
 	<Form.Field name="previous-attempts" class={styles.container()}>

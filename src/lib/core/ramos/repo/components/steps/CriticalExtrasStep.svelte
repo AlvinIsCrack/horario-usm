@@ -200,12 +200,6 @@
 		</FieldHeader>
 		<div class="flex flex-col items-end gap-1">
 			<div class="w-full flex flex-row justify-between gap-8">
-				{#if form.values['professor-name']}
-					<div class="text-sm border rounded-full px-4 select-none bg-card">
-						<MingcuteUser2Fill class="inline -ml-2"/>
-						{form.values['professor-name']}
-					</div>
-				{/if}
 				<p
 				id="additional-comments-counter"
 				class={cn(
