@@ -190,12 +190,14 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 						};
 					});
 				})()}
+				{@const valid = currentPoints >= TOTAL_BUDGET}
+
 				<p>
 					¿Cómo distribuirías {TOTAL_BUDGET} puntos según el nivel de exigencia real de cada bloque?
 					Prioriza los más fuertes sin preocuparte por una exactitud milimétrica
 				</p>
 				{#if currentPoints}
-				<div transition:fade={{duration: 200}} class="relative mx-auto my-auto aspect-square size-50 pt-2">
+				<div transition:fade={{duration: 200}} data-state={valid ? "on" : "off"} class="relative mx-auto my-auto aspect-square size-50 pt-2">
 					<svg viewBox="0 0 42 42" class="h-full w-full -scale-x-100 transform">
 						<circle
 							cx="21"
@@ -241,7 +243,7 @@ const TAXONOMY_KEYS = Object.keys(INPUTS);
 							text-anchor="middle"
 							class={cn(
 								'fill-muted-foreground origin-center -scale-x-100 transform text-[4px] font-medium',
-								currentPoints >= TOTAL_BUDGET && 'fill-card-foreground font-bold'
+								valid && 'fill-card-foreground font-bold'
 							)}
 						>
 							{currentPoints}/{TOTAL_BUDGET}

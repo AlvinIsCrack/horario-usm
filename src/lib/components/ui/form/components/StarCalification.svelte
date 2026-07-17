@@ -43,7 +43,7 @@
 	</button>
 {/snippet}
 
-<div class="flex flex-row gap-1">
+<div class="flex flex-row gap-1" data-state={star !== 0 ? "on" : "off"}>
 	{@render starComponent(1)}
 	{@render starComponent(2)}
 	{@render starComponent(3)}
